@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Temecula Balloon Weather</title>
+<title>Balloon Weather</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;700&family=JetBrains+Mono:wght@300;400;500;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -151,32 +151,93 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--tx);min-h
 .dtable{width:100%;border-collapse:collapse;font-family:'JetBrains Mono',monospace;font-size:11px;margin-top:12px}
 .dtable th{text-align:left;padding:6px 8px;font-size:9px;text-transform:uppercase;letter-spacing:.05em;color:var(--tx3);font-weight:600;border-bottom:1px solid var(--bdr)}
 .dtable td{padding:5px 8px;border-bottom:1px solid rgba(30,41,59,.4);white-space:nowrap}.dtable tr:hover td{background:rgba(56,189,248,.02)}
+
+/* ═══ LOCATION SEARCH ═══ */
+.loc-ov{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(6px);z-index:200;display:none;align-items:flex-start;justify-content:center;padding-top:80px}
+.loc-ov.v{display:flex}
+.loc-panel{background:var(--card);border:1px solid var(--bdr2);border-radius:var(--r);width:90%;max-width:440px;box-shadow:0 8px 40px rgba(0,0,0,.5);overflow:hidden}
+.loc-hd{padding:14px 18px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between}
+.loc-hd-t{font-size:13px;font-weight:600;color:var(--tx2);text-transform:uppercase;letter-spacing:.05em}
+.loc-close{background:none;border:none;color:var(--tx3);cursor:pointer;font-size:18px;padding:2px 6px;border-radius:4px}.loc-close:hover{color:var(--tx);background:rgba(255,255,255,.05)}
+.loc-body{padding:14px 18px}
+.loc-cur{font-size:11px;color:var(--tx3);margin-bottom:10px;font-family:'JetBrains Mono',monospace}
+.loc-cur span{color:var(--blue);font-weight:600}
+.loc-row{display:flex;gap:8px}
+.loc-input{flex:1;background:var(--card2);border:1px solid var(--bdr);color:var(--tx);padding:9px 14px;border-radius:var(--rs);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;transition:border-color .15s}
+.loc-input:focus{border-color:var(--blue)}
+.loc-input::placeholder{color:var(--tx4)}
+.loc-go{background:rgba(56,189,248,.12);border:1px solid rgba(56,189,248,.25);color:var(--blue);padding:9px 16px;border-radius:var(--rs);cursor:pointer;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;transition:all .15s}
+.loc-go:hover{background:rgba(56,189,248,.2)}
+.loc-results{margin-top:10px;display:flex;flex-direction:column;gap:4px}
+.loc-item{padding:10px 14px;background:var(--card2);border:1px solid var(--bdr);border-radius:var(--rs);cursor:pointer;transition:all .15s}
+.loc-item:hover{border-color:var(--blue);background:rgba(56,189,248,.04)}
+.loc-item-name{font-size:13px;font-weight:600;color:var(--tx)}
+.loc-item-sub{font-size:10px;color:var(--tx3);margin-top:2px;font-family:'JetBrains Mono',monospace}
+.loc-msg{font-size:11px;margin-top:10px;padding:8px 12px;border-radius:var(--rs);font-family:'JetBrains Mono',monospace}
+.loc-msg.err{color:var(--danger);background:rgba(248,113,113,.06)}
+.loc-msg.info{color:var(--blue);background:rgba(56,189,248,.06)}
+.loc-msg.ok{color:var(--calm);background:rgba(52,211,153,.06)}
+
+/* ═══ AVIATION BRIEFING ═══ */
+.ab-sec{margin-bottom:14px;padding:12px 14px;background:var(--card2);border-radius:var(--rs)}
+.ab-sec:last-child{margin-bottom:0}
+.ab-st{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--tx3);font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.ab-item{padding:8px 0;border-bottom:1px solid rgba(30,41,59,.3);font-size:11px;line-height:1.5}
+.ab-item:last-child{border-bottom:none}
+.ab-stn{font-family:'JetBrains Mono',monospace;color:var(--blue);font-weight:700;font-size:11px}
+.ab-tm{font-size:9px;color:var(--tx3);font-family:'JetBrains Mono',monospace;margin-left:6px}
+.ab-raw{background:var(--card);padding:8px 10px;border-radius:var(--rs);margin-top:6px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--tx2);white-space:pre-wrap;word-wrap:break-word;line-height:1.6}
+.ab-haz{display:inline-block;padding:2px 9px;border-radius:12px;font-size:9px;font-weight:600;margin-right:6px;font-family:'JetBrains Mono',monospace}
+.ab-haz.sig{background:rgba(248,113,113,.12);color:var(--danger)}
+.ab-haz.air{background:rgba(251,146,60,.12);color:var(--strong)}
+.ab-haz.pir{background:rgba(56,189,248,.12);color:var(--blue)}
+.ab-haz.gair{background:rgba(168,85,247,.12);color:var(--violet)}
+.ab-tfr{display:inline-block;padding:7px 16px;background:rgba(245,158,11,.1);color:var(--kw);border:1px solid rgba(245,158,11,.25);border-radius:var(--rs);text-decoration:none;font-size:11px;font-weight:600;font-family:'DM Sans',sans-serif;transition:all .15s}
+.ab-tfr:hover{background:rgba(245,158,11,.2);border-color:rgba(245,158,11,.4)}
+.ab-none{font-size:11px;color:var(--tx3);padding:8px 0;text-align:center}
+.ab-links{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;padding-top:12px;border-top:1px solid var(--bdr)}
+.ab-links a{font-size:10px;color:var(--blue);text-decoration:none;font-family:'JetBrains Mono',monospace}.ab-links a:hover{text-decoration:underline}
 </style>
 </head>
 <body>
-<header class="hdr"><div class="hdr-l"><div class="logo">🎈</div><div><div class="hdr-title">Temecula Balloon Weather</div><div class="hdr-sub">French Valley F70 · 33.57°N 117.13°W · 1,349 ft</div></div></div><div class="hdr-r"><div class="upd" id="upd">—</div><button class="rbtn" id="rbtn" onclick="refreshAll()"><span class="ri">↻</span> Refresh</button></div></header>
+<header class="hdr"><div class="hdr-l"><div class="logo">🎈</div><div><div class="hdr-title" id="hdrTitle">Balloon Weather</div><div class="hdr-sub" id="hdrSub">Loading...</div></div></div><div class="hdr-r"><div class="upd" id="upd">—</div><button class="rbtn" onclick="openLoc()">📍 Location</button><button class="rbtn" id="rbtn" onclick="refreshAll()"><span class="ri">↻</span> Refresh</button></div></header>
+<div class="loc-ov" id="locOv"><div class="loc-panel"><div class="loc-hd"><span class="loc-hd-t">Set Location</span><button class="loc-close" onclick="closeLoc()">✕</button></div><div class="loc-body"><div class="loc-cur" id="locCur"></div><div class="loc-row"><input class="loc-input" id="locIn" placeholder="City, State or ZIP code" autocomplete="off"><button class="loc-go" onclick="doSearch()">Search</button></div><div class="loc-results" id="locRes"></div></div></div></div>
 <div class="ga" id="ga"><span>⚠</span><span id="gaTxt"></span></div>
 <div class="dash">
   <div class="cd full"><div class="ch"><div class="ct">🌡 Surface Conditions</div><div class="badge">Open-Meteo GFS</div></div><div class="body" id="surfB"><div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
-  <div class="cd full"><div class="ch"><div class="ct">🎯 Winds Aloft<span class="sub">F70 · SAN · ONT</span></div><div class="badge" id="wTime">Loading…</div></div><div class="body" id="profB"><div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
+  <div class="cd full"><div class="ch"><div class="ct">🎯 Winds Aloft<span class="sub" id="waSub">Loading...</span></div><div class="badge" id="wTime">Loading…</div></div><div class="body" id="profB"><div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
   <div class="cd full"><div class="ch tg open" onclick="tog(this)"><div class="ct">📊 Hourly Forecast<span class="sub">Next 24h</span></div><span class="chv">▾</span></div><div class="body" id="hB"><div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
-  <div class="cd full"><div class="ch tg" onclick="tog(this)"><div class="ct">⚖ Source Comparison<span class="sub">SAN · ONT · F70 · Blended</span></div><span class="chv">▾</span></div><div class="body hide" id="cB"><div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
-  <div class="cd full"><div class="ch tg" onclick="tog(this)"><div class="ct">📝 Area Forecast Discussion</div><div class="badge" id="afdT">NWS SGX</div><span class="chv" style="margin-left:auto;padding-left:10px">▾</span></div><div class="body hide" id="afdB"><div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
-  <div class="cd"><div class="ch tg" onclick="tog(this)"><div class="ct">🗺 Wind Map</div><span class="chv">▾</span></div><div class="body hide" style="padding:0"><iframe class="efr" data-src="https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=default&metricTemp=%C2%B0F&metricWind=mph&zoom=9&overlay=wind&product=ecmwf&level=surface&lat=33.55&lon=-117.13" loading="lazy"></iframe></div></div>
-  <div class="cd"><div class="ch tg" onclick="tog(this)"><div class="ct">🪂 PPG Report</div><span class="chv">▾</span></div><div class="body hide" style="padding:0"><div style="padding:14px 18px;text-align:center;border-bottom:1px solid var(--bdr)"><div style="font-size:11px;color:var(--tx3);margin-bottom:8px">Winds aloft · TAFs · TFRs · SIGMETs · G-AIRMETs</div><a href="https://ppg.report/33.495,-117.147" target="_blank" rel="noopener" style="display:inline-block;background:rgba(56,189,248,.1);color:var(--blue);border:1px solid rgba(56,189,248,.2);padding:7px 18px;border-radius:var(--rs);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;text-decoration:none">Open in Browser ↗</a></div><div id="ppgMsg" style="display:none;padding:24px 18px;text-align:center;font-size:11px;color:var(--tx3)">Embed blocked by browser — use the link above</div><iframe id="ppgFrame" class="efr" data-src="https://ppg.report/33.495,-117.147" referrerpolicy="no-referrer" style="height:460px"></iframe></div></div>
+  <div class="cd full"><div class="ch tg" onclick="tog(this)"><div class="ct">⚖ Source Comparison<span class="sub" id="compSub">Loading...</span></div><span class="chv">▾</span></div><div class="body hide" id="cB"><div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
+  <div class="cd full"><div class="ch tg" onclick="tog(this)"><div class="ct">📝 Area Forecast Discussion</div><div class="badge" id="afdT">NWS</div><span class="chv" style="margin-left:auto;padding-left:10px">▾</span></div><div class="body hide" id="afdB"><div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
+  <div class="cd"><div class="ch tg" onclick="tog(this)"><div class="ct">🗺 Wind Map</div><span class="chv">▾</span></div><div class="body hide" style="padding:0"><iframe class="efr" id="windyFrame" loading="lazy"></iframe></div></div>
+  <div class="cd"><div class="ch"><div class="ct">✈️ Aviation Briefing<span class="sub">TAFs · SIGMETs · AIRMETs · PIREPs</span></div><div class="badge">aviationweather.gov</div></div><div class="body" id="avB"><div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
 </div>
 <script>
-const C={elev:1349,stations:{SAN:{lat:32.73,lon:-117.19},ONT:{lat:34.06,lon:-117.60},F70:{lat:33.57,lon:-117.13}},
+// ═══ CONFIG (dynamic + static) ═══
+const C={
+  // Dynamic — updated by setLocation()
+  lat:33.57,lon:-117.13,elev:1349,name:'Temecula',locName:'French Valley',
+  timezone:'America/Los_Angeles',nwsOffice:'SGX',
+  stations:[
+    {label:'F70',name:'French Valley',lat:33.57,lon:-117.13},
+    {label:'SAN',name:'San Diego',lat:32.73,lon:-117.19},
+    {label:'ONT',name:'Ontario',lat:34.06,lon:-117.60}
+  ],
+  metarStns:[{id:'KCRQ',nm:'Carlsbad',elev:331},{id:'KSAN',nm:'San Diego',elev:17},{id:'KONT',nm:'Ontario',elev:944},{id:'KSNA',nm:'Santa Ana',elev:56}],
+  // Static
   levels:[{hPa:1000,msl:360},{hPa:975,msl:1050},{hPa:950,msl:1640},{hPa:925,msl:2625},{hPa:900,msl:3280},{hPa:875,msl:3940},{hPa:850,msl:4920},{hPa:825,msl:5580},{hPa:800,msl:6230},{hPa:775,msl:7220},{hPa:750,msl:8200},{hPa:700,msl:9840}],
-  dispAlts:[1000,2000,3000,4000,5000,6000,7000,8000],gThr:10,metarStns:[{id:'KCRQ',nm:'Carlsbad',elev:331},{id:'KSAN',nm:'San Diego',elev:17},{id:'KONT',nm:'Ontario',elev:944},{id:'KSNA',nm:'Santa Ana',elev:56}],
+  dispAlts:[1000,2000,3000,4000,5000,6000,7000,8000],gThr:10,
   kw:{'santa ana':{c:'ks',h:'hs0',l:'Santa Ana'},'offshore flow':{c:'ks',h:'hs0',l:'Offshore Flow'},'sundowner':{c:'ks',h:'hs0',l:'Sundowner'},'low pressure':{c:'kp',h:'hp0',l:'Low Pressure'},'trough':{c:'kp',h:'hp0',l:'Trough'},'cold front':{c:'kp',h:'hp0',l:'Cold Front'},'warm front':{c:'kp',h:'hp0',l:'Warm Front'},'marine layer':{c:'km',h:'hm0',l:'Marine Layer'},'onshore flow':{c:'km',h:'hm0',l:'Onshore Flow'},'catalina eddy':{c:'km',h:'hm0',l:'Catalina Eddy'},'fog':{c:'kf',h:'hf0',l:'Fog'},'low stratus':{c:'kf',h:'hf0',l:'Low Stratus'},'visibility':{c:'kf',h:'hf0',l:'Visibility'},'wind shear':{c:'kw',h:'hw0',l:'Wind Shear'},'gusty':{c:'kw',h:'hw0',l:'Gusty'},'gusts':{c:'kw',h:'hw0',l:'Gusts'},'breezy':{c:'kw',h:'hw0',l:'Breezy'},'wind advisory':{c:'kw',h:'hw0',l:'Wind Advisory'},'high wind':{c:'kw',h:'hw0',l:'High Wind'},'turbulence':{c:'kt',h:'ht0',l:'Turbulence'},'convection':{c:'kt',h:'ht0',l:'Convection'},'thunderstorm':{c:'kt',h:'ht0',l:'Thunderstorm'}}
 };
+
+// ═══ HELPERS ═══
+const getTZ=()=>C.timezone||'America/Los_Angeles';
 const cp=d=>{if(d==null||isNaN(d))return'—';return['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'][Math.round(d/22.5)%16]};
 const wC=s=>s<5?'var(--calm)':s<10?'var(--mod)':s<15?'var(--strong)':'var(--danger)';
 const wH=s=>s<5?'#34d399':s<10?'#fbbf24':s<15?'#fb923c':'#f87171';
 const spC=s=>s<=3?'var(--danger)':s<=5?'var(--mod)':'var(--calm)';
-const fT=iso=>new Date(iso).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',hour12:true,timeZone:'America/Los_Angeles'});
-const fH=iso=>new Date(iso).toLocaleTimeString('en-US',{hour:'numeric',hour12:true,timeZone:'America/Los_Angeles'});
+const fT=iso=>new Date(iso).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',hour12:true,timeZone:getTZ()});
+const fH=iso=>new Date(iso).toLocaleTimeString('en-US',{hour:'numeric',hour12:true,timeZone:getTZ()});
 const nI=t=>{const n=Date.now();let c=0,m=Infinity;t.forEach((v,i)=>{const d=Math.abs(new Date(v).getTime()-n);if(d<m){m=d;c=i}});return c};
 const agl=msl=>msl-C.elev;
 const pad3=d=>String(Math.round(((d%360)+360)%360)).padStart(3,'0');
@@ -184,13 +245,10 @@ const toD=d=>((Math.round(d)+180)%360);
 const fDir=d=>d==null||isNaN(d)?'—':`To ${pad3(toD(d))} / From ${pad3(d)}`;
 const fDirTF=d=>d==null||isNaN(d)?'—':`<div style="color:var(--tx2)">To ${cp(toD(d))} ${pad3(toD(d))}°</div><div style="color:var(--tx4)">From ${cp(d)} ${pad3(d)}°</div>`;
 
-// Vector arrow SVG — an elongated arrow that points in wind direction, length = speed
 function vecArrow(dir, spd, maxSpd, color, cellW) {
   if(dir==null||spd==null) return '';
   const len = Math.max(8, (spd / maxSpd) * (cellW * 0.42));
-  const r = (dir||0); // wind direction = where FROM, arrow points where it's going: +180
-  const goDir = (r + 180) % 360;
-  // SVG arrow centered, rotated to goDir
+  const goDir = ((dir||0) + 180) % 360;
   return `<svg width="${cellW}" height="40" viewBox="0 0 ${cellW} 40" style="overflow:visible">
     <g transform="translate(${cellW/2},20) rotate(${goDir})">
       <line x1="0" y1="${len/2}" x2="0" y2="${-len/2}" stroke="${color}" stroke-width="2.5" stroke-linecap="round"/>
@@ -198,31 +256,172 @@ function vecArrow(dir, spd, maxSpd, color, cellW) {
     </g>
   </svg>`;
 }
-
-// Small directional arrow for hourly/comparison
 function smArrow(dir, col, sz) {
   if(dir==null) return '';
   const go = ((dir||0)+180)%360;
   return `<svg width="${sz}" height="${sz}" viewBox="0 0 24 24" style="display:block;margin:0 auto"><g transform="rotate(${go},12,12)"><line x1="12" y1="18" x2="12" y2="6" stroke="${col}" stroke-width="2.5" stroke-linecap="round"/><polygon points="12,4 8,10 16,10" fill="${col}"/></g></svg>`;
 }
 
-function tog(h){h.classList.toggle('open');const b=h.nextElementSibling;b.classList.toggle('hide');const f=b.querySelector('iframe[data-src]');if(f&&!f.src){void b.offsetHeight;f.src=f.dataset.src;f.removeAttribute('data-src');if(f.id==='ppgFrame')chkPPG(f)}}
-function chkPPG(f){const ck=()=>{try{const l=f.contentWindow.location.href;if(!l||l==='about:blank'){f.style.display='none';const m=document.getElementById('ppgMsg');if(m)m.style.display='block'}}catch(e){}};f.addEventListener('load',()=>setTimeout(ck,500),{once:true});setTimeout(ck,5000)}
+function tog(h){h.classList.toggle('open');const b=h.nextElementSibling;b.classList.toggle('hide');const f=b.querySelector('iframe[data-src]');if(f&&!f.src){void b.offsetHeight;f.src=f.dataset.src;f.removeAttribute('data-src')}}
 
+// ═══ LOCATION SEARCH ═══
+function openLoc(){document.getElementById('locOv').classList.add('v');document.getElementById('locIn').focus();updateLocCur()}
+function closeLoc(){document.getElementById('locOv').classList.remove('v');document.getElementById('locRes').innerHTML=''}
+function updateLocCur(){document.getElementById('locCur').innerHTML=`Current: <span>${C.name}</span> · ${C.lat.toFixed(2)}°N ${Math.abs(C.lon).toFixed(2)}°W · ${Math.round(C.elev)} ft`}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeLoc();if(e.key==='Enter'&&document.getElementById('locOv').classList.contains('v'))doSearch()});
+
+async function doSearch(){
+  const q=document.getElementById('locIn').value.trim();if(!q)return;
+  const res=document.getElementById('locRes');
+  res.innerHTML='<div class="loc-msg info">Searching...</div>';
+  try{
+    let results=[];
+    if(/^\d{5}$/.test(q)){
+      const r=await fetch(`https://api.zippopotam.us/us/${q}`);
+      if(!r.ok)throw new Error('ZIP not found');
+      const d=await r.json();const p=d.places?.[0];
+      if(p)results=[{name:p['place name'],admin:d['country abbreviation']+', '+p['state abbreviation'],lat:parseFloat(p.latitude),lon:parseFloat(p.longitude),elevation:null,timezone:null,country:'US'}];
+    }else{
+      const r=await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=5&language=en&format=json`);
+      if(!r.ok)throw new Error('Geocoding failed');
+      const d=await r.json();
+      results=(d.results||[]).map(r=>({name:r.name,admin:[r.admin1,r.country].filter(Boolean).join(', '),lat:r.latitude,lon:r.longitude,elevation:r.elevation,timezone:r.timezone,country:r.country_code}));
+    }
+    if(!results.length){res.innerHTML='<div class="loc-msg err">No results found. Try a different search.</div>';return}
+    res.innerHTML='';
+    results.forEach(r=>{
+      const el=document.createElement('div');el.className='loc-item';
+      el.innerHTML=`<div class="loc-item-name">${r.name}</div><div class="loc-item-sub">${r.admin} · ${r.lat.toFixed(2)}°N ${Math.abs(r.lon).toFixed(2)}°W${r.elevation!=null?' · '+Math.round(r.elevation*3.28084)+' ft':''}</div>`;
+      el.onclick=()=>selectLocation(r);
+      res.appendChild(el);
+    });
+  }catch(e){res.innerHTML=`<div class="loc-msg err">${e.message}</div>`}
+}
+
+async function selectLocation(geo){
+  const res=document.getElementById('locRes');
+  res.innerHTML='<div class="loc-msg info">Discovering nearby stations...</div>';
+  try{
+    // Get elevation if missing (ZIP lookups don't include it)
+    let elev=geo.elevation!=null?Math.round(geo.elevation*3.28084):null;
+    let tz=geo.timezone;
+    let office='';
+    // NWS points lookup
+    try{
+      const pr=await fetch(`https://api.weather.gov/points/${geo.lat.toFixed(4)},${geo.lon.toFixed(4)}`);
+      if(pr.ok){const pd=await pr.json();
+        office=(pd.properties?.forecastOffice||'').split('/').pop()||'';
+        tz=tz||pd.properties?.timeZone||'America/New_York';
+      }
+    }catch(e){console.warn('NWS points:',e)}
+    // Get elevation from Open-Meteo if still missing
+    if(elev==null){try{
+      const er=await fetch(`https://api.open-meteo.com/v1/elevation?latitude=${geo.lat}&longitude=${geo.lon}`);
+      if(er.ok){const ed=await er.json();elev=ed.elevation?.[0]!=null?Math.round(ed.elevation[0]*3.28084):0}
+    }catch(e){elev=0}}
+    // Discover nearby stations
+    let metarStns=[],compStns=[];
+    try{
+      const sr=await fetch(`https://api.weather.gov/points/${geo.lat.toFixed(4)},${geo.lon.toFixed(4)}/stations`);
+      if(sr.ok){const sd=await sr.json();
+        const features=(sd.features||sd.observationStations||[]).filter(f=>f.properties);
+        const allStns=features.map(f=>{
+          const p=f.properties;const c=f.geometry?.coordinates||[];
+          return{id:p.stationIdentifier||'',name:p.name||'',lat:c[1],lon:c[0],elev:p.elevation?.value!=null?Math.round(p.elevation.value*3.28084):0};
+        }).filter(s=>s.id&&s.id.length===4&&s.id.startsWith('K'));
+        // Closest 4 for METAR
+        metarStns=allStns.slice(0,4).map(s=>({id:s.id,nm:s.name.split(',')[0].trim(),elev:s.elev}));
+        // 2 comparison airports: skip very close ones, pick from 20+ miles out
+        const R=3959;const toRad=d=>d*Math.PI/180;
+        const dist=(a,b)=>{const dLat=toRad(b.lat-a.lat),dLon=toRad(b.lon-a.lon);const x=Math.sin(dLat/2)**2+Math.cos(toRad(a.lat))*Math.cos(toRad(b.lat))*Math.sin(dLon/2)**2;return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x))};
+        const home={lat:geo.lat,lon:geo.lon};
+        const withDist=allStns.map(s=>({...s,d:dist(home,s)})).sort((a,b)=>a.d-b.d);
+        const far=withDist.filter(s=>s.d>=20);
+        compStns=far.slice(0,2).map(s=>({label:s.id.replace(/^K/,''),name:s.name.split(',')[0].trim(),lat:s.lat,lon:s.lon}));
+      }
+    }catch(e){console.warn('Stations:',e)}
+    // Build stations array
+    const homeLabel=geo.name.substring(0,4).toUpperCase();
+    const stations=[{label:homeLabel,name:geo.name,lat:geo.lat,lon:geo.lon},...compStns];
+    // Apply to config
+    C.lat=geo.lat;C.lon=geo.lon;C.elev=elev;C.name=geo.name;C.locName=geo.name;
+    C.timezone=tz||'America/New_York';C.nwsOffice=office;
+    C.stations=stations;
+    C.metarStns=metarStns.length?metarStns:[];
+    // Update UI
+    updateUI();
+    // Save to localStorage
+    try{localStorage.setItem('balloonWeatherLoc',JSON.stringify({lat:C.lat,lon:C.lon,elev:C.elev,name:C.name,locName:C.locName,timezone:C.timezone,nwsOffice:C.nwsOffice,stations:C.stations,metarStns:C.metarStns}))}catch(e){}
+    closeLoc();
+    refreshAll();
+  }catch(e){res.innerHTML=`<div class="loc-msg err">Error: ${e.message}</div>`}
+}
+
+function updateUI(){
+  document.title=C.name+' Balloon Weather';
+  document.getElementById('hdrTitle').textContent=C.name+' Balloon Weather';
+  document.getElementById('hdrSub').textContent=`${C.locName} · ${C.lat.toFixed(2)}°N ${Math.abs(C.lon).toFixed(2)}°W · ${Math.round(C.elev).toLocaleString()} ft`;
+  document.getElementById('waSub').textContent=C.stations.map(s=>s.label).join(' · ');
+  document.getElementById('compSub').textContent=C.stations.map(s=>s.label).join(' · ')+' · Blended';
+  if(C.nwsOffice)document.getElementById('afdT').textContent='NWS '+C.nwsOffice;
+  // Update iframe URLs
+  const wf=document.getElementById('windyFrame');
+  const wUrl=`https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=default&metricTemp=%C2%B0F&metricWind=mph&zoom=9&overlay=wind&product=ecmwf&level=surface&lat=${C.lat}&lon=${C.lon}`;
+  if(wf.src)wf.src=wUrl;else wf.dataset.src=wUrl;
+}
+
+// ═══ DATA FETCH ═══
 function omUrl(lat,lon){
   const pv=[];C.levels.forEach(l=>{pv.push(`wind_speed_${l.hPa}hPa`,`wind_direction_${l.hPa}hPa`,`temperature_${l.hPa}hPa`,`geopotential_height_${l.hPa}hPa`)});
   const sv=['temperature_2m','dew_point_2m','relative_humidity_2m','wind_speed_10m','wind_direction_10m','wind_gusts_10m','cloud_cover','visibility','precipitation_probability','surface_pressure'];
-  return`https://api.open-meteo.com/v1/gfs?latitude=${lat}&longitude=${lon}&hourly=${[...sv,...pv].join(',')}&wind_speed_unit=mph&temperature_unit=fahrenheit&forecast_days=2&timezone=America/Los_Angeles&models=gfs_seamless`;
+  return`https://api.open-meteo.com/v1/gfs?latitude=${lat}&longitude=${lon}&hourly=${[...sv,...pv].join(',')}&wind_speed_unit=mph&temperature_unit=fahrenheit&forecast_days=2&timezone=${encodeURIComponent(getTZ())}&models=gfs_seamless`;
 }
 async function fetchOM(a,b){const r=await fetch(omUrl(a,b));if(!r.ok)throw new Error('Open-Meteo '+r.status);return r.json()}
 async function fetchAFD(){
-  const lr=await fetch('https://api.weather.gov/products/types/AFD/locations/SGX');if(!lr.ok)throw new Error('AFD '+lr.status);
+  if(!C.nwsOffice)throw new Error('No NWS office');
+  const lr=await fetch(`https://api.weather.gov/products/types/AFD/locations/${C.nwsOffice}`);if(!lr.ok)throw new Error('AFD '+lr.status);
   const ld=await lr.json();const id=ld['@graph']?.[0]?.id;if(!id)throw new Error('No AFD');
   const pr=await fetch(`https://api.weather.gov/products/${id}`);if(!pr.ok)throw new Error('AFD '+pr.status);
   const pd=await pr.json();return{text:pd.productText,time:pd.issuanceTime};
 }
+async function fetchMETARs(){const results={};if(!C.metarStns.length)return results;await Promise.all(C.metarStns.map(async stn=>{try{const r=await fetch(`https://api.weather.gov/stations/${stn.id}/observations/latest`,{headers:{'Accept':'application/geo+json','User-Agent':'BalloonWeather/1.0'}});if(!r.ok)return;const d=await r.json();results[stn.id]={name:stn.nm,elev:stn.elev,layers:d.properties?.cloudLayers||[],raw:d.properties?.rawMessage||'',time:d.properties?.timestamp}}catch(e){console.warn('METAR',stn.id,e)}}));return results}
 
-async function fetchMETARs(){const results={};await Promise.all(C.metarStns.map(async stn=>{try{const r=await fetch(`https://api.weather.gov/stations/${stn.id}/observations/latest`,{headers:{'Accept':'application/geo+json','User-Agent':'TemeculaBalloonWeather/1.0'}});if(!r.ok)return;const d=await r.json();results[stn.id]={name:stn.nm,elev:stn.elev,layers:d.properties?.cloudLayers||[],raw:d.properties?.rawMessage||'',time:d.properties?.timestamp}}catch(e){console.warn('METAR',stn.id,e)}}));return results}
+// ═══ AVIATION BRIEFING FETCHES ═══
+async function fetchTAFs(){
+  const results={};if(!C.metarStns.length)return results;
+  try{
+    const ids=C.metarStns.map(s=>s.id).join(',');
+    const r=await fetch(`https://aviationweather.gov/api/data/taf?ids=${ids}&format=json`);
+    if(!r.ok)throw new Error('TAF '+r.status);
+    const d=await r.json();
+    // Handle both array and wrapped formats
+    const arr=Array.isArray(d)?d:(d.TAFs||d.data||d.taf||[]);
+    arr.forEach(t=>{
+      const id=t.icaoId||t.stationId||t.station||'';
+      if(id)results[id]={raw:t.rawTAF||t.rawText||t.raw||'',issueTime:t.issueTime||t.bulletinTime||'',validFrom:t.validTimeFrom||t.validFrom||'',validTo:t.validTimeTo||t.validTo||''};
+    });
+  }catch(e){console.warn('TAF:',e)}
+  return results;
+}
+
+async function fetchAirSigmet(){
+  try{
+    const r=await fetch('https://aviationweather.gov/api/data/airsigmet?format=json');
+    if(!r.ok)throw new Error('AIRSIGMET '+r.status);
+    const d=await r.json();
+    const arr=Array.isArray(d)?d:(d.data||[]);
+    return arr;
+  }catch(e){console.warn('AIRSIGMET:',e);return[]}
+}
+
+async function fetchPIREPs(){
+  try{
+    const r=await fetch(`https://aviationweather.gov/api/data/pirep?lat=${C.lat}&lon=${C.lon}&dist=100&format=json`);
+    if(!r.ok)throw new Error('PIREP '+r.status);
+    const d=await r.json();
+    return Array.isArray(d)?d:(d.data||d.PIREPs||[]);
+  }catch(e){console.warn('PIREP:',e);return[]}
+}
 
 // ═══ SURFACE ═══
 function rSurf(d,metars){
@@ -233,9 +432,7 @@ function rSurf(d,metars){
   const prc=h.precipitation_probability?.[i],prs=h.surface_pressure?.[i],inhg=prs!=null?(prs*0.02953).toFixed(2):null;
   chkG(h,i);
   const wndCol=wnd!=null?wH(wnd):'#5a6680';
-  // Compass ticks
   let ticks='';for(let a=0;a<360;a+=30){ticks+=`<div class="ctick" style="transform:rotate(${a}deg) translateX(-0.5px)"></div>`}
-
   let o=`<div class="cw"><div style="text-align:center">
     <div class="cbox"><div class="cring">${ticks}
       <span class="clbl n">N</span><span class="clbl s">S</span><span class="clbl e">E</span><span class="clbl w">W</span>
@@ -250,7 +447,6 @@ function rSurf(d,metars){
     <div class="dir">${wdr!=null?fDir(wdr):'—'}</div>
     ${gst!=null&&gst>=C.gThr?`<div style="color:var(--gust);font-size:13px;margin-top:4px;font-weight:600">Gusts ${Math.round(gst)} mph</div>`:gst!=null?`<div style="color:var(--tx3);font-size:12px;margin-top:4px">Gusts ${Math.round(gst)} mph</div>`:''}</div>
   </div>`;
-  // Stats
   const sprPct=spr!=null?Math.min((spr/15)*100,100):0;
   const cBase=(tmp!=null&&dew!=null)?Math.round(((tmp-dew)/4.4)*1000):null;const cBStr=cBase!=null?(cBase>=1000?(cBase/1000).toFixed(1)+'k ft AGL':cBase+' ft AGL'):'—';
   o+=`<div class="stats">
@@ -262,7 +458,6 @@ function rSurf(d,metars){
     <div class="stat"><div class="stat-lbl">Precip Chance</div><div class="stat-val">${prc!=null?Math.round(prc):'—'}%</div></div>
     <div class="stat"><div class="stat-lbl">Pressure</div><div class="stat-val">${inhg??'—'} inHg</div></div>
   </div></div>`;
-  // Reported Ceilings from METAR
   if(metars&&Object.keys(metars).length){
     const ceilCls={CLR:'clr',SKC:'clr',FEW:'few',SCT:'sct',BKN:'bkn',OVC:'ovc'};
     let loCeil=null,loStn=null;
@@ -296,25 +491,18 @@ function interpAt(h,ti,tMSL){const pts=[];C.levels.forEach(l=>{const s=h[`wind_s
 // ═══ WIND PROFILE — VECTOR FIELD (MULTI-SOURCE) ═══
 function rProfile(allData){
   const el=document.getElementById('profB'),tl=document.getElementById('wTime');
-  const sources=[
-    {key:'F70',label:'F70',sub:'French Valley',data:allData.F70},
-    {key:'SAN',label:'SAN',sub:'San Diego',data:allData.SAN},
-    {key:'ONT',label:'ONT',sub:'Ontario',data:allData.ONT}
-  ];
-  const f70h=allData.F70.hourly,ci=nI(f70h.time);
-  tl.textContent=fT(f70h.time[ci]);
-  // Global max speed across all sources for consistent arrow scaling
+  const sources=C.stations.map(s=>({key:s.label,label:s.label,sub:s.name,data:allData[s.label]}));
+  const homeH=sources[0].data.hourly,ci=nI(homeH.time);
+  tl.textContent=fT(homeH.time[ci]);
   let maxSpd=15;
   const allLvl=C.levels.filter(l=>agl(l.msl)>=0);
   sources.forEach(src=>{const h=src.data.hourly,si=nI(h.time);allLvl.forEach(l=>{const s=h[`wind_speed_${l.hPa}hPa`]?.[si]||0;if(s>maxSpd)maxSpd=s})});
   const cellW=120;
   let o='<div class="vf-wrap">';
-  // Source headers
   o+='<div class="vf-row vf-hdr">';
   o+='<div class="vf-alt"></div>';
   sources.forEach((src,i)=>{o+=`<div class="vf-cell" style="height:auto;border:none;padding:6px 0${i>0?';border-left:1px solid rgba(30,41,59,.3)':''}"><div style="font-size:12px;font-weight:700;color:var(--tx);font-family:'JetBrains Mono',monospace">${src.label}</div><div style="font-size:9px;color:var(--tx4);margin-top:1px">${src.sub}</div></div>`});
   o+='</div>';
-  // Altitude rows at even 1000-ft AGL intervals (interpolated from pressure levels)
   C.dispAlts.slice().reverse().forEach(ag=>{
     const msl=ag+C.elev,al=(ag/1000)+'k',ml=(msl/1000).toFixed(1)+'k';
     o+='<div class="vf-row">';
@@ -328,13 +516,13 @@ function rProfile(allData){
     o+='</div>';
   });
   o+='</div>';
-  // F70 Data table
-  o+=`<div style="text-align:center;margin-top:8px"><button class="atog" onclick="this.nextElementSibling.classList.toggle('hide');this.textContent=this.nextElementSibling.classList.contains('hide')?'Show F70 6-Hour Data Table':'Hide Data Table'" style="width:auto;display:inline-block;padding:5px 16px">Show F70 6-Hour Data Table</button>`;
-  const hrs=[];for(let i=ci;i<Math.min(ci+6,f70h.time.length);i++)hrs.push(i);
-  o+=`<div class="hide"><table class="dtable"><thead><tr><th>Alt</th>`;hrs.forEach((hi,j)=>o+=`<th>${j===0?'Now':fH(f70h.time[hi])}</th>`);o+=`</tr></thead><tbody>`;
+  const homeLbl=C.stations[0].label;
+  o+=`<div style="text-align:center;margin-top:8px"><button class="atog" onclick="this.nextElementSibling.classList.toggle('hide');this.textContent=this.nextElementSibling.classList.contains('hide')?'Show ${homeLbl} 6-Hour Data Table':'Hide Data Table'" style="width:auto;display:inline-block;padding:5px 16px">Show ${homeLbl} 6-Hour Data Table</button>`;
+  const hrs=[];for(let i=ci;i<Math.min(ci+6,homeH.time.length);i++)hrs.push(i);
+  o+=`<div class="hide"><table class="dtable"><thead><tr><th>Alt</th>`;hrs.forEach((hi,j)=>o+=`<th>${j===0?'Now':fH(homeH.time[hi])}</th>`);o+=`</tr></thead><tbody>`;
   C.dispAlts.forEach(ag=>{const msl=ag+C.elev,al=(ag/1000)+'k ft';
     o+=`<tr><td style="color:var(--tx2)">${al}</td>`;
-    hrs.forEach(hi=>{const w=interpAt(f70h,hi,msl);const spd=w?.spd??null,dir=w?.dir??null,tmp=w?.tmp??null,col=spd!=null?wC(spd):'var(--tx3)';
+    hrs.forEach(hi=>{const w=interpAt(homeH,hi,msl);const spd=w?.spd??null,dir=w?.dir??null,tmp=w?.tmp??null,col=spd!=null?wC(spd):'var(--tx3)';
       o+=`<td><span style="color:${col};font-weight:600">${spd!=null?Math.round(spd):'—'}</span> <span style="color:var(--tx3);font-size:9px">${fDir(dir)}</span>${tmp!=null?` <span style="font-size:9px;color:var(--tx4)">${Math.round(tmp)}°F</span>`:''}</td>`;
     });o+='</tr>';});
   o+=`</tbody></table></div></div>`;
@@ -381,7 +569,7 @@ function rComp(data){
 // ═══ AFD ═══
 function rAFD(d){
   const el=document.getElementById('afdB'),tl=document.getElementById('afdT');
-  tl.textContent='SGX · '+new Date(d.time).toLocaleString('en-US',{timeZone:'America/Los_Angeles',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
+  tl.textContent=(C.nwsOffice||'NWS')+' · '+new Date(d.time).toLocaleString('en-US',{timeZone:getTZ(),month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
   const txt=d.text||'',lo=txt.toLowerCase(),found=new Map();
   for(const[kw,cfg]of Object.entries(C.kw)){if(lo.includes(kw))found.set(cfg.l,cfg)}
   const sents=txt.split(/[.!]\s+/).filter(s=>s.trim().length>20),pts=[],kwS=new Set(Object.keys(C.kw));
@@ -389,19 +577,165 @@ function rAFD(d){
   let hl=txt.replace(/</g,'&lt;').replace(/>/g,'&gt;');
   for(const[kw,cfg]of Object.entries(C.kw)){hl=hl.replace(new RegExp(`(${kw.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`,'gi'),`<span class="${cfg.h}">$1</span>`)}
   let o='';if(found.size>0){o+='<div class="asum"><div class="asmt">Detected Keywords</div><div class="akws">';for(const[l,cfg]of found)o+=`<span class="akw ${cfg.c}">${l}</span>`;o+='</div>';if(pts.length){o+='<ul class="apts">';pts.forEach(p=>o+=`<li class="apt">${p}</li>`);o+='</ul>'}o+='</div>'}
-  o+=`<button class="atog" onclick="togAFD()">Show Full Discussion</button><div class="afull" id="aFull">${hl}</div><a class="aext" href="https://forecast.weather.gov/product.php?site=sgx&issuedby=SGX&product=AFD" target="_blank" rel="noopener">Open on NWS website ↗</a>`;el.innerHTML=o;
+  const ofc=(C.nwsOffice||'sgx').toLowerCase();
+  o+=`<button class="atog" onclick="togAFD()">Show Full Discussion</button><div class="afull" id="aFull">${hl}</div><a class="aext" href="https://forecast.weather.gov/product.php?site=${ofc}&issuedby=${C.nwsOffice||'SGX'}&product=AFD" target="_blank" rel="noopener">Open on NWS website ↗</a>`;el.innerHTML=o;
 }
 function togAFD(){const e=document.getElementById('aFull'),b=e.previousElementSibling;e.classList.toggle('v');b.textContent=e.classList.contains('v')?'Hide Full Discussion':'Show Full Discussion'}
 
+// ═══ AVIATION BRIEFING ═══
+function haverNm(lat1,lon1,lat2,lon2){const R=3440.065;const toR=d=>d*Math.PI/180;const dLat=toR(lat2-lat1),dLon=toR(lon2-lon1);const a=Math.sin(dLat/2)**2+Math.cos(toR(lat1))*Math.cos(toR(lat2))*Math.sin(dLon/2)**2;return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a))}
+
+function rAvBriefing(tafs,airSig,pireps){
+  const el=document.getElementById('avB');
+  let o='';
+
+  // ── TAFs ──
+  const tafKeys=Object.keys(tafs);
+  if(tafKeys.length){
+    o+='<div class="ab-sec"><div class="ab-st">🎯 Terminal Aerodrome Forecasts (TAF)</div>';
+    tafKeys.forEach(id=>{
+      const t=tafs[id];
+      const iss=t.issueTime?fT(t.issueTime):'';
+      const vf=t.validFrom?fT(t.validFrom):'';
+      const vt=t.validTo?fT(t.validTo):'';
+      o+=`<div class="ab-item"><div><span class="ab-stn">${id}</span>`;
+      if(iss)o+=`<span class="ab-tm">Issued ${iss}</span>`;
+      o+=`</div>`;
+      if(vf||vt)o+=`<div style="margin-top:3px;font-size:9px;color:var(--tx4)">Valid ${vf}${vt?' — '+vt:''}</div>`;
+      if(t.raw)o+=`<div class="ab-raw">${t.raw.replace(/</g,'&lt;')}</div>`;
+      o+='</div>';
+    });
+    o+='</div>';
+  }else{
+    o+='<div class="ab-sec"><div class="ab-st">🎯 Terminal Aerodrome Forecasts (TAF)</div><div class="ab-none">No TAFs available for nearby stations</div></div>';
+  }
+
+  // ── SIGMETs & AIRMETs ──
+  // Filter by proximity — items may have lat/lon or coords array
+  const nearby=airSig.filter(item=>{
+    const lat=item.lat||item.latitude||(item.coords?.[1]);
+    const lon=item.lon||item.longitude||(item.coords?.[0]);
+    if(lat!=null&&lon!=null)return haverNm(C.lat,C.lon,lat,lon)<=150;
+    // If no coords, include if it mentions our state/region or is CONUS-wide
+    return true;
+  });
+  const sigmets=nearby.filter(i=>(i.airsigmetType||i.type||'').toLowerCase().includes('sigmet'));
+  const airmets=nearby.filter(i=>{const t=(i.airsigmetType||i.type||'').toLowerCase();return t.includes('airmet')||t.includes('g-airmet')});
+  const other=nearby.filter(i=>{const t=(i.airsigmetType||i.type||'').toLowerCase();return!t.includes('sigmet')&&!t.includes('airmet')});
+
+  if(sigmets.length){
+    o+='<div class="ab-sec"><div class="ab-st">⚠️ SIGMETs</div>';
+    sigmets.slice(0,5).forEach(s=>{
+      const haz=s.hazard||s.hazardType||s.rawAirSigmet?.substring(0,40)||'Active';
+      const sev=s.severity||'';
+      const vf=s.validTimeFrom?fT(s.validTimeFrom):'';
+      const vt=s.validTimeTo?fT(s.validTimeTo):'';
+      const raw=s.rawAirSigmet||s.rawText||s.raw||'';
+      o+=`<div class="ab-item"><span class="ab-haz sig">SIGMET${sev?' · '+sev:''}</span>`;
+      if(haz&&haz!=='Active')o+=`<span style="font-size:10px;color:var(--tx2);font-weight:600">${haz}</span>`;
+      if(vf||vt)o+=`<div style="font-size:9px;color:var(--tx4);margin-top:3px">Valid ${vf}${vt?' — '+vt:''}</div>`;
+      if(raw)o+=`<div class="ab-raw">${raw.replace(/</g,'&lt;').substring(0,300)}</div>`;
+      o+='</div>';
+    });
+    if(sigmets.length>5)o+=`<div style="font-size:10px;color:var(--tx3);padding:6px 0">+${sigmets.length-5} more SIGMETs</div>`;
+    o+='</div>';
+  }
+
+  if(airmets.length){
+    o+='<div class="ab-sec"><div class="ab-st">⚡ AIRMETs / G-AIRMETs</div>';
+    airmets.slice(0,5).forEach(a=>{
+      const haz=a.hazard||a.hazardType||'Active';
+      const vf=a.validTimeFrom?fT(a.validTimeFrom):'';
+      const vt=a.validTimeTo?fT(a.validTimeTo):'';
+      const raw=a.rawAirSigmet||a.rawText||a.raw||'';
+      o+=`<div class="ab-item"><span class="ab-haz air">AIRMET</span>`;
+      if(haz&&haz!=='Active')o+=`<span style="font-size:10px;color:var(--tx2);font-weight:600">${haz}</span>`;
+      if(vf||vt)o+=`<div style="font-size:9px;color:var(--tx4);margin-top:3px">Valid ${vf}${vt?' — '+vt:''}</div>`;
+      if(raw)o+=`<div class="ab-raw">${raw.replace(/</g,'&lt;').substring(0,300)}</div>`;
+      o+='</div>';
+    });
+    if(airmets.length>5)o+=`<div style="font-size:10px;color:var(--tx3);padding:6px 0">+${airmets.length-5} more AIRMETs</div>`;
+    o+='</div>';
+  }
+
+  if(!sigmets.length&&!airmets.length){
+    o+='<div class="ab-sec"><div class="ab-st">✅ SIGMETs / AIRMETs</div><div class="ab-none">No active SIGMETs or AIRMETs in your area</div></div>';
+  }
+
+  // ── PIREPs ──
+  if(pireps.length){
+    o+='<div class="ab-sec"><div class="ab-st">✈️ Pilot Reports (PIREPs)</div>';
+    pireps.slice(0,6).forEach(p=>{
+      const tp=p.reportType||p.pirepType||(p.rawOb?.startsWith('UUA')?'UUA':'UA');
+      const tm=p.obsTime||p.receiptTime||'';
+      const tmS=tm?fT(tm):'';
+      const alt=p.fltlvl||p.altitudeFt||p.altitude||'';
+      const altS=alt?(typeof alt==='number'?'FL'+String(Math.round(alt/100)).padStart(3,'0'):alt):'';
+      const raw=p.rawOb||p.rawText||p.raw||'';
+      o+=`<div class="ab-item"><span class="ab-haz pir">${tp}</span>`;
+      if(tmS)o+=`<span class="ab-tm">${tmS}</span>`;
+      if(altS)o+=`<span class="ab-tm">${altS}</span>`;
+      if(raw)o+=`<div style="margin-top:4px;font-size:10px;color:var(--tx2);font-family:'JetBrains Mono',monospace;word-break:break-all">${raw.replace(/</g,'&lt;').substring(0,200)}</div>`;
+      o+='</div>';
+    });
+    if(pireps.length>6)o+=`<div style="font-size:10px;color:var(--tx3);padding:6px 0">+${pireps.length-6} more PIREPs nearby</div>`;
+    o+='</div>';
+  }
+
+  // ── TFRs (link only) ──
+  o+='<div class="ab-sec"><div class="ab-st">🚁 Temporary Flight Restrictions (TFR)</div>';
+  o+=`<div style="font-size:11px;color:var(--tx3);margin-bottom:8px">Check FAA for current TFRs in your area</div>`;
+  o+=`<a class="ab-tfr" href="https://tfr.faa.gov/tfr3/" target="_blank" rel="noopener">View FAA TFR Map ↗</a>`;
+  o+='</div>';
+
+  // ── External links ──
+  o+=`<div class="ab-links"><a href="https://ppg.report/${C.lat},${C.lon}" target="_blank" rel="noopener">PPG Report ↗</a><a href="https://aviationweather.gov/" target="_blank" rel="noopener">Aviation Weather ↗</a><a href="https://tfr.faa.gov/tfr3/" target="_blank" rel="noopener">FAA TFRs ↗</a><a href="https://www.1800wxbrief.com/" target="_blank" rel="noopener">1800WxBrief ↗</a></div>`;
+
+  el.innerHTML=o;
+}
+
+// ═══ REFRESH ═══
 let busy=false;
 async function refreshAll(){if(busy)return;busy=true;document.getElementById('rbtn').classList.add('ld');
-  try{const[f70,san,ont,afd,metars]=await Promise.all([fetchOM(C.stations.F70.lat,C.stations.F70.lon),fetchOM(C.stations.SAN.lat,C.stations.SAN.lon),fetchOM(C.stations.ONT.lat,C.stations.ONT.lon),fetchAFD().catch(e=>{console.warn('AFD:',e);return null}),fetchMETARs().catch(e=>{console.warn('METAR:',e);return{}})]);
-    rSurf(f70,metars);rProfile({F70:f70,SAN:san,ONT:ont});rHourly(f70);rComp({SAN:san,ONT:ont,F70:f70});
+  try{
+    // Fetch weather data for all stations + AFD + METARs in parallel
+    const fetches=C.stations.map(s=>fetchOM(s.lat,s.lon));
+    const [stnData,afd,metars,tafs,airSig,pireps]=await Promise.all([
+      Promise.all(fetches),
+      fetchAFD().catch(e=>{console.warn('AFD:',e);return null}),
+      fetchMETARs().catch(e=>{console.warn('METAR:',e);return{}}),
+      fetchTAFs().catch(e=>{console.warn('TAF:',e);return{}}),
+      fetchAirSigmet().catch(e=>{console.warn('AIRSIGMET:',e);return[]}),
+      fetchPIREPs().catch(e=>{console.warn('PIREP:',e);return[]})
+    ]);
+    // Build keyed data object
+    const allData={};C.stations.forEach((s,i)=>{allData[s.label]=stnData[i]});
+    // Build comparison data (all stations keyed by label)
+    const compData={};C.stations.forEach(s=>{compData[s.label]=allData[s.label]});
+    // Render
+    rSurf(stnData[0],metars);
+    rProfile(allData);
+    rHourly(stnData[0]);
+    rComp(compData);
     if(afd)rAFD(afd);else document.getElementById('afdB').innerHTML='<div class="err">AFD unavailable</div>';
-    document.getElementById('upd').textContent='Updated '+new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',second:'2-digit',hour12:true,timeZone:'America/Los_Angeles'});
+    rAvBriefing(tafs,airSig,pireps);
+    document.getElementById('upd').textContent='Updated '+new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',second:'2-digit',hour12:true,timeZone:getTZ()});
   }catch(e){console.error(e);document.getElementById('surfB').innerHTML=`<div class="err">Error: ${e.message}</div>`}
   finally{busy=false;document.getElementById('rbtn').classList.remove('ld')}}
-document.addEventListener('DOMContentLoaded',()=>{refreshAll();setInterval(refreshAll,5*60*1000)});
+
+// ═══ INIT ═══
+document.addEventListener('DOMContentLoaded',()=>{
+  // Load saved location from localStorage
+  try{
+    const saved=localStorage.getItem('balloonWeatherLoc');
+    if(saved){const s=JSON.parse(saved);
+      if(s.lat&&s.lon){C.lat=s.lat;C.lon=s.lon;C.elev=s.elev||0;C.name=s.name||'Unknown';C.locName=s.locName||s.name||'Unknown';C.timezone=s.timezone||'America/New_York';C.nwsOffice=s.nwsOffice||'';C.stations=s.stations||C.stations;C.metarStns=s.metarStns||C.metarStns}
+    }
+  }catch(e){console.warn('Load location:',e)}
+  updateUI();
+  refreshAll();
+  setInterval(refreshAll,5*60*1000);
+});
 </script>
 </body>
 </html>
