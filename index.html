@@ -84,6 +84,17 @@ a.badge{cursor:pointer}a.badge:hover{background:rgba(56,189,248,.2);color:#7dd3f
 .vf-spd{font-weight:600;font-size:12px}
 .vf-dist{font-size:8px;color:var(--tx4);font-family:'JetBrains Mono',monospace;margin-top:1px}
 
+/* ═══ SURFACE COMPARISON GRID ═══ */
+.sc-wrap{margin-top:16px;padding-top:14px;border-top:1px solid var(--bdr)}
+.sc-title{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--tx3);font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.sc-scroll{overflow-x:auto;padding-bottom:6px;-webkit-overflow-scrolling:touch}
+.sc-grid{display:inline-flex;flex-direction:column;min-width:100%}
+.sc-row{display:flex;align-items:center;gap:0;margin-bottom:1px}
+.sc-lbl{width:90px;min-width:90px;flex-shrink:0;text-align:right;padding-right:10px;font-size:10px;color:var(--tx3);font-family:'JetBrains Mono',monospace;white-space:nowrap}
+.sc-cell{width:120px;min-width:120px;max-width:120px;flex-shrink:0;height:32px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;border-bottom:1px solid rgba(30,41,59,.2);overflow:hidden}
+.sc-hdr{background:var(--card);padding:4px 0;border-bottom:1px solid var(--bdr);margin-bottom:3px}
+.sc-hdr .sc-cell{height:auto;border:none;flex-direction:column;gap:1px;padding:4px 2px}
+
 /* ═══ HOURLY ═══ */
 .hstrip{display:flex;gap:2px;overflow-x:auto;padding-bottom:6px}
 .hcol{flex:0 0 52px;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 3px;border-radius:6px;transition:background .15s;cursor:pointer}
@@ -458,6 +469,7 @@ async function fetchPIREPs(){
 }
 
 // ═══ SURFACE ═══
+let _allStnData=null; // stored by refreshAll for surface comparison
 function rSurf(d,metars){
   const el=document.getElementById('surfB'),h=d.hourly,i=nI(h.time);
   const tmp=h.temperature_2m?.[i],dew=h.dew_point_2m?.[i],spr=(tmp!=null&&dew!=null)?(tmp-dew).toFixed(1):null;
@@ -515,6 +527,49 @@ function rSurf(d,metars){
       o+=`<div style="margin-top:8px;padding:6px 10px;background:var(--card2);border-radius:var(--rs);font-size:11px;font-family:'JetBrains Mono',monospace;display:flex;align-items:center;gap:8px"><span style="color:var(--tx3)">Lowest ceiling:</span><span style="color:${loCeil<2000?'var(--danger)':loCeil<5000?'var(--mod)':'var(--calm)'};font-weight:700">${cs} ft AGL</span><span style="color:var(--tx4)">@ ${loStn}</span></div>`;
     }
     o+=`</div>`;
+  }
+  // ═══ SURFACE CONDITIONS COMPARISON (inline) ═══
+  if(_allStnData){
+    const sources=C.stations.map(s=>({label:s.label,name:s.name,dist:s.dist||0,data:_allStnData[s.label]})).filter(s=>s.data&&s.data.hourly);
+    if(sources.length>=2){
+      o+='<div class="sc-wrap"><div class="sc-title">📍 Conditions at Nearby Stations <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:9px;color:var(--tx4)">scroll →</span></div>';
+      o+='<div class="sc-scroll"><div class="sc-grid">';
+      // Header row
+      o+='<div class="sc-row sc-hdr"><div class="sc-lbl"></div>';
+      sources.forEach((src,si)=>{
+        o+=`<div class="sc-cell"${si>0?' style="border-left:1px solid rgba(30,41,59,.3)"':''}>`;
+        o+=`<div style="font-size:10px;font-weight:700;color:${si===0?'var(--blue)':'var(--tx)'}">${src.label}</div>`;
+        o+=`<div style="font-size:7px;color:var(--tx4);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%">${src.name}</div>`;
+        o+=src.dist>0?`<div class="vf-dist">${src.dist} mi</div>`:`<div class="vf-dist" style="color:var(--blue)">Home</div>`;
+        o+='</div>';
+      });
+      o+='</div>';
+      // Data rows
+      const scRows=[
+        {lbl:'Temp',fn:(h,ci)=>{const v=h.temperature_2m?.[ci];return v!=null?`<span>${Math.round(v)}°F</span>`:'—'}},
+        {lbl:'Dew Pt',fn:(h,ci)=>{const v=h.dew_point_2m?.[ci];return v!=null?`<span style="color:var(--tx2)">${Math.round(v)}°F</span>`:'—'}},
+        {lbl:'Spread',fn:(h,ci)=>{const t=h.temperature_2m?.[ci],d=h.dew_point_2m?.[ci];if(t==null||d==null)return'—';const sp=(t-d).toFixed(1);return`<span style="color:${spC(parseFloat(sp))}">${sp}°</span>`}},
+        {lbl:'Wind',fn:(h,ci)=>{const s=h.wind_speed_10m?.[ci],d=h.wind_direction_10m?.[ci];if(s==null)return'—';return`<span style="color:${wC(s)}">${Math.round(s)}</span><span style="font-size:9px;color:var(--tx3);font-weight:400"> ${d!=null?cp(d):''}</span>`}},
+        {lbl:'Gusts',fn:(h,ci)=>{const g=h.wind_gusts_10m?.[ci];if(g==null)return'<span style="color:var(--tx4)">—</span>';return`<span style="color:${g>=C.gThr?'var(--gust)':'var(--tx2)'}">${Math.round(g)} mph</span>`}},
+        {lbl:'Cloud Base',fn:(h,ci)=>{const t=h.temperature_2m?.[ci],d=h.dew_point_2m?.[ci];if(t==null||d==null)return'—';const cb=Math.round(((t-d)/4.4)*1000);return cb>=1000?`${(cb/1000).toFixed(1)}k'`:`${cb}'`}},
+        {lbl:'Cloud %',fn:(h,ci)=>{const v=h.cloud_cover?.[ci];return v!=null?`${Math.round(v)}%`:'—'}},
+        {lbl:'Visibility',fn:(h,ci)=>{const v=h.visibility?.[ci];return v!=null?`${(v/1609.34).toFixed(1)} mi`:'—'}},
+        {lbl:'Precip %',fn:(h,ci)=>{const v=h.precipitation_probability?.[ci];if(v==null)return'—';return v>0?`<span style="color:var(--blue)">${Math.round(v)}%</span>`:`<span style="color:var(--tx4)">0%</span>`}},
+        {lbl:'Pressure',fn:(h,ci)=>{const v=h.surface_pressure?.[ci];return v!=null?`${(v*0.02953).toFixed(2)}`:'—'}},
+      ];
+      scRows.forEach((row,ri)=>{
+        o+=`<div class="sc-row"${ri%2===0?' style="background:rgba(15,21,37,.4)"':''}>`;
+        o+=`<div class="sc-lbl">${row.lbl}</div>`;
+        sources.forEach((src,si)=>{
+          const sh=src.data.hourly,sci=nI(sh.time);
+          o+=`<div class="sc-cell"${si>0?' style="border-left:1px solid rgba(30,41,59,.15)"':''}>${row.fn(sh,sci)}</div>`;
+        });
+        o+='</div>';
+      });
+      o+='</div></div>';
+      if(sources.length>3){o+=`<div style="text-align:center;padding:4px 0"><span style="font-size:9px;color:var(--tx4);font-family:'JetBrains Mono',monospace">← Scroll for ${sources.length} stations →</span></div>`}
+      o+='</div>';
+    }
   }
   el.innerHTML=o;
 }
@@ -782,6 +837,7 @@ async function refreshAll(){if(busy)return;busy=true;document.getElementById('rb
     const allData={};C.stations.forEach((s,i)=>{allData[s.label]=stnData[i]});
     // Render
     const homeData=stnData[0]||stnData.find(d=>d!=null);
+    _allStnData=allData;
     if(homeData){rSurf(homeData,metars);rHourly(homeData)}
     rProfile(allData);
     if(afd)rAFD(afd);else document.getElementById('afdB').innerHTML='<div class="err">AFD unavailable</div>';
