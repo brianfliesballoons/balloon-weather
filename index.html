@@ -280,8 +280,8 @@ const C={
   ],
   metarStns:[{id:'KCRQ',nm:'Carlsbad',elev:331},{id:'KSAN',nm:'San Diego',elev:17},{id:'KONT',nm:'Ontario',elev:944},{id:'KSNA',nm:'Santa Ana',elev:56}],
   // Static
-  levels:[{hPa:1000,msl:360},{hPa:975,msl:1050},{hPa:950,msl:1640},{hPa:925,msl:2625},{hPa:900,msl:3280},{hPa:875,msl:3940},{hPa:850,msl:4920},{hPa:825,msl:5580},{hPa:800,msl:6230},{hPa:775,msl:7220},{hPa:750,msl:8200},{hPa:700,msl:9840}],
-  dispAlts:[1000,2000,3000,4000,5000,6000,7000,8000],gThr:10,
+  levels:[{hPa:1000,msl:360},{hPa:975,msl:1050},{hPa:950,msl:1640},{hPa:925,msl:2625},{hPa:900,msl:3280},{hPa:875,msl:3940},{hPa:850,msl:4920},{hPa:825,msl:5580},{hPa:800,msl:6230},{hPa:775,msl:7220},{hPa:750,msl:8200},{hPa:700,msl:9840},{hPa:650,msl:11780},{hPa:600,msl:13800},{hPa:550,msl:15960},{hPa:500,msl:18290}],
+  dispAlts:[1000,2000,3000,4000,5000,6000,7000,8000,9000,10000,11000,12000,13000,14000,15000,16000,17000,18000],gThr:10,
   kw:{'santa ana':{c:'ks',h:'hs0',l:'Santa Ana'},'offshore flow':{c:'ks',h:'hs0',l:'Offshore Flow'},'sundowner':{c:'ks',h:'hs0',l:'Sundowner'},'low pressure':{c:'kp',h:'hp0',l:'Low Pressure'},'trough':{c:'kp',h:'hp0',l:'Trough'},'cold front':{c:'kp',h:'hp0',l:'Cold Front'},'warm front':{c:'kp',h:'hp0',l:'Warm Front'},'marine layer':{c:'km',h:'hm0',l:'Marine Layer'},'onshore flow':{c:'km',h:'hm0',l:'Onshore Flow'},'catalina eddy':{c:'km',h:'hm0',l:'Catalina Eddy'},'fog':{c:'kf',h:'hf0',l:'Fog'},'low stratus':{c:'kf',h:'hf0',l:'Low Stratus'},'visibility':{c:'kf',h:'hf0',l:'Visibility'},'wind shear':{c:'kw',h:'hw0',l:'Wind Shear'},'gusty':{c:'kw',h:'hw0',l:'Gusty'},'gusts':{c:'kw',h:'hw0',l:'Gusts'},'breezy':{c:'kw',h:'hw0',l:'Breezy'},'wind advisory':{c:'kw',h:'hw0',l:'Wind Advisory'},'high wind':{c:'kw',h:'hw0',l:'High Wind'},'turbulence':{c:'kt',h:'ht0',l:'Turbulence'},'convection':{c:'kt',h:'ht0',l:'Convection'},'thunderstorm':{c:'kt',h:'ht0',l:'Thunderstorm'}}
 };
 
@@ -644,9 +644,9 @@ function rMicroProfile(allData){
   rows.forEach(r=>{if(r.wind&&r.wind.spd>maxSpd)maxSpd=r.wind.spd});
   const cellW=36;
   let o='<div class="mvf-scroll"><div class="mvf-wrap">';
-  // Render rows top-down (2000 → 0)
+  // Render rows ascending (0 → 2000)
   let prevW=null;
-  for(let ri=rows.length-1;ri>=0;ri--){
+  for(let ri=0;ri<rows.length;ri++){
     const r=rows[ri];
     const spd=r.wind?.spd??null,dir=r.wind?.dir??null;
     const col=spd!=null?wH(spd):'#3d4a60';
@@ -708,7 +708,7 @@ function rProfile(allData){
   o+='</div>';
   // Data rows — one per altitude, with shear detection
   let prevHomeW=null;
-  C.dispAlts.slice().reverse().forEach(ag=>{
+  C.dispAlts.forEach(ag=>{
     const msl=ag+C.elev,al=(ag/1000)+'k',ml=(msl/1000).toFixed(1)+'k';
     // Get home station wind for shear check
     const homeW=interpAt(homeH,ci,msl);
