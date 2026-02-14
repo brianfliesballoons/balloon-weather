@@ -84,6 +84,29 @@ a.badge{cursor:pointer}a.badge:hover{background:rgba(56,189,248,.2);color:#7dd3f
 .vf-spd{font-weight:600;font-size:12px}
 .vf-dist{font-size:8px;color:var(--tx4);font-family:'JetBrains Mono',monospace;margin-top:1px}
 
+/* ═══ WIND SHEAR BARS ═══ */
+.vf-shear{display:flex;align-items:center;gap:0;margin:0;height:22px;background:rgba(251,191,36,.1);border-top:1.5px solid rgba(251,191,36,.35);border-bottom:1.5px solid rgba(251,191,36,.35)}
+.vf-shear.strong{background:rgba(255,107,53,.1);border-color:rgba(255,107,53,.35)}
+.vf-shear .vf-alt{font-size:8px;color:var(--mod);font-weight:600}
+.vf-shear.strong .vf-alt{color:var(--gust)}
+.vf-shear .vf-cell{height:22px;border:none;justify-content:flex-start;padding-left:6px;font-size:9px;font-family:'JetBrains Mono',monospace;color:var(--mod);font-weight:600}
+.vf-shear.strong .vf-cell{color:var(--gust)}
+
+/* ═══ MICRO WINDS ALOFT ═══ */
+.mvf-scroll{overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch}
+.mvf-wrap{padding:6px 0;display:flex;flex-direction:column;min-width:100%}
+.mvf-row{display:flex;align-items:center;gap:0;margin-bottom:1px}
+.mvf-alt{width:65px;min-width:65px;flex-shrink:0;text-align:right;padding-right:8px;font-size:9px;color:var(--tx3);font-family:'JetBrains Mono',monospace;white-space:nowrap}
+.mvf-alt .msl{font-size:7px;color:var(--tx4);display:block}
+.mvf-cell{width:200px;min-width:200px;flex-shrink:0;height:28px;display:flex;align-items:center;justify-content:flex-start;gap:6px;padding-left:4px;border-bottom:1px solid rgba(30,41,59,.2);overflow:hidden}
+.mvf-hdr{background:var(--card);margin-bottom:3px;padding:4px 0;border-bottom:1px solid var(--bdr)}
+.mvf-shear{display:flex;align-items:center;gap:0;margin:0;height:18px;background:rgba(251,191,36,.1);border-top:1px solid rgba(251,191,36,.3);border-bottom:1px solid rgba(251,191,36,.3)}
+.mvf-shear.strong{background:rgba(255,107,53,.1);border-color:rgba(255,107,53,.3)}
+.mvf-shear .mvf-alt{font-size:7px;color:var(--mod);font-weight:600}
+.mvf-shear.strong .mvf-alt{color:var(--gust)}
+.mvf-shear .mvf-cell{height:18px;border:none;font-size:8px;font-family:'JetBrains Mono',monospace;color:var(--mod);font-weight:600}
+.mvf-shear.strong .mvf-cell{color:var(--gust)}
+
 /* ═══ SURFACE COMPARISON GRID ═══ */
 .sc-wrap{margin-top:16px;padding-top:14px;border-top:1px solid var(--bdr)}
 .sc-title{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--tx3);font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:6px}
@@ -222,6 +245,7 @@ a.badge{cursor:pointer}a.badge:hover{background:rgba(56,189,248,.2);color:#7dd3f
 <div class="ga" id="ga"><span>⚠</span><span id="gaTxt"></span></div>
 <div class="dash">
   <div class="cd full"><div class="ch"><div class="ct">🌡 Surface Conditions</div><a class="badge" id="srcSurf" href="#" target="_blank" rel="noopener">Open-Meteo GFS</a></div><div class="body" id="surfB"><div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
+  <div class="cd full"><div class="ch"><div class="ct">🔬 Micro Winds Aloft<span class="sub">0–2000' AGL</span></div><div style="display:flex;gap:6px;align-items:center"><a class="badge" href="https://open-meteo.com" target="_blank" rel="noopener">Open-Meteo GFS</a><div class="badge" id="mvTime">Loading…</div></div></div><div class="body" id="microProfB"><div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
   <div class="cd full"><div class="ch"><div class="ct">🎯 Winds Aloft<span class="sub" id="waSub">Loading...</span></div><div style="display:flex;gap:6px;align-items:center"><a class="badge" id="srcWA" href="#" target="_blank" rel="noopener">Open-Meteo GFS</a><div class="badge" id="wTime">Loading…</div></div></div><div class="body" id="profB"><div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
   <div class="cd full"><div class="ch tg open" onclick="tog(this)"><div class="ct">📊 Hourly Forecast<span class="sub">Next 24h</span></div><a class="badge" id="srcHr" href="#" target="_blank" rel="noopener" onclick="event.stopPropagation()">Open-Meteo GFS</a><span class="chv">▾</span></div><div class="body" id="hB"><div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
   <div class="cd full"><div class="ch tg open" onclick="tog(this)"><div class="ct">📝 Area Forecast Discussion</div><a class="badge" id="afdT" href="#" target="_blank" rel="noopener" onclick="event.stopPropagation()">NWS</a><span class="chv" style="margin-left:auto;padding-left:10px">▾</span></div><div class="body" id="afdB"><div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
@@ -575,6 +599,79 @@ function rSurf(d,metars){
 }
 function chkG(h,ci){const el=document.getElementById('ga'),tx=document.getElementById('gaTxt'),a=[];for(let i=ci;i<Math.min(ci+12,h.wind_gusts_10m.length);i++){const g=h.wind_gusts_10m[i];if(g!=null&&g>=C.gThr)a.push({t:h.time[i],g:Math.round(g)})}if(a.length){el.classList.add('v');tx.textContent=`Gusts up to ${Math.max(...a.map(x=>x.g))} mph — first at ${fT(a[0].t)}, ${a.length} hr(s) in next 12h`}else el.classList.remove('v')}
 
+// ═══ WIND SHEAR DETECTION ═══
+function detectShear(w1,w2){
+  if(!w1||!w2||w1.spd==null||w2.spd==null||w1.dir==null||w2.dir==null)return null;
+  const spdD=Math.abs(w2.spd-w1.spd);
+  const raw=Math.abs(w2.dir-w1.dir);
+  const dirD=Math.min(raw,360-raw);
+  if(spdD>=10||dirD>=30){
+    const sev=(spdD>=15||dirD>=45)?'strong':'moderate';
+    return{spdDelta:Math.round(spdD),dirDelta:Math.round(dirD),severity:sev}
+  }
+  return null;
+}
+
+// ═══ MICRO WINDS ALOFT (0–2000' AGL, 100' steps) ═══
+function rMicroProfile(allData){
+  const el=document.getElementById('microProfB'),tl=document.getElementById('mvTime');
+  const homeKey=C.stations[0].label,homeD=allData[homeKey];
+  if(!homeD||!homeD.hourly){el.innerHTML='<div class="err">No micro wind data</div>';return}
+  const h=homeD.hourly,ci=nI(h.time);
+  tl.textContent=fT(h.time[ci]);
+  // Build wind data for 0-2000 AGL
+  const rows=[];
+  for(let ag=0;ag<=2000;ag+=100){
+    let w;
+    if(ag===0){
+      const s=h.wind_speed_10m?.[ci],d=h.wind_direction_10m?.[ci];
+      w=(s!=null&&d!=null)?{spd:s,dir:d}:null;
+    }else{
+      w=interpAt(h,ci,ag+C.elev);
+    }
+    rows.push({agl:ag,msl:ag+C.elev,wind:w});
+  }
+  // Find max speed for arrow scaling
+  let maxSpd=10;
+  rows.forEach(r=>{if(r.wind&&r.wind.spd>maxSpd)maxSpd=r.wind.spd});
+  const cellW=36;
+  let o='<div class="mvf-scroll"><div class="mvf-wrap">';
+  // Render rows top-down (2000 → 0)
+  let prevW=null;
+  for(let ri=rows.length-1;ri>=0;ri--){
+    const r=rows[ri];
+    const spd=r.wind?.spd??null,dir=r.wind?.dir??null;
+    const col=spd!=null?wH(spd):'#3d4a60';
+    const dirLbl=dir!=null?`→${pad3(toD(dir))}°`:'—';
+    const agLbl=r.agl===0?'Sfc':`${r.agl}'`;
+    const mslLbl=r.msl>=1000?(r.msl/1000).toFixed(1)+'k':r.msl+"'";
+    // Shear bar (between this row and the one below)
+    if(prevW&&r.wind){
+      const sh=detectShear(prevW,r.wind);
+      if(sh){
+        o+=`<div class="mvf-row mvf-shear${sh.severity==='strong'?' strong':''}">`;
+        o+=`<div class="mvf-alt">⚠</div>`;
+        o+=`<div class="mvf-cell">Δ${sh.spdDelta} mph${sh.dirDelta>=10?' / '+sh.dirDelta+'°':''}</div>`;
+        o+=`</div>`;
+      }
+    }
+    // Data row
+    const bg=r.agl%500===0&&r.agl>0?' style="background:rgba(56,189,248,.03)"':r.agl===0?' style="background:rgba(52,211,153,.06)"':'';
+    o+=`<div class="mvf-row"${bg}>`;
+    o+=`<div class="mvf-alt">${agLbl}<span class="msl">${mslLbl} MSL</span></div>`;
+    o+=`<div class="mvf-cell">`;
+    o+=vecArrow(dir,spd,maxSpd,col,cellW);
+    o+=`<div style="font-family:'JetBrains Mono',monospace;white-space:nowrap;min-width:0">`;
+    o+=`<span style="color:${spd!=null?wC(spd):'var(--tx3)'};font-weight:700;font-size:12px">${spd!=null?Math.round(spd):'—'}<span style="font-size:8px;font-weight:400;color:var(--tx3)"> mph</span></span>`;
+    o+=`<span style="font-size:8px;color:var(--tx2);margin-left:6px">${dirLbl}</span>`;
+    o+=`</div></div>`;
+    o+=`</div>`;
+    prevW=r.wind;
+  }
+  o+='</div></div>';
+  el.innerHTML=o;
+}
+
 // Interpolate wind data at a target MSL altitude between pressure levels
 function interpAt(h,ti,tMSL){const pts=[];C.levels.forEach(l=>{const s=h[`wind_speed_${l.hPa}hPa`]?.[ti],d=h[`wind_direction_${l.hPa}hPa`]?.[ti],t=h[`temperature_${l.hPa}hPa`]?.[ti];if(s!=null&&d!=null)pts.push({msl:l.msl,spd:s,dir:d,tmp:t})});pts.sort((a,b)=>a.msl-b.msl);let lo=null,hi=null;for(let i=0;i<pts.length-1;i++){if(pts[i].msl<=tMSL&&pts[i+1].msl>=tMSL){lo=pts[i];hi=pts[i+1];break}}if(!lo||!hi)return null;const f=(tMSL-lo.msl)/(hi.msl-lo.msl);const spd=lo.spd+f*(hi.spd-lo.spd);const lr=lo.dir*Math.PI/180,hr=hi.dir*Math.PI/180;const u=Math.sin(lr)*(1-f)+Math.sin(hr)*f,v=Math.cos(lr)*(1-f)+Math.cos(hr)*f;const dir=((Math.atan2(u,v)*180/Math.PI)+360)%360;const tmp=(lo.tmp!=null&&hi.tmp!=null)?lo.tmp+f*(hi.tmp-lo.tmp):null;return{spd,dir,tmp}}
 
@@ -601,9 +698,26 @@ function rProfile(allData){
     o+='</div>';
   });
   o+='</div>';
-  // Data rows — one per altitude
+  // Data rows — one per altitude, with shear detection
+  let prevHomeW=null;
   C.dispAlts.slice().reverse().forEach(ag=>{
     const msl=ag+C.elev,al=(ag/1000)+'k',ml=(msl/1000).toFixed(1)+'k';
+    // Get home station wind for shear check
+    const homeW=interpAt(homeH,ci,msl);
+    // Insert shear bar between this row and the previous
+    if(prevHomeW&&homeW){
+      const sh=detectShear(prevHomeW,homeW);
+      if(sh){
+        o+=`<div class="vf-row vf-shear${sh.severity==='strong'?' strong':''}">`;
+        o+=`<div class="vf-alt">⚠ shear</div>`;
+        sources.forEach((src,si)=>{
+          if(si===0){o+=`<div class="vf-cell">⚡ Δ${sh.spdDelta} mph${sh.dirDelta>=10?' / '+sh.dirDelta+'°':''}</div>`}
+          else{o+=`<div class="vf-cell" style="border-left:1px solid rgba(30,41,59,.15)"></div>`}
+        });
+        o+=`</div>`;
+      }
+    }
+    prevHomeW=homeW;
     o+='<div class="vf-row">';
     o+=`<div class="vf-alt">${al} ft<span class="msl">${ml} MSL</span></div>`;
     sources.forEach((src,i)=>{
@@ -839,6 +953,7 @@ async function refreshAll(){if(busy)return;busy=true;document.getElementById('rb
     const homeData=stnData[0]||stnData.find(d=>d!=null);
     _allStnData=allData;
     if(homeData){rSurf(homeData,metars);rHourly(homeData)}
+    rMicroProfile(allData);
     rProfile(allData);
     if(afd)rAFD(afd);else document.getElementById('afdB').innerHTML='<div class="err">AFD unavailable</div>';
     rAvBriefing(tafs,airSig,pireps);
