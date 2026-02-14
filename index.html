@@ -107,6 +107,12 @@ a.badge{cursor:pointer}a.badge:hover{background:rgba(56,189,248,.2);color:#7dd3f
 .mvf-shear .mvf-cell{height:18px;border:none;font-size:8px;font-family:'JetBrains Mono',monospace;color:var(--mod);font-weight:600}
 .mvf-shear.strong .mvf-cell{color:var(--gust)}
 
+/* ═══ WINDS PAIR LAYOUT ═══ */
+.winds-pair{display:flex;gap:14px;align-items:stretch}
+.winds-micro{width:280px;min-width:280px;flex-shrink:0}
+.winds-main{flex:1;min-width:0;overflow:hidden}
+@media(max-width:900px){.winds-pair{flex-direction:column}.winds-micro{width:100%;min-width:0}}
+
 /* ═══ SURFACE COMPARISON GRID ═══ */
 .sc-wrap{margin-top:16px;padding-top:14px;border-top:1px solid var(--bdr)}
 .sc-title{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--tx3);font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:6px}
@@ -245,8 +251,10 @@ a.badge{cursor:pointer}a.badge:hover{background:rgba(56,189,248,.2);color:#7dd3f
 <div class="ga" id="ga"><span>⚠</span><span id="gaTxt"></span></div>
 <div class="dash">
   <div class="cd full"><div class="ch"><div class="ct">🌡 Surface Conditions</div><a class="badge" id="srcSurf" href="#" target="_blank" rel="noopener">Open-Meteo GFS</a></div><div class="body" id="surfB"><div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
-  <div class="cd full"><div class="ch"><div class="ct">🔬 Micro Winds Aloft<span class="sub">0–2000' AGL</span></div><div style="display:flex;gap:6px;align-items:center"><a class="badge" href="https://open-meteo.com" target="_blank" rel="noopener">Open-Meteo GFS</a><div class="badge" id="mvTime">Loading…</div></div></div><div class="body" id="microProfB"><div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
-  <div class="cd full"><div class="ch"><div class="ct">🎯 Winds Aloft<span class="sub" id="waSub">Loading...</span></div><div style="display:flex;gap:6px;align-items:center"><a class="badge" id="srcWA" href="#" target="_blank" rel="noopener">Open-Meteo GFS</a><div class="badge" id="wTime">Loading…</div></div></div><div class="body" id="profB"><div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
+  <div class="full winds-pair">
+    <div class="cd winds-micro"><div class="ch"><div class="ct">🔬 Micro Winds<span class="sub">0–2000'</span></div><div class="badge" id="mvTime">Loading…</div></div><div class="body" id="microProfB"><div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
+    <div class="cd winds-main"><div class="ch"><div class="ct">🎯 Winds Aloft<span class="sub" id="waSub">Loading...</span></div><div style="display:flex;gap:6px;align-items:center"><a class="badge" id="srcWA" href="#" target="_blank" rel="noopener">Open-Meteo GFS</a><div class="badge" id="wTime">Loading…</div></div></div><div class="body" id="profB"><div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
+  </div>
   <div class="cd full"><div class="ch tg open" onclick="tog(this)"><div class="ct">📊 Hourly Forecast<span class="sub">Next 24h</span></div><a class="badge" id="srcHr" href="#" target="_blank" rel="noopener" onclick="event.stopPropagation()">Open-Meteo GFS</a><span class="chv">▾</span></div><div class="body" id="hB"><div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
   <div class="cd full"><div class="ch tg open" onclick="tog(this)"><div class="ct">📝 Area Forecast Discussion</div><a class="badge" id="afdT" href="#" target="_blank" rel="noopener" onclick="event.stopPropagation()">NWS</a><span class="chv" style="margin-left:auto;padding-left:10px">▾</span></div><div class="body" id="afdB"><div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
   <div class="cd"><div class="ch tg open" onclick="tog(this)"><div class="ct">🗺 Wind Map</div><a class="badge" id="srcWindy" href="#" target="_blank" rel="noopener" onclick="event.stopPropagation()">Windy</a><span class="chv">▾</span></div><div class="body" style="padding:0"><iframe class="efr" id="windyFrame" loading="lazy"></iframe></div></div>
