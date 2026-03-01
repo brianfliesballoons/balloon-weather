@@ -71,6 +71,14 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--tx);min-h
 .ct .sub{font-size:12px}
 .badge{font-size:11px}
 .body{padding:14px 12px}
+/* Surface: left-align compass+stats, stack vertically */
+.cw{justify-content:flex-start;gap:20px}
+/* AFD: fit mobile without horizontal scroll */
+.asum{max-width:100%;overflow-wrap:break-word;word-wrap:break-word}
+.afull{max-width:100%;overflow-wrap:break-word;word-wrap:break-word;font-size:12px;line-height:1.7}
+.apt{font-size:14px;line-height:1.6}
+.asmt{font-size:12px}
+.akw{font-size:12px}
 }
 
 .cd{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);box-shadow:var(--sh);overflow:clip;transition:border-color .2s}.cd:hover{border-color:var(--bdr2)}
@@ -85,7 +93,7 @@ a.badge{cursor:pointer}a.badge:hover{background:rgba(56,189,248,.2);color:#7dd3f
 .ch.tg.open .chv{transform:rotate(180deg)}.hide{display:none}
 
 /* ═══ COMPASS ═══ */
-.cw{display:flex;align-items:center;justify-content:center;gap:40px;flex-wrap:wrap;padding:8px 0}
+.cw{display:flex;align-items:center;justify-content:flex-start;gap:40px;flex-wrap:wrap;padding:8px 0}
 .cbox{position:relative;width:210px;height:210px}
 .cring{width:100%;height:100%;border-radius:50%;border:2px solid var(--bdr);position:relative;background:radial-gradient(circle,rgba(17,24,39,.6),rgba(15,21,37,.95))}
 .ctick{position:absolute;width:1px;height:8px;background:var(--tx4);top:4px;left:50%;transform-origin:0.5px 101px}
