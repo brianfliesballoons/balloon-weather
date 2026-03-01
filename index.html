@@ -73,12 +73,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--tx);min-h
 .body{padding:14px 12px}
 /* Surface: left-align compass+stats, stack vertically */
 .cw{justify-content:flex-start;gap:20px}
-/* AFD: fit mobile without horizontal scroll */
-.asum{max-width:100%;overflow-wrap:break-word;word-wrap:break-word}
-.afull{max-width:100%;overflow-wrap:break-word;word-wrap:break-word;font-size:12px;line-height:1.7}
-.apt{font-size:14px;line-height:1.6}
-.asmt{font-size:12px}
-.akw{font-size:12px}
 }
 
 .cd{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);box-shadow:var(--sh);overflow:clip;transition:border-color .2s}.cd:hover{border-color:var(--bdr2)}
@@ -209,20 +203,24 @@ a.badge{cursor:pointer}a.badge:hover{background:rgba(56,189,248,.2);color:#7dd3f
 
 
 /* ═══ AFD ═══ */
-.asum{padding:12px 14px;background:var(--card2);border-radius:var(--rs);margin-bottom:10px}
+.afd-split{display:flex;gap:14px;align-items:stretch}
+.afd-notes{flex:0 0 280px;min-width:0;display:flex;flex-direction:column;gap:10px}
+.afd-disc{flex:1;min-width:0;display:flex;flex-direction:column}
+.asum{padding:12px 14px;background:var(--card2);border-radius:var(--rs)}
 .asmt{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--tx3);font-weight:600;margin-bottom:6px}
 .akws{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px}
 .akw{font-size:10px;padding:2px 9px;border-radius:14px;font-weight:500;font-family:'JetBrains Mono',monospace}
 .akw.ks{background:rgba(239,68,68,.12);color:var(--ks)}.akw.kp{background:rgba(59,130,246,.12);color:var(--kp)}
 .akw.km{background:rgba(6,182,212,.12);color:var(--km)}.akw.kf{background:rgba(168,85,247,.12);color:var(--kf)}
 .akw.kw{background:rgba(245,158,11,.12);color:var(--kw)}.akw.kt{background:rgba(236,72,153,.12);color:var(--kt)}
-.apts{list-style:none;display:flex;flex-direction:column;gap:5px}
-.apt{font-size:12px;color:var(--tx);line-height:1.5;padding-left:12px;position:relative}
-.apt::before{content:'›';position:absolute;left:0;color:var(--blue);font-weight:700}
-.atog{background:none;border:1px solid var(--bdr);color:var(--tx2);padding:6px 14px;border-radius:var(--rs);cursor:pointer;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;width:100%;margin-top:10px;transition:all .15s}
+.apts{list-style:none;display:flex;flex-direction:column;gap:8px}
+.apt{font-size:13px;color:var(--tx);line-height:1.55;padding:8px 12px;border-radius:var(--rs);border-left:3px solid var(--tx3);background:var(--card2)}
+.apt.ks{border-left-color:var(--ks);background:rgba(239,68,68,.04)}.apt.kp{border-left-color:var(--kp);background:rgba(59,130,246,.04)}
+.apt.km{border-left-color:var(--km);background:rgba(6,182,212,.04)}.apt.kf{border-left-color:var(--kf);background:rgba(168,85,247,.04)}
+.apt.kw{border-left-color:var(--kw);background:rgba(245,158,11,.04)}.apt.kt{border-left-color:var(--kt);background:rgba(236,72,153,.04)}
+.atog{background:none;border:1px solid var(--bdr);color:var(--tx2);padding:6px 14px;border-radius:var(--rs);cursor:pointer;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;width:100%;transition:all .15s;display:none}
 .atog:hover{background:var(--card2);color:var(--tx)}
-.afull{display:none;margin-top:10px;padding:14px;background:var(--card2);border-radius:var(--rs);font-family:'JetBrains Mono',monospace;font-size:11px;line-height:1.65;color:var(--tx2);white-space:pre-wrap;word-wrap:break-word;max-height:450px;overflow-y:auto}
-.afull.v{display:block}
+.afull{padding:14px;background:var(--card2);border-radius:var(--rs);font-family:'JetBrains Mono',monospace;font-size:11px;line-height:1.65;color:var(--tx2);white-space:pre-wrap;word-wrap:break-word;overflow-wrap:break-word;max-height:500px;overflow-y:auto;flex:1}
 .afull .hs0{color:var(--ks);font-weight:600;background:rgba(239,68,68,.1);padding:0 2px;border-radius:2px}
 .afull .hp0{color:var(--kp);font-weight:600;background:rgba(59,130,246,.1);padding:0 2px;border-radius:2px}
 .afull .hm0{color:var(--km);font-weight:600;background:rgba(6,182,212,.1);padding:0 2px;border-radius:2px}
@@ -230,6 +228,7 @@ a.badge{cursor:pointer}a.badge:hover{background:rgba(56,189,248,.2);color:#7dd3f
 .afull .hw0{color:var(--kw);font-weight:600;background:rgba(245,158,11,.1);padding:0 2px;border-radius:2px}
 .afull .ht0{color:var(--kt);font-weight:600;background:rgba(236,72,153,.1);padding:0 2px;border-radius:2px}
 .aext{display:inline-block;margin-top:8px;font-size:10px;color:var(--blue);text-decoration:none;font-family:'JetBrains Mono',monospace}.aext:hover{text-decoration:underline}
+@media(max-width:900px){.afd-split{flex-direction:column}.afd-notes{flex:none;width:100%}.atog{display:block}.afull{display:none;max-height:none}.afull.v{display:block}.apt{font-size:15px;line-height:1.6}}
 
 .efr{width:100%;height:420px;border:none;border-radius:var(--rs);background:var(--card2)}
 .ldg{display:flex;align-items:center;justify-content:center;padding:30px;gap:6px}
@@ -295,11 +294,11 @@ a.badge{cursor:pointer}a.badge:hover{background:rgba(56,189,248,.2);color:#7dd3f
 <div class="ga" id="ga"><span>⚠</span><span id="gaTxt"></span></div>
 <div class="dash">
   <div class="cd full"><div class="ch"><div class="ct">🌡 Surface Conditions</div><a class="badge" id="srcSurf" href="#" target="_blank" rel="noopener">Open-Meteo GFS</a></div><div class="body" id="surfB"><div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
+  <div class="cd full"><div class="ch tg open" onclick="tog(this)"><div class="ct">📊 Hourly Forecast<span class="sub">Next 24h</span></div><a class="badge" id="srcHr" href="#" target="_blank" rel="noopener" onclick="event.stopPropagation()">Open-Meteo GFS</a><span class="chv">▾</span></div><div class="body" id="hB"><div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
   <div class="full winds-pair">
     <div class="cd winds-micro"><div class="ch"><div class="ct">🔬 Micro Winds<span class="sub">0–2000'</span></div><div class="badge" id="mvTime">Loading…</div></div><div class="body" id="microProfB"><div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
     <div class="cd winds-main"><div class="ch"><div class="ct">🎯 Winds Aloft<span class="sub" id="waSub">Loading...</span></div><div style="display:flex;gap:6px;align-items:center"><a class="badge" id="srcWA" href="#" target="_blank" rel="noopener">Open-Meteo GFS</a><div class="badge" id="wTime">Loading…</div></div></div><div class="body" id="profB"><div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
   </div>
-  <div class="cd full"><div class="ch tg open" onclick="tog(this)"><div class="ct">📊 Hourly Forecast<span class="sub">Next 24h</span></div><a class="badge" id="srcHr" href="#" target="_blank" rel="noopener" onclick="event.stopPropagation()">Open-Meteo GFS</a><span class="chv">▾</span></div><div class="body" id="hB"><div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
   <div class="cd full"><div class="ch tg open" onclick="tog(this)"><div class="ct">📝 Area Forecast Discussion</div><a class="badge" id="afdT" href="#" target="_blank" rel="noopener" onclick="event.stopPropagation()">NWS</a><span class="chv" style="margin-left:auto;padding-left:10px">▾</span></div><div class="body" id="afdB"><div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
   <div class="cd"><div class="ch tg open" onclick="tog(this)"><div class="ct">🗺 Wind Map</div><a class="badge" id="srcWindy" href="#" target="_blank" rel="noopener" onclick="event.stopPropagation()">Windy</a><span class="chv">▾</span></div><div class="body" style="padding:0"><iframe class="efr" id="windyFrame" loading="lazy"></iframe></div></div>
   <div class="cd"><div class="ch"><div class="ct">✈️ Aviation Briefing<span class="sub">TAFs · SIGMETs · AIRMETs · PIREPs</span></div><a class="badge" id="srcAv" href="#" target="_blank" rel="noopener">aviationweather.gov</a></div><div class="body" id="avB"><div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
@@ -863,13 +862,25 @@ function rAFD(d){
   if(C.nwsOffice)tl.href=`https://forecast.weather.gov/product.php?site=${C.nwsOffice.toLowerCase()}&issuedby=${C.nwsOffice}&product=AFD`;
   const txt=d.text||'',lo=txt.toLowerCase(),found=new Map();
   for(const[kw,cfg]of Object.entries(C.kw)){if(lo.includes(kw))found.set(cfg.l,cfg)}
-  const sents=txt.split(/[.!]\s+/).filter(s=>s.trim().length>20),pts=[],kwS=new Set(Object.keys(C.kw));
-  for(const s of sents){const sl=s.toLowerCase();for(const kw of kwS){if(sl.includes(kw)&&pts.length<6){const cl=s.trim().replace(/\n/g,' ').replace(/\s+/g,' ');if(cl.length>30&&cl.length<300){pts.push(cl+'.');break}}}}
+  const sents=txt.split(/[.!]\s+/).filter(s=>s.trim().length>20),kwS=new Set(Object.keys(C.kw));
   let hl=txt.replace(/</g,'&lt;').replace(/>/g,'&gt;');
   for(const[kw,cfg]of Object.entries(C.kw)){hl=hl.replace(new RegExp(`(${kw.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`,'gi'),`<span class="${cfg.h}">$1</span>`)}
-  let o='';if(found.size>0){o+='<div class="asum"><div class="asmt">Detected Keywords</div><div class="akws">';for(const[l,cfg]of found)o+=`<span class="akw ${cfg.c}">${l}</span>`;o+='</div>';if(pts.length){o+='<ul class="apts">';pts.forEach(p=>o+=`<li class="apt">${p}</li>`);o+='</ul>'}o+='</div>'}
+  // Build color-coded bullets: match each sentence to its keyword category
+  const colorPts=[];
+  for(const s of sents){const sl=s.toLowerCase();for(const kw of kwS){if(sl.includes(kw)&&colorPts.length<6){const cl=s.trim().replace(/\n/g,' ').replace(/\s+/g,' ');if(cl.length>30&&cl.length<300){const cfg=C.kw[kw];colorPts.push({text:cl+'.',cat:cfg.c});break}}}}
   const ofc=(C.nwsOffice||'sgx').toLowerCase();
-  o+=`<button class="atog" onclick="togAFD()">Show Full Discussion</button><div class="afull" id="aFull">${hl}</div><a class="aext" href="https://forecast.weather.gov/product.php?site=${ofc}&issuedby=${C.nwsOffice||'SGX'}&product=AFD" target="_blank" rel="noopener">Open on NWS website ↗</a>`;el.innerHTML=o;
+  let o='<div class="afd-split">';
+  // Left: notes panel
+  o+='<div class="afd-notes">';
+  if(found.size>0){o+='<div class="asum"><div class="asmt">Detected Keywords</div><div class="akws">';for(const[l,cfg]of found)o+=`<span class="akw ${cfg.c}">${l}</span>`;o+='</div></div>'}
+  if(colorPts.length){o+='<ul class="apts">';colorPts.forEach(p=>o+=`<li class="apt ${p.cat}">${p.text}</li>`);o+='</ul>'}
+  o+=`<button class="atog" onclick="togAFD()">Show Full Discussion</button>`;
+  o+=`<a class="aext" href="https://forecast.weather.gov/product.php?site=${ofc}&issuedby=${C.nwsOffice||'SGX'}&product=AFD" target="_blank" rel="noopener">Open on NWS website ↗</a>`;
+  o+='</div>';
+  // Right: full discussion
+  o+=`<div class="afd-disc"><div class="afull" id="aFull">${hl}</div></div>`;
+  o+='</div>';
+  el.innerHTML=o;
 }
 function togAFD(){const e=document.getElementById('aFull'),b=e.previousElementSibling;e.classList.toggle('v');b.textContent=e.classList.contains('v')?'Hide Full Discussion':'Show Full Discussion'}
 
