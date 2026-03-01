@@ -203,23 +203,22 @@ a.badge{cursor:pointer}a.badge:hover{background:rgba(56,189,248,.2);color:#7dd3f
 
 
 /* ═══ AFD ═══ */
-.afd-split{display:flex;gap:14px;align-items:stretch}
-.afd-notes{flex:0 0 280px;min-width:0;display:flex;flex-direction:column;gap:10px}
+.afd-split{display:flex;gap:12px;align-items:stretch;min-height:320px}
+.afd-notes{flex:0 0 220px;min-width:0;max-width:220px;display:flex;flex-direction:column;gap:8px;overflow-y:auto;max-height:500px;padding-right:4px}
 .afd-disc{flex:1;min-width:0;display:flex;flex-direction:column}
-.asum{padding:12px 14px;background:var(--card2);border-radius:var(--rs)}
-.asmt{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--tx3);font-weight:600;margin-bottom:6px}
-.akws{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px}
-.akw{font-size:10px;padding:2px 9px;border-radius:14px;font-weight:500;font-family:'JetBrains Mono',monospace}
+.asum{padding:10px 10px;background:var(--card2);border-radius:var(--rs)}
+.asmt{font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--tx3);font-weight:600;margin-bottom:5px}
+.akws{display:flex;flex-wrap:wrap;gap:4px}
+.akw{font-size:9px;padding:2px 7px;border-radius:14px;font-weight:500;font-family:'JetBrains Mono',monospace}
 .akw.ks{background:rgba(239,68,68,.12);color:var(--ks)}.akw.kp{background:rgba(59,130,246,.12);color:var(--kp)}
 .akw.km{background:rgba(6,182,212,.12);color:var(--km)}.akw.kf{background:rgba(168,85,247,.12);color:var(--kf)}
 .akw.kw{background:rgba(245,158,11,.12);color:var(--kw)}.akw.kt{background:rgba(236,72,153,.12);color:var(--kt)}
-.apts{list-style:none;display:flex;flex-direction:column;gap:8px}
-.apt{font-size:13px;color:var(--tx);line-height:1.55;padding:8px 12px;border-radius:var(--rs);border-left:3px solid var(--tx3);background:var(--card2)}
+.apts{list-style:none;display:flex;flex-direction:column;gap:6px}
+.apt{font-size:11px;color:var(--tx);line-height:1.45;padding:6px 8px;border-radius:var(--rs);border-left:3px solid var(--tx3);background:var(--card2)}
 .apt.ks{border-left-color:var(--ks);background:rgba(239,68,68,.04)}.apt.kp{border-left-color:var(--kp);background:rgba(59,130,246,.04)}
 .apt.km{border-left-color:var(--km);background:rgba(6,182,212,.04)}.apt.kf{border-left-color:var(--kf);background:rgba(168,85,247,.04)}
 .apt.kw{border-left-color:var(--kw);background:rgba(245,158,11,.04)}.apt.kt{border-left-color:var(--kt);background:rgba(236,72,153,.04)}
-.atog{background:none;border:1px solid var(--bdr);color:var(--tx2);padding:6px 14px;border-radius:var(--rs);cursor:pointer;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;width:100%;transition:all .15s;display:none}
-.atog:hover{background:var(--card2);color:var(--tx)}
+.atog{display:none}
 .afull{padding:14px;background:var(--card2);border-radius:var(--rs);font-family:'JetBrains Mono',monospace;font-size:11px;line-height:1.65;color:var(--tx2);white-space:pre-wrap;word-wrap:break-word;overflow-wrap:break-word;max-height:500px;overflow-y:auto;flex:1}
 .afull .hs0{color:var(--ks);font-weight:600;background:rgba(239,68,68,.1);padding:0 2px;border-radius:2px}
 .afull .hp0{color:var(--kp);font-weight:600;background:rgba(59,130,246,.1);padding:0 2px;border-radius:2px}
@@ -227,8 +226,15 @@ a.badge{cursor:pointer}a.badge:hover{background:rgba(56,189,248,.2);color:#7dd3f
 .afull .hf0{color:var(--kf);font-weight:600;background:rgba(168,85,247,.1);padding:0 2px;border-radius:2px}
 .afull .hw0{color:var(--kw);font-weight:600;background:rgba(245,158,11,.1);padding:0 2px;border-radius:2px}
 .afull .ht0{color:var(--kt);font-weight:600;background:rgba(236,72,153,.1);padding:0 2px;border-radius:2px}
-.aext{display:inline-block;margin-top:8px;font-size:10px;color:var(--blue);text-decoration:none;font-family:'JetBrains Mono',monospace}.aext:hover{text-decoration:underline}
-@media(max-width:900px){.afd-split{flex-direction:column}.afd-notes{flex:none;width:100%}.atog{display:block}.afull{display:none;max-height:none}.afull.v{display:block}.apt{font-size:15px;line-height:1.6}}
+.aext{display:inline-block;margin-top:6px;font-size:9px;color:var(--blue);text-decoration:none;font-family:'JetBrains Mono',monospace}.aext:hover{text-decoration:underline}
+@media(max-width:900px){
+.afd-split{flex-direction:column;min-height:0}
+.afd-notes{flex:none;width:100%;max-width:100%;max-height:none;overflow-y:visible;padding-right:0}
+.asmt{font-size:11px}
+.akw{font-size:11px;padding:3px 9px}
+.apt{font-size:14px;line-height:1.55;padding:8px 10px}
+.afull{max-height:400px;font-size:12px;line-height:1.7}
+}
 
 .efr{width:100%;height:420px;border:none;border-radius:var(--rs);background:var(--card2)}
 .ldg{display:flex;align-items:center;justify-content:center;padding:30px;gap:6px}
@@ -874,8 +880,7 @@ function rAFD(d){
   o+='<div class="afd-notes">';
   if(found.size>0){o+='<div class="asum"><div class="asmt">Detected Keywords</div><div class="akws">';for(const[l,cfg]of found)o+=`<span class="akw ${cfg.c}">${l}</span>`;o+='</div></div>'}
   if(colorPts.length){o+='<ul class="apts">';colorPts.forEach(p=>o+=`<li class="apt ${p.cat}">${p.text}</li>`);o+='</ul>'}
-  o+=`<button class="atog" onclick="togAFD()">Show Full Discussion</button>`;
-  o+=`<a class="aext" href="https://forecast.weather.gov/product.php?site=${ofc}&issuedby=${C.nwsOffice||'SGX'}&product=AFD" target="_blank" rel="noopener">Open on NWS website ↗</a>`;
+  o+=`<a class="aext" href="https://forecast.weather.gov/product.php?site=${ofc}&issuedby=${C.nwsOffice||'SGX'}&product=AFD" target="_blank" rel="noopener">Open on NWS ↗</a>`;
   o+='</div>';
   // Right: full discussion
   o+=`<div class="afd-disc"><div class="afull" id="aFull">${hl}</div></div>`;
