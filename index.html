@@ -35,7 +35,43 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--tx);min-h
 
 .dash{max-width:1400px;margin:0 auto;padding:16px 24px 60px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .full{grid-column:1/-1}
-@media(max-width:900px){.dash{grid-template-columns:1fr;padding:12px 14px 40px}.full{grid-column:1}}
+@media(max-width:900px){
+.dash{grid-template-columns:1fr;padding:12px 14px 40px}.full{grid-column:1}
+/* Header: stack vertically and center */
+.hdr{flex-direction:column;gap:8px;padding:10px 16px;text-align:center}
+.hdr-l{justify-content:center}
+.hdr-r{justify-content:center;flex-wrap:wrap;gap:8px}
+.hdr-title{font-size:19px}
+.hdr-sub{font-size:10px}
+/* Surface stats: bigger fonts */
+.stat-lbl{font-size:13px}
+.stat-val{font-size:18px}
+.stat-sub{font-size:12px}
+.cspeed .big{font-size:48px}
+.cspeed .dir{font-size:15px}
+/* Winds aloft: bigger fonts */
+.vf-alt{font-size:12px;width:75px;min-width:75px}
+.vf-alt .msl{font-size:10px}
+.vf-spd{font-size:14px}
+.vf-info{font-size:12px}
+.vf-dist{font-size:9px}
+.vf-cell{height:65px}
+/* Micro winds: bigger fonts */
+.mvf-alt{font-size:11px;width:70px;min-width:70px}
+.mvf-alt .msl{font-size:9px}
+.mvf-cell{height:32px;font-size:12px}
+.mvf-shear .mvf-cell{font-size:10px}
+/* Shear bars */
+.vf-shear .vf-alt{font-size:10px}
+.vf-shear .vf-cell{font-size:11px}
+/* Surface comparison grid */
+.sc-title{font-size:12px}
+/* Card headers */
+.ct{font-size:13px}
+.ct .sub{font-size:12px}
+.badge{font-size:11px}
+.body{padding:14px 12px}
+}
 
 .cd{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);box-shadow:var(--sh);overflow:clip;transition:border-color .2s}.cd:hover{border-color:var(--bdr2)}
 .ch{padding:12px 18px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(30,41,59,.5)}
