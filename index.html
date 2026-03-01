@@ -75,8 +75,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--tx);min-h
 .cw{justify-content:flex-start;gap:20px}
 }
 
-.cd{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);box-shadow:var(--sh);overflow:visible;transition:border-color .2s}.cd:hover{border-color:var(--bdr2)}
-.ch{padding:12px 18px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(30,41,59,.5);position:sticky;top:0;z-index:10;background:var(--card);border-radius:var(--r) var(--r) 0 0}
+.cd{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);box-shadow:var(--sh);overflow:clip;transition:border-color .2s}.cd:hover{border-color:var(--bdr2)}
+.ch{padding:12px 18px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(30,41,59,.5)}
 .ct{font-size:12px;font-weight:600;color:var(--tx2);text-transform:uppercase;letter-spacing:.06em;display:flex;align-items:center;gap:7px}
 .ct .sub{font-weight:400;color:var(--tx3);text-transform:none;letter-spacing:0;font-size:11px;margin-left:4px}
 .badge{font-size:10px;font-family:'JetBrains Mono',monospace;background:rgba(56,189,248,.1);color:var(--blue);padding:2px 8px;border-radius:12px;text-decoration:none;transition:background .15s,color .15s}
@@ -117,7 +117,7 @@ a.badge{cursor:pointer}a.badge:hover{background:rgba(56,189,248,.2);color:#7dd3f
 .vf-alt .msl{font-size:8px;color:var(--tx4);display:block}
 .vf-cell{width:140px;min-width:140px;max-width:140px;flex-shrink:0;height:60px;position:relative;display:flex;align-items:center;justify-content:center;gap:4px;border-bottom:1px solid rgba(30,41,59,.3);overflow:hidden}
 .vf-arrow-wrap{position:relative;display:flex;align-items:center;justify-content:center}
-.vf-hdr{background:var(--card);margin-bottom:4px;padding:6px 0 4px;border-bottom:1px solid var(--bdr);position:sticky;top:0;z-index:5}
+.vf-hdr{background:var(--card);margin-bottom:0;padding:6px 0 4px;border-bottom:1px solid var(--bdr);position:sticky;top:0;z-index:5;display:inline-flex;min-width:100%}
 .vf-info{width:140px;min-width:140px;flex-shrink:0;padding-left:12px;font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--tx2);white-space:nowrap;display:flex;align-items:center;gap:6px}
 .vf-spd{font-weight:600;font-size:12px}
 .vf-dist{font-size:8px;color:var(--tx4);font-family:'JetBrains Mono',monospace;margin-top:1px}
@@ -159,7 +159,7 @@ a.badge{cursor:pointer}a.badge:hover{background:rgba(56,189,248,.2);color:#7dd3f
 .sc-row{display:flex;align-items:center;gap:0;margin-bottom:1px}
 .sc-lbl{width:90px;min-width:90px;flex-shrink:0;text-align:right;padding-right:10px;font-size:10px;color:var(--tx3);font-family:'JetBrains Mono',monospace;white-space:nowrap}
 .sc-cell{width:120px;min-width:120px;max-width:120px;flex-shrink:0;height:32px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;border-bottom:1px solid rgba(30,41,59,.2);overflow:hidden}
-.sc-hdr{background:var(--card);padding:4px 0;border-bottom:1px solid var(--bdr);margin-bottom:3px;position:sticky;top:0;z-index:5}
+.sc-hdr{background:var(--card);padding:4px 0;border-bottom:1px solid var(--bdr);margin-bottom:0;position:sticky;top:0;z-index:5;display:inline-flex;min-width:100%}
 .sc-hdr .sc-cell{height:auto;border:none;flex-direction:column;gap:1px;padding:4px 2px}
 
 /* ═══ HOURLY ═══ */
@@ -613,8 +613,8 @@ function rSurf(d,metars){
     const sources=C.stations.map(s=>({label:s.label,name:s.name,dist:s.dist||0,data:_allStnData[s.label]})).filter(s=>s.data&&s.data.hourly);
     if(sources.length>=2){
       o+='<div class="sc-wrap"><div class="sc-title">📍 Conditions at Nearby Stations <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:9px;color:var(--tx4)">scroll →</span></div>';
-      o+='<div class="sc-scroll"><div class="sc-grid">';
-      // Header row
+      o+='<div class="sc-scroll">';
+      // Header row (outside sc-grid so sticky works)
       o+='<div class="sc-row sc-hdr"><div class="sc-lbl"></div>';
       sources.forEach((src,si)=>{
         o+=`<div class="sc-cell"${si>0?' style="border-left:1px solid rgba(30,41,59,.3)"':''}>`;
@@ -623,7 +623,7 @@ function rSurf(d,metars){
         o+=src.dist>0?`<div class="vf-dist">${src.dist} mi</div>`:`<div class="vf-dist" style="color:var(--blue)">Home</div>`;
         o+='</div>';
       });
-      o+='</div>';
+      o+='</div><div class="sc-grid">';
       // Data rows
       const scRows=[
         {lbl:'Temp',fn:(h,ci)=>{const v=h.temperature_2m?.[ci];return v!=null?`<span>${Math.round(v)}°F</span>`:'—'}},
@@ -743,8 +743,8 @@ function rProfile(allData){
   const allLvl=C.levels.filter(l=>agl(l.msl)>=0);
   sources.forEach(src=>{const h=src.data.hourly,si=nI(h.time);allLvl.forEach(l=>{const s=h[`wind_speed_${l.hPa}hPa`]?.[si]||0;if(s>maxSpd)maxSpd=s})});
   const cellW=48;
-  let o='<div class="vf-scroll"><div class="vf-wrap">';
-  // Header row
+  let o='<div class="vf-scroll">';
+  // Header row (outside vf-wrap so sticky works)
   o+='<div class="vf-row vf-hdr"><div class="vf-alt"></div>';
   sources.forEach((src,i)=>{
     o+=`<div class="vf-cell" style="height:auto;border:none;flex-direction:column;gap:1px;padding:6px 4px${i>0?';border-left:1px solid rgba(30,41,59,.3)':''}">`;
@@ -753,7 +753,7 @@ function rProfile(allData){
     o+=src.dist>0?`<div class="vf-dist">${src.dist} mi</div>`:`<div class="vf-dist" style="color:var(--blue)">Home</div>`;
     o+='</div>';
   });
-  o+='</div>';
+  o+='</div><div class="vf-wrap">';
   // Data rows — one per altitude, with shear detection
   let prevHomeW=null;
   C.dispAlts.forEach(ag=>{
