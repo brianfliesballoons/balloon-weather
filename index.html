@@ -502,6 +502,12 @@ function omUrl(lat,lon){
   return`https://api.open-meteo.com/v1/gfs?latitude=${lat}&longitude=${lon}&hourly=${[...sv,...pv].join(',')}&wind_speed_unit=mph&temperature_unit=fahrenheit&forecast_days=2&timezone=${encodeURIComponent(getTZ())}&models=gfs_seamless`;
 }
 async function fetchOM(a,b){const r=await fetch(omUrl(a,b));if(!r.ok)throw new Error('Open-Meteo '+r.status);return r.json()}
+async function fetchSunTimes(){
+  const r=await fetch(`https://api.sunrise-sunset.org/json?lat=${C.lat}&lng=${C.lon}&formatted=0`);
+  if(!r.ok)throw new Error('Sun API '+r.status);
+  const d=await r.json();if(d.status!=='OK')throw new Error('Sun API: '+d.status);
+  return d.results;
+}
 async function fetchAFD(){
   if(!C.nwsOffice)throw new Error('No NWS office');
   const lr=await fetch(`https://api.weather.gov/products/types/AFD/locations/${C.nwsOffice}`);if(!lr.ok)throw new Error('AFD '+lr.status);
@@ -550,7 +556,7 @@ async function fetchPIREPs(){
 
 // ═══ SURFACE ═══
 let _allStnData=null; // stored by refreshAll for surface comparison
-function rSurf(d,metars){
+function rSurf(d,metars,sunTimes){
   const el=document.getElementById('surfB'),h=d.hourly,i=nI(h.time);
   const tmp=h.temperature_2m?.[i],dew=h.dew_point_2m?.[i],spr=(tmp!=null&&dew!=null)?(tmp-dew).toFixed(1):null;
   const wnd=h.wind_speed_10m?.[i],gst=h.wind_gusts_10m?.[i],wdr=h.wind_direction_10m?.[i];
@@ -583,6 +589,7 @@ function rSurf(d,metars){
     <div class="stat"><div class="stat-lbl">Visibility</div><div class="stat-val">${viMi??'—'} mi</div></div>
     <div class="stat"><div class="stat-lbl">Precip Chance</div><div class="stat-val">${prc!=null?Math.round(prc):'—'}%</div></div>
     <div class="stat"><div class="stat-lbl">Pressure</div><div class="stat-val">${inhg??'—'} inHg</div></div>
+    ${(()=>{if(!sunTimes)return'';const fmt=iso=>{if(!iso)return'—';return new Date(iso).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',hour12:true,timeZone:getTZ()})};return`<div class="stat" style="margin-top:6px;border-top:1px solid var(--bdr);padding-top:10px"><div class="stat-lbl" style="color:var(--tx2);font-weight:600">☀ Sun & Twilight</div><div class="stat-val" style="font-size:11px;color:var(--tx3)">Today</div></div><div class="stat"><div class="stat-lbl">Nautical Dawn</div><div class="stat-val" style="color:var(--violet)">${fmt(sunTimes.nautical_twilight_begin)}</div></div><div class="stat"><div class="stat-lbl">Civil Dawn</div><div class="stat-val" style="color:var(--blue)">${fmt(sunTimes.civil_twilight_begin)}</div></div><div class="stat"><div class="stat-lbl">☀ Sunrise</div><div class="stat-val" style="color:var(--mod)">${fmt(sunTimes.sunrise)}</div></div><div class="stat"><div class="stat-lbl">🌅 Sunset</div><div class="stat-val" style="color:var(--strong)">${fmt(sunTimes.sunset)}</div></div><div class="stat"><div class="stat-lbl">Civil Dusk</div><div class="stat-val" style="color:var(--blue)">${fmt(sunTimes.civil_twilight_end)}</div></div><div class="stat"><div class="stat-lbl">Nautical Dusk</div><div class="stat-val" style="color:var(--violet)">${fmt(sunTimes.nautical_twilight_end)}</div></div>`})()}
   </div></div>`;
   if(metars&&Object.keys(metars).length){
     const ceilCls={CLR:'clr',SKC:'clr',FEW:'few',SCT:'sct',BKN:'bkn',OVC:'ovc'};
@@ -1006,20 +1013,21 @@ async function refreshAll(){if(busy)return;busy=true;document.getElementById('rb
   try{
     // Fetch weather data for all stations + AFD + METARs in parallel
     const fetches=C.stations.map(s=>fetchOM(s.lat,s.lon).catch(e=>{console.warn('OM',s.label,e);return null}));
-    const [stnData,afd,metars,tafs,airSig,pireps]=await Promise.all([
+    const [stnData,afd,metars,tafs,airSig,pireps,sunTimes]=await Promise.all([
       Promise.all(fetches),
       fetchAFD().catch(e=>{console.warn('AFD:',e);return null}),
       fetchMETARs().catch(e=>{console.warn('METAR:',e);return{}}),
       fetchTAFs().catch(e=>{console.warn('TAF:',e);return{}}),
       fetchAirSigmet().catch(e=>{console.warn('AIRSIGMET:',e);return[]}),
-      fetchPIREPs().catch(e=>{console.warn('PIREP:',e);return[]})
+      fetchPIREPs().catch(e=>{console.warn('PIREP:',e);return[]}),
+      fetchSunTimes().catch(e=>{console.warn('SUN:',e);return null})
     ]);
     // Build keyed data object
     const allData={};C.stations.forEach((s,i)=>{allData[s.label]=stnData[i]});
     // Render
     const homeData=stnData[0]||stnData.find(d=>d!=null);
     _allStnData=allData;
-    if(homeData){rSurf(homeData,metars);rHourly(homeData)}
+    if(homeData){rSurf(homeData,metars,sunTimes);rHourly(homeData)}
     rMicroProfile(allData);
     rProfile(allData);
     if(afd)rAFD(afd);else document.getElementById('afdB').innerHTML='<div class="err">AFD unavailable</div>';
