@@ -291,6 +291,74 @@ a.badge{cursor:pointer}a.badge:hover{background:rgba(56,189,248,.2);color:#7dd3f
 .ab-none{font-size:11px;color:var(--tx3);padding:8px 0;text-align:center}
 .ab-links{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;padding-top:12px;border-top:1px solid var(--bdr)}
 .ab-links a{font-size:10px;color:var(--blue);text-decoration:none;font-family:'JetBrains Mono',monospace}.ab-links a:hover{text-decoration:underline}
+
+/* ═══ TIME PICKER ═══ */
+.tp{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden}
+.tp-hdr{padding:8px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(30,41,59,.5)}
+.tp-title{font-size:13px;font-weight:600;color:var(--tx2);text-transform:uppercase;letter-spacing:.04em;display:flex;align-items:center;gap:6px}
+.tp-now{background:rgba(52,211,153,.12);border:1px solid rgba(52,211,153,.25);color:var(--calm);padding:4px 12px;border-radius:var(--rs);cursor:pointer;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;transition:all .15s}
+.tp-now:hover{background:rgba(52,211,153,.2)}
+.tp-now.active{background:rgba(52,211,153,.25);box-shadow:0 0 8px rgba(52,211,153,.2)}
+.tp-body{padding:10px 14px;display:flex;flex-direction:column;gap:8px}
+.tp-days{display:flex;gap:4px;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch}
+.tp-day{flex:0 0 auto;padding:6px 14px;border-radius:6px;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500;color:var(--tx3);background:var(--card2);border:1px solid var(--bdr);transition:all .15s;white-space:nowrap;text-align:center}
+.tp-day:hover{border-color:var(--bdr2);color:var(--tx)}
+.tp-day.sel{background:rgba(56,189,248,.12);border-color:rgba(56,189,248,.3);color:var(--blue)}
+.tp-day .day-name{font-weight:700;font-size:13px;display:block}
+.tp-day .day-date{font-size:10px;color:var(--tx4);display:block;margin-top:1px}
+.tp-hours{display:flex;gap:3px;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch}
+.tp-hr{flex:0 0 48px;padding:6px 4px;border-radius:6px;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;color:var(--tx3);background:var(--card2);border:1px solid var(--bdr);transition:all .15s;text-align:center}
+.tp-hr:hover{border-color:var(--bdr2);color:var(--tx)}
+.tp-hr.sel{background:rgba(56,189,248,.12);border-color:rgba(56,189,248,.3);color:var(--blue)}
+.tp-hr.dawn{border-color:rgba(251,191,36,.25);background:rgba(251,191,36,.06)}
+.tp-hr.dawn.sel{background:rgba(251,191,36,.18);border-color:rgba(251,191,36,.4);color:var(--mod)}
+.tp-hr.dusk{border-color:rgba(168,85,247,.25);background:rgba(168,85,247,.06)}
+.tp-hr.dusk.sel{background:rgba(168,85,247,.18);border-color:rgba(168,85,247,.4);color:var(--violet)}
+.tp-sel{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--tx2);padding:4px 0;text-align:center}
+.tp-sel .tp-sel-time{color:var(--blue);font-weight:700}
+
+/* ═══ GO/NO-GO SCORECARD ═══ */
+.gng-grid{display:flex;flex-direction:column;gap:8px}
+.gng-verdict{text-align:center;padding:16px;border-radius:var(--rs);margin-bottom:8px}
+.gng-verdict-text{font-family:'Instrument Serif',serif;font-size:32px;font-weight:700}
+.gng-verdict-sub{font-size:13px;margin-top:4px;font-family:'JetBrains Mono',monospace}
+.gng-row{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--card2);border-radius:var(--rs);border:1px solid var(--bdr)}
+.gng-icon{font-size:18px;flex-shrink:0;width:28px;text-align:center}
+.gng-detail{flex:1}
+.gng-name{font-size:13px;font-weight:600;color:var(--tx)}
+.gng-val{font-size:12px;color:var(--tx3);font-family:'JetBrains Mono',monospace;margin-top:1px}
+.gng-status{flex-shrink:0;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;padding:3px 10px;border-radius:12px}
+.gng-go{color:var(--calm);background:rgba(52,211,153,.1)}
+.gng-caution{color:var(--mod);background:rgba(251,191,36,.1)}
+.gng-nogo{color:var(--danger);background:rgba(248,113,113,.1)}
+.gng-limits{margin-top:10px;padding:12px;background:var(--card2);border-radius:var(--rs);border:1px solid var(--bdr)}
+.gng-limits-title{font-size:11px;color:var(--tx3);text-transform:uppercase;letter-spacing:.04em;font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.gng-limit-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.gng-limit-lbl{font-size:12px;color:var(--tx2);flex:1}
+.gng-limit-input{background:var(--bg);border:1px solid var(--bdr);color:var(--tx);padding:4px 8px;border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:12px;width:60px;text-align:center}
+.gng-limit-unit{font-size:11px;color:var(--tx4);width:36px}
+.gng-save{background:rgba(56,189,248,.12);border:1px solid rgba(56,189,248,.25);color:var(--blue);padding:6px 16px;border-radius:var(--rs);cursor:pointer;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;margin-top:8px;transition:all .15s}
+.gng-save:hover{background:rgba(56,189,248,.2)}
+
+/* ═══ 5-DAY OVERVIEW ═══ */
+.day-grid{display:flex;flex-direction:column;gap:10px}
+.day-card{background:var(--card2);border-radius:var(--rs);padding:12px;display:flex;flex-direction:column;gap:6px;border:1px solid var(--bdr)}
+.day-card.today{border-color:rgba(56,189,248,.3)}
+.day-card-hdr{display:flex;justify-content:space-between;align-items:center}
+.day-card-name{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;color:var(--tx)}
+.day-card-date{font-size:11px;color:var(--tx3);font-family:'JetBrains Mono',monospace}
+.day-card-verdict{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;padding:3px 10px;border-radius:12px}
+.day-card-row{display:flex;justify-content:space-between;align-items:center;font-size:13px}
+.day-card-lbl{color:var(--tx3)}
+.day-card-val{font-family:'JetBrains Mono',monospace;font-weight:600}
+.dawn-table{width:100%;border-collapse:collapse;margin-top:6px}
+.dawn-table th{text-align:center;padding:4px 6px;font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--tx4);font-weight:600;font-family:'JetBrains Mono',monospace;border-bottom:1px solid var(--bdr)}
+.dawn-table td{text-align:center;padding:5px 4px;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;border-bottom:1px solid rgba(30,41,59,.3)}
+.dawn-table td.dawn-lbl{text-align:left;color:var(--tx3);font-weight:500;font-size:12px;width:60px}
+.dawn-section{margin-top:4px;padding:10px;background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.15);border-radius:6px}
+.dawn-section-title{font-size:11px;color:var(--mod);text-transform:uppercase;letter-spacing:.05em;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.afternoon-section{margin-top:4px;padding:8px 10px;background:var(--bg);border:1px solid var(--bdr);border-radius:6px}
+.afternoon-title{font-size:10px;color:var(--tx4);text-transform:uppercase;letter-spacing:.04em;font-weight:600;margin-bottom:4px}
 </style>
 </head>
 <body>
@@ -298,8 +366,17 @@ a.badge{cursor:pointer}a.badge:hover{background:rgba(56,189,248,.2);color:#7dd3f
 <div class="loc-ov" id="locOv"><div class="loc-panel"><div class="loc-hd"><span class="loc-hd-t">Set Location</span><button class="loc-close" onclick="closeLoc()">✕</button></div><div class="loc-body"><div class="loc-cur" id="locCur"></div><div class="loc-row"><input class="loc-input" id="locIn" placeholder="City, State or ZIP code" autocomplete="off"><button class="loc-go" onclick="doSearch()">Search</button></div><div class="loc-results" id="locRes"></div></div></div></div>
 <div class="ga" id="ga"><span>⚠</span><span id="gaTxt"></span></div>
 <div class="dash">
+  <div class="tp full"><div class="tp-hdr"><div class="tp-title">🕐 Forecast Window</div><button class="tp-now active" id="tpNow" onclick="setNow()">● LIVE</button></div>
+    <div class="tp-body">
+      <div class="tp-days" id="tpDays"></div>
+      <div class="tp-hours" id="tpHours"></div>
+      <div class="tp-sel" id="tpSel">Showing: <span class="tp-sel-time">Current conditions</span></div>
+    </div>
+  </div>
   <div class="cd full"><div class="ch"><div class="ct">🌡 Surface Conditions</div><a class="badge" id="srcSurf" href="#" target="_blank" rel="noopener">Open-Meteo GFS</a></div><div class="body" id="surfB"><div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
   <div class="cd full"><div class="ch tg open" onclick="tog(this)"><div class="ct">📊 Hourly Forecast<span class="sub">Next 24h</span></div><a class="badge" id="srcHr" href="#" target="_blank" rel="noopener" onclick="event.stopPropagation()">Open-Meteo GFS</a><span class="chv">▾</span></div><div class="body" id="hB"><div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
+  <div class="cd full"><div class="ch tg open" onclick="tog(this)"><div class="ct">✅ Go / No-Go<span class="sub">Flight Decision</span></div><span class="chv">▾</span></div><div class="body" id="gngB"><div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
+  <div class="cd full"><div class="ch tg open" onclick="tog(this)"><div class="ct">📅 5-Day Overview</div><span class="chv">▾</span></div><div class="body" id="dayB"><div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
   <div class="full winds-pair">
     <div class="cd winds-micro"><div class="ch"><div class="ct">🔬 Micro Winds<span class="sub">0–2000'</span></div><div class="badge" id="mvTime">Loading…</div></div><div class="body" id="microProfB"><div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
     <div class="cd winds-main"><div class="ch"><div class="ct">🎯 Winds Aloft<span class="sub" id="waSub">Loading...</span></div><div style="display:flex;gap:6px;align-items:center"><a class="badge" id="srcWA" href="#" target="_blank" rel="noopener">Open-Meteo GFS</a><div class="badge" id="wTime">Loading…</div></div></div><div class="body" id="profB"><div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
@@ -342,6 +419,63 @@ const spC=s=>s<=3?'var(--danger)':s<=5?'var(--mod)':'var(--calm)';
 const fT=iso=>new Date(iso).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',hour12:true,timeZone:getTZ()});
 const fH=iso=>new Date(iso).toLocaleTimeString('en-US',{hour:'numeric',hour12:true,timeZone:getTZ()});
 const nI=t=>{const n=Date.now();let c=0,m=Infinity;t.forEach((v,i)=>{const d=Math.abs(new Date(v).getTime()-n);if(d<m){m=d;c=i}});return c};
+
+// ═══ TIME PICKER STATE & FUNCTIONS ═══
+let liveMode=true, selectedIdx=null;
+function getIdx(times){ return liveMode ? nI(times) : selectedIdx; }
+function setNow(){liveMode=true;selectedIdx=null;document.getElementById('tpNow').classList.add('active');document.querySelectorAll('.tp-day').forEach(d=>d.classList.remove('sel'));document.querySelectorAll('.tp-hr').forEach(h=>h.classList.remove('sel'));document.getElementById('tpSel').innerHTML='Showing: <span class="tp-sel-time">Current conditions</span>';reRender()}
+function buildTimePicker(d){
+  const h=d.hourly,daily=d.daily;
+  const days={};
+  h.time.forEach((t,idx)=>{const dt=new Date(t);const key=dt.toLocaleDateString('en-US',{timeZone:getTZ(),year:'numeric',month:'2-digit',day:'2-digit'});if(!days[key])days[key]={label:dt.toLocaleDateString('en-US',{timeZone:getTZ(),weekday:'short'}),date:dt.toLocaleDateString('en-US',{timeZone:getTZ(),month:'short',day:'numeric'}),hours:[]};days[key].hours.push({idx,hour:dt.toLocaleTimeString('en-US',{timeZone:getTZ(),hour:'numeric',hour12:true}),dt})});
+  const sunData={};
+  if(daily&&daily.sunrise&&daily.sunset){
+    daily.sunrise.forEach((sr,di)=>{
+      const srD=new Date(sr),ssD=new Date(daily.sunset[di]);
+      const key=srD.toLocaleDateString('en-US',{timeZone:getTZ(),year:'numeric',month:'2-digit',day:'2-digit'});
+      sunData[key]={srH:new Date(sr).getHours(),ssH:new Date(daily.sunset[di]).getHours()};
+    });
+  }
+  const dEl=document.getElementById('tpDays'),hEl=document.getElementById('tpHours');
+  const dayKeys=Object.keys(days);
+  dEl.innerHTML=dayKeys.map((k,i)=>`<div class="tp-day" data-key="${k}" onclick="pickDay('${k}')"><span class="day-name">${days[k].label}</span><span class="day-date">${days[k].date}</span></div>`).join('');
+  window._tpDays=days;window._tpSunData=sunData;
+}
+function pickDay(key){
+  liveMode=false;document.getElementById('tpNow').classList.remove('active');
+  document.querySelectorAll('.tp-day').forEach(d=>d.classList.toggle('sel',d.dataset.key===key));
+  const day=window._tpDays[key],sun=window._tpSunData[key]||{};
+  const hEl=document.getElementById('tpHours');
+  hEl.innerHTML=day.hours.map(h=>{
+    const hr=h.dt.getHours();
+    let cls='tp-hr';
+    if(sun.srH!=null&&hr>=sun.srH-1&&hr<=sun.srH+2)cls+=' dawn';
+    if(sun.ssH!=null&&hr>=sun.ssH-2&&hr<=sun.ssH)cls+=' dusk';
+    return`<div class="${cls}" data-idx="${h.idx}" onclick="pickHour(${h.idx})">${h.hour}</div>`;
+  }).join('');
+  const dawnHr=day.hours.find(h=>{const hr=h.dt.getHours();return sun.srH!=null&&hr===sun.srH});
+  if(dawnHr)pickHour(dawnHr.idx);
+}
+function pickHour(idx){
+  liveMode=false;selectedIdx=idx;
+  document.getElementById('tpNow').classList.remove('active');
+  document.querySelectorAll('.tp-hr').forEach(h=>h.classList.toggle('sel',parseInt(h.dataset.idx)===idx));
+  const homeData=window._tpHomeData;
+  if(homeData){
+    const t=homeData.hourly.time[idx];
+    const dt=new Date(t);
+    document.getElementById('tpSel').innerHTML=`Showing: <span class="tp-sel-time">${dt.toLocaleString('en-US',{timeZone:getTZ(),weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit',hour12:true})}</span>`;
+    reRender();
+  }
+}
+function reRender(){
+  const homeData=window._tpHomeData,allData=window._tpAllData;
+  if(!homeData)return;
+  const metars=window._tpMetars||{},sunTimes=window._tpSunTimes||null;
+  rSurf(homeData,metars,sunTimes);rHourly(homeData);rGoNoGo(homeData);rDailySummary(homeData);
+  if(allData){rMicroProfile(allData);rProfile(allData)}
+}
+
 const agl=msl=>msl-C.elev;
 const pad3=d=>String(Math.round(((d%360)+360)%360)).padStart(3,'0');
 const toD=d=>((Math.round(d)+180)%360);
@@ -498,8 +632,8 @@ function updateUI(){
 // ═══ DATA FETCH ═══
 function omUrl(lat,lon){
   const pv=[];C.levels.forEach(l=>{pv.push(`wind_speed_${l.hPa}hPa`,`wind_direction_${l.hPa}hPa`,`temperature_${l.hPa}hPa`,`geopotential_height_${l.hPa}hPa`)});
-  const sv=['temperature_2m','dew_point_2m','relative_humidity_2m','wind_speed_10m','wind_direction_10m','wind_gusts_10m','cloud_cover','visibility','precipitation_probability','surface_pressure'];
-  return`https://api.open-meteo.com/v1/gfs?latitude=${lat}&longitude=${lon}&hourly=${[...sv,...pv].join(',')}&wind_speed_unit=mph&temperature_unit=fahrenheit&forecast_days=2&timezone=${encodeURIComponent(getTZ())}&models=gfs_seamless`;
+  const sv=['temperature_2m','dew_point_2m','relative_humidity_2m','wind_speed_10m','wind_direction_10m','wind_gusts_10m','cloud_cover','cloud_cover_low','cloud_cover_mid','cloud_cover_high','visibility','precipitation_probability','surface_pressure'];
+  return`https://api.open-meteo.com/v1/gfs?latitude=${lat}&longitude=${lon}&hourly=${[...sv,...pv].join(',')}&wind_speed_unit=mph&temperature_unit=fahrenheit&forecast_days=5&timezone=${encodeURIComponent(getTZ())}&models=gfs_seamless&daily=sunrise,sunset`;
 }
 async function fetchOM(a,b){const r=await fetch(omUrl(a,b));if(!r.ok)throw new Error('Open-Meteo '+r.status);return r.json()}
 async function fetchSunTimes(){
@@ -557,7 +691,7 @@ async function fetchPIREPs(){
 // ═══ SURFACE ═══
 let _allStnData=null; // stored by refreshAll for surface comparison
 function rSurf(d,metars,sunTimes){
-  const el=document.getElementById('surfB'),h=d.hourly,i=nI(h.time);
+  const el=document.getElementById('surfB'),h=d.hourly,i=getIdx(h.time);
   const tmp=h.temperature_2m?.[i],dew=h.dew_point_2m?.[i],spr=(tmp!=null&&dew!=null)?(tmp-dew).toFixed(1):null;
   const wnd=h.wind_speed_10m?.[i],gst=h.wind_gusts_10m?.[i],wdr=h.wind_direction_10m?.[i];
   const cld=h.cloud_cover?.[i],vis=h.visibility?.[i],viMi=vis!=null?(vis/1609.34).toFixed(1):null;
@@ -648,7 +782,7 @@ function rSurf(d,metars,sunTimes){
         o+=`<div class="sc-row"${ri%2===0?' style="background:rgba(15,21,37,.4)"':''}>`;
         o+=`<div class="sc-lbl">${row.lbl}</div>`;
         sources.forEach((src,si)=>{
-          const sh=src.data.hourly,sci=nI(sh.time);
+          const sh=src.data.hourly,sci=getIdx(sh.time);
           o+=`<div class="sc-cell"${si>0?' style="border-left:1px solid rgba(30,41,59,.15)"':''}>${row.fn(sh,sci)}</div>`;
         });
         o+='</div>';
@@ -680,7 +814,7 @@ function rMicroProfile(allData){
   const el=document.getElementById('microProfB'),tl=document.getElementById('mvTime');
   const homeKey=C.stations[0].label,homeD=allData[homeKey];
   if(!homeD||!homeD.hourly){el.innerHTML='<div class="err">No micro wind data</div>';return}
-  const h=homeD.hourly,ci=nI(h.time);
+  const h=homeD.hourly,ci=getIdx(h.time);
   tl.textContent=fT(h.time[ci]);
   // Build wind data for 0-2000 AGL
   const rows=[];
@@ -744,11 +878,11 @@ function rProfile(allData){
   // Filter to only stations with successful data
   const sources=C.stations.map(s=>({key:s.label,label:s.label,sub:s.name,dist:s.dist||0,data:allData[s.label]})).filter(s=>s.data&&s.data.hourly);
   if(!sources.length){el.innerHTML='<div class="err">No wind data available</div>';return}
-  const homeH=sources[0].data.hourly,ci=nI(homeH.time);
+  const homeH=sources[0].data.hourly,ci=getIdx(homeH.time);
   tl.textContent=fT(homeH.time[ci]);
   let maxSpd=15;
   const allLvl=C.levels.filter(l=>agl(l.msl)>=0);
-  sources.forEach(src=>{const h=src.data.hourly,si=nI(h.time);allLvl.forEach(l=>{const s=h[`wind_speed_${l.hPa}hPa`]?.[si]||0;if(s>maxSpd)maxSpd=s})});
+  sources.forEach(src=>{const h=src.data.hourly,si=getIdx(h.time);allLvl.forEach(l=>{const s=h[`wind_speed_${l.hPa}hPa`]?.[si]||0;if(s>maxSpd)maxSpd=s})});
   const cellW=48;
   let o='<div class="vf-scroll">';
   // Header row (outside vf-wrap so sticky works)
@@ -784,7 +918,7 @@ function rProfile(allData){
     o+='<div class="vf-row">';
     o+=`<div class="vf-alt">${al} ft<span class="msl">${ml} MSL</span></div>`;
     sources.forEach((src,i)=>{
-      const h=src.data.hourly,si=nI(h.time);
+      const h=src.data.hourly,si=getIdx(h.time);
       const w=interpAt(h,si,msl);const spd=w?.spd??null,dir=w?.dir??null;
       const col=spd!=null?wH(spd):'#3d4a60';
       const dirLabel=dir!=null?`→${pad3(toD(dir))}°`:'—';
@@ -816,7 +950,7 @@ function rProfile(allData){
 let _hourlyData=null;
 function rHourly(d){
   _hourlyData=d;
-  const el=document.getElementById('hB'),h=d.hourly,ci=nI(h.time);let o='<div class="hstrip">';
+  const el=document.getElementById('hB'),h=d.hourly,ci=getIdx(h.time);let o='<div class="hstrip">';
   for(let i=ci;i<Math.min(ci+24,h.time.length);i++){
     const tmp=h.temperature_2m?.[i],dew=h.dew_point_2m?.[i],wnd=h.wind_speed_10m?.[i],gst=h.wind_gusts_10m?.[i],wdr=h.wind_direction_10m?.[i],cld=h.cloud_cover?.[i],prc=h.precipitation_probability?.[i],gy=gst!=null&&gst>=C.gThr;
     const col=wnd!=null?wH(wnd):'#3d4a60';
@@ -1007,6 +1141,144 @@ function rAvBriefing(tafs,airSig,pireps){
   el.innerHTML=o;
 }
 
+// ═══ 5-DAY DAWN-WINDOW OVERVIEW ═══
+function getSunTimes(d, dayIdx){
+  if(!d.daily||!d.daily.sunrise||!d.daily.sunset)return null;
+  const sr=d.daily.sunrise[dayIdx],ss=d.daily.sunset[dayIdx];
+  if(!sr||!ss)return null;
+  return{sunrise:new Date(sr),sunset:new Date(ss)};
+}
+function windowVerdict(h, idxs){
+  let nogo=0,caution=0;
+  idxs.forEach(i=>{
+    const w=h.wind_speed_10m?.[i],g=h.wind_gusts_10m?.[i];
+    const t=h.temperature_2m?.[i],d=h.dew_point_2m?.[i],spr=(t!=null&&d!=null)?(t-d):null;
+    if(w!=null&&w>gngLimits.maxWind*1.5)nogo++;else if(w!=null&&w>gngLimits.maxWind)caution++;
+    if(g!=null&&g>gngLimits.maxGust*1.25)nogo++;else if(g!=null&&g>gngLimits.maxGust)caution++;
+    if(spr!=null&&spr<gngLimits.minSpread*0.6)nogo++;else if(spr!=null&&spr<gngLimits.minSpread)caution++;
+  });
+  return nogo>0?'NO-GO':caution>0?'MARGINAL':'FLYABLE';
+}
+function renderWindowTable(h, windowIdxs, title){
+  if(!windowIdxs.length)return'<div style="font-size:11px;color:var(--tx4);padding:4px">No data for this window</div>';
+  let o=`<table class="dawn-table"><thead><tr><th></th>`;
+  windowIdxs.forEach(i=>{o+=`<th>${fH(h.time[i])}</th>`});
+  o+=`</tr></thead><tbody>`;
+  const rows=[
+    {lbl:'Wind',fn:i=>{const v=h.wind_speed_10m?.[i];return v!=null?`<span style="color:${wC(v)}">${Math.round(v)}</span>`:'—'}},
+    {lbl:'Gust',fn:i=>{const v=h.wind_gusts_10m?.[i];return v!=null?`<span style="color:${v>=gngLimits.maxGust?'var(--gust)':'var(--tx2)'}">${Math.round(v)}</span>`:'—'}},
+    {lbl:'Dir',fn:i=>{const v=h.wind_direction_10m?.[i];return v!=null?`<span style="color:var(--tx3)">${cp(v)}</span>`:'—'}},
+    {lbl:'Temp',fn:i=>{const v=h.temperature_2m?.[i];return v!=null?Math.round(v)+'°':'—'}},
+    {lbl:'Dew',fn:i=>{const v=h.dew_point_2m?.[i];return v!=null?`<span style="color:var(--tx3)">${Math.round(v)}°</span>`:'—'}},
+    {lbl:'Spread',fn:i=>{const t=h.temperature_2m?.[i],d=h.dew_point_2m?.[i];if(t==null||d==null)return'—';const s=t-d;return`<span style="color:${spC(s)}">${s.toFixed(1)}°</span>`}},
+    {lbl:'Cloud',fn:i=>{const v=h.cloud_cover?.[i];return v!=null?Math.round(v)+'%':'—'}},
+    {lbl:'Ceiling',fn:i=>{const t=h.temperature_2m?.[i],d=h.dew_point_2m?.[i];if(t==null||d==null)return'—';const c=Math.round(((t-d)/4.4)*1000);return c>=1000?(c/1000).toFixed(1)+'k':c+"'"}},
+    {lbl:'Precip',fn:i=>{const v=h.precipitation_probability?.[i];return v!=null?`<span style="color:${v>20?'var(--blue)':'var(--tx3)'}">${Math.round(v)}%</span>`:'—'}},
+  ];
+  rows.forEach(r=>{
+    o+=`<tr><td class="dawn-lbl">${r.lbl}</td>`;
+    windowIdxs.forEach(i=>{o+=`<td>${r.fn(i)}</td>`});
+    o+=`</tr>`;
+  });
+  o+=`</tbody></table>`;
+  return o;
+}
+function rDailySummary(d){
+  const el=document.getElementById('dayB');if(!el)return;
+  const h=d.hourly;
+  if(!d.daily||!d.daily.sunrise){el.innerHTML='<div class="err">No daily data</div>';return}
+  const nDays=d.daily.sunrise.length;
+  const today=new Date().toLocaleDateString('en-US',{timeZone:getTZ(),year:'numeric',month:'2-digit',day:'2-digit'});
+  let o='<div class="day-grid">';
+  for(let di=0;di<nDays;di++){
+    const sun=getSunTimes(d,di);
+    if(!sun)continue;
+    const dayDate=sun.sunrise.toLocaleDateString('en-US',{timeZone:getTZ(),year:'numeric',month:'2-digit',day:'2-digit'});
+    const isToday=dayDate===today;
+    const dayName=sun.sunrise.toLocaleDateString('en-US',{timeZone:getTZ(),weekday:'long'});
+    const dateFmt=sun.sunrise.toLocaleDateString('en-US',{timeZone:getTZ(),month:'short',day:'numeric'});
+    const srFmt=sun.sunrise.toLocaleTimeString('en-US',{timeZone:getTZ(),hour:'numeric',minute:'2-digit',hour12:true});
+    const ssFmt=sun.sunset.toLocaleTimeString('en-US',{timeZone:getTZ(),hour:'numeric',minute:'2-digit',hour12:true});
+    const srTime=sun.sunrise.getTime(),ssTime=sun.sunset.getTime();
+    const dawnStart=srTime-3600000,dawnEnd=srTime+7200000;
+    const duskStart=ssTime-7200000,duskEnd=ssTime;
+    const dawnIdxs=[],duskIdxs=[],midIdxs=[];
+    h.time.forEach((t,idx)=>{const ms=new Date(t).getTime();if(ms>=dawnStart&&ms<=dawnEnd)dawnIdxs.push(idx);else if(ms>=duskStart&&ms<=duskEnd)duskIdxs.push(idx);else{const dayStart=new Date(sun.sunrise);dayStart.setHours(0,0,0,0);const dayEnd=new Date(dayStart);dayEnd.setDate(dayEnd.getDate()+1);if(ms>=dayStart.getTime()&&ms<dayEnd.getTime()&&ms>dawnEnd&&ms<duskStart)midIdxs.push(idx)}});
+    const dawnV=dawnIdxs.length?windowVerdict(h,dawnIdxs):'—';
+    const vColor=dawnV==='FLYABLE'?'var(--calm)':dawnV==='MARGINAL'?'var(--mod)':'var(--danger)';
+    const vBg=dawnV==='FLYABLE'?'rgba(52,211,153,.1)':dawnV==='MARGINAL'?'rgba(251,191,36,.1)':'rgba(248,113,113,.1)';
+    o+=`<div class="day-card${isToday?' today':''}">`;
+    o+=`<div class="day-card-hdr"><div><div class="day-card-name">${isToday?'Today — ':''}${dayName}</div><div class="day-card-date">${dateFmt} · ☀ ${srFmt} → 🌅 ${ssFmt}</div></div><div class="day-card-verdict" style="color:${vColor};background:${vBg}">${dawnV}</div></div>`;
+    if(dawnIdxs.length){
+      o+=`<div class="dawn-section"><div class="dawn-section-title">🌅 Dawn Window · ${srFmt} ± 1–2hr</div>`;
+      o+=renderWindowTable(h,dawnIdxs);
+      o+=`</div>`;
+    }
+    if(duskIdxs.length){
+      o+=`<div class="dawn-section" style="background:rgba(168,85,247,.04);border-color:rgba(168,85,247,.15)"><div class="dawn-section-title" style="color:var(--violet)">🌆 Dusk Window · ${ssFmt} − 2hr</div>`;
+      o+=renderWindowTable(h,duskIdxs);
+      o+=`</div>`;
+    }
+    if(midIdxs.length){
+      const maxW=Math.max(...midIdxs.map(i=>h.wind_speed_10m?.[i]||0));
+      const maxG=Math.max(...midIdxs.map(i=>h.wind_gusts_10m?.[i]||0));
+      const maxP=Math.max(...midIdxs.map(i=>h.precipitation_probability?.[i]||0));
+      o+=`<div class="afternoon-section"><div class="afternoon-title">Midday Summary (${midIdxs.length}hr)</div>`;
+      o+=`<div style="font-size:12px;color:var(--tx3);font-family:'JetBrains Mono',monospace">Max wind <span style="color:${wC(maxW)}">${Math.round(maxW)} mph</span> · Gust <span style="color:${maxG>=gngLimits.maxGust?'var(--gust)':'var(--tx2)'}">${Math.round(maxG)} mph</span> · Precip <span style="color:${maxP>20?'var(--blue)':'var(--tx3)'}">${Math.round(maxP)}%</span></div></div>`;
+    }
+    o+=`</div>`;
+  }
+  o+=`</div>`;
+  el.innerHTML=o;
+}
+
+// ═══ GO/NO-GO SCORECARD ═══
+const gngLimits={maxWind:8,maxGust:12,minVis:3,minCeiling:1500,minSpread:3,maxPrecip:20,maxShear:10};
+function loadGngLimits(){try{const s=localStorage.getItem('gngLimits');if(s){const p=JSON.parse(s);Object.assign(gngLimits,p)}}catch(e){}}
+loadGngLimits();
+function saveGngLimits(){
+  const fields=['maxWind','maxGust','minVis','minCeiling','minSpread','maxPrecip','maxShear'];
+  fields.forEach(f=>{const el=document.getElementById('gng_'+f);if(el)gngLimits[f]=parseFloat(el.value)||gngLimits[f]});
+  try{localStorage.setItem('gngLimits',JSON.stringify(gngLimits))}catch(e){}
+  if(window._tpHomeData)rGoNoGo(window._tpHomeData);
+}
+function rGoNoGo(d){
+  const el=document.getElementById('gngB');if(!el)return;
+  const h=d.hourly,i=getIdx(h.time);
+  const wnd=h.wind_speed_10m?.[i],gst=h.wind_gusts_10m?.[i],vis=h.visibility?.[i],viMi=vis!=null?(vis/1609.34):null;
+  const tmp=h.temperature_2m?.[i],dew=h.dew_point_2m?.[i],spr=(tmp!=null&&dew!=null)?(tmp-dew):null;
+  const ceil=(tmp!=null&&dew!=null)?Math.round(((tmp-dew)/4.4)*1000):null;
+  const prc=h.precipitation_probability?.[i];
+  const checks=[
+    {name:'Surface Wind',icon:'💨',val:wnd!=null?Math.round(wnd)+' mph':'—',status:wnd==null?'unknown':wnd<=gngLimits.maxWind?'go':wnd<=gngLimits.maxWind*1.5?'caution':'nogo'},
+    {name:'Gusts',icon:'🌬',val:gst!=null?Math.round(gst)+' mph':'—',status:gst==null?'unknown':gst<=gngLimits.maxGust?'go':gst<=gngLimits.maxGust*1.25?'caution':'nogo'},
+    {name:'Visibility',icon:'👁',val:viMi!=null?viMi.toFixed(1)+' mi':'—',status:viMi==null?'unknown':viMi>=gngLimits.minVis?'go':viMi>=gngLimits.minVis*0.6?'caution':'nogo'},
+    {name:'Cloud Ceiling',icon:'☁',val:ceil!=null?ceil+' ft AGL':'—',status:ceil==null?'unknown':ceil>=gngLimits.minCeiling?'go':ceil>=gngLimits.minCeiling*0.6?'caution':'nogo'},
+    {name:'Temp/Dew Spread',icon:'🌡',val:spr!=null?spr.toFixed(1)+'°F':'—',status:spr==null?'unknown':spr>=gngLimits.minSpread?'go':spr>=gngLimits.minSpread*0.6?'caution':'nogo'},
+    {name:'Precipitation',icon:'🌧',val:prc!=null?Math.round(prc)+'%':'—',status:prc==null?'unknown':prc<=gngLimits.maxPrecip?'go':prc<=gngLimits.maxPrecip*1.5?'caution':'nogo'},
+  ];
+  const nogoCount=checks.filter(c=>c.status==='nogo').length;
+  const cautionCount=checks.filter(c=>c.status==='caution').length;
+  const verdict=nogoCount>0?'NO-GO':cautionCount>0?'MARGINAL':'FLYABLE';
+  const vColor=verdict==='FLYABLE'?'var(--calm)':verdict==='MARGINAL'?'var(--mod)':'var(--danger)';
+  const vBg=verdict==='FLYABLE'?'rgba(52,211,153,.1)':verdict==='MARGINAL'?'rgba(251,191,36,.1)':'rgba(248,113,113,.1)';
+  let o=`<div class="gng-grid"><div class="gng-verdict" style="background:${vBg}"><div class="gng-verdict-text" style="color:${vColor}">${verdict}</div><div class="gng-verdict-sub" style="color:${vColor}">${nogoCount} no-go · ${cautionCount} caution · ${checks.filter(c=>c.status==='go').length} go</div></div>`;
+  checks.forEach(c=>{
+    const cls=c.status==='go'?'gng-go':c.status==='caution'?'gng-caution':'gng-nogo';
+    const lbl=c.status==='go'?'GO':c.status==='caution'?'CAUTION':'NO-GO';
+    o+=`<div class="gng-row"><div class="gng-icon">${c.icon}</div><div class="gng-detail"><div class="gng-name">${c.name}</div><div class="gng-val">${c.val}</div></div><div class="gng-status ${cls}">${lbl}</div></div>`;
+  });
+  o+=`<div class="gng-limits"><div class="gng-limits-title">⚙ Custom Limits</div>`;
+  o+=`<div class="gng-limit-row"><div class="gng-limit-lbl">Max Wind</div><input class="gng-limit-input" id="gng_maxWind" type="number" value="${gngLimits.maxWind}"><div class="gng-limit-unit">mph</div></div>`;
+  o+=`<div class="gng-limit-row"><div class="gng-limit-lbl">Max Gust</div><input class="gng-limit-input" id="gng_maxGust" type="number" value="${gngLimits.maxGust}"><div class="gng-limit-unit">mph</div></div>`;
+  o+=`<div class="gng-limit-row"><div class="gng-limit-lbl">Min Visibility</div><input class="gng-limit-input" id="gng_minVis" type="number" value="${gngLimits.minVis}"><div class="gng-limit-unit">mi</div></div>`;
+  o+=`<div class="gng-limit-row"><div class="gng-limit-lbl">Min Ceiling</div><input class="gng-limit-input" id="gng_minCeiling" type="number" value="${gngLimits.minCeiling}"><div class="gng-limit-unit">ft</div></div>`;
+  o+=`<div class="gng-limit-row"><div class="gng-limit-lbl">Min Spread</div><input class="gng-limit-input" id="gng_minSpread" type="number" value="${gngLimits.minSpread}"><div class="gng-limit-unit">°F</div></div>`;
+  o+=`<div class="gng-limit-row"><div class="gng-limit-lbl">Max Precip</div><input class="gng-limit-input" id="gng_maxPrecip" type="number" value="${gngLimits.maxPrecip}"><div class="gng-limit-unit">%</div></div>`;
+  o+=`<button class="gng-save" onclick="saveGngLimits()">Save Limits</button></div></div>`;
+  el.innerHTML=o;
+}
+
 // ═══ REFRESH ═══
 let busy=false;
 async function refreshAll(){if(busy)return;busy=true;document.getElementById('rbtn').classList.add('ld');
@@ -1027,7 +1299,9 @@ async function refreshAll(){if(busy)return;busy=true;document.getElementById('rb
     // Render
     const homeData=stnData[0]||stnData.find(d=>d!=null);
     _allStnData=allData;
-    if(homeData){rSurf(homeData,metars,sunTimes);rHourly(homeData)}
+    window._tpHomeData=homeData;window._tpAllData=allData;window._tpMetars=metars;window._tpSunTimes=sunTimes;
+    if(liveMode)buildTimePicker(homeData);
+    if(homeData){rSurf(homeData,metars,sunTimes);rHourly(homeData);rGoNoGo(homeData);rDailySummary(homeData)}
     rMicroProfile(allData);
     rProfile(allData);
     if(afd)rAFD(afd);else document.getElementById('afdB').innerHTML='<div class="err">AFD unavailable</div>';
