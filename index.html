@@ -859,8 +859,13 @@ function updateUI(){
 // ═══ DATA FETCH ═══
 function omUrl(lat,lon){
   const pv=[];C.levels.forEach(l=>{pv.push(`wind_speed_${l.hPa}hPa`,`wind_direction_${l.hPa}hPa`,`temperature_${l.hPa}hPa`,`geopotential_height_${l.hPa}hPa`,`dew_point_${l.hPa}hPa`)});
-  const sv=['temperature_2m','dew_point_2m','relative_humidity_2m','wind_speed_10m','wind_direction_10m','wind_gusts_10m','cloud_cover','cloud_cover_low','cloud_cover_mid','cloud_cover_high','visibility','precipitation_probability','surface_pressure'];
-  let url=`https://api.open-meteo.com/v1/gfs?latitude=${lat}&longitude=${lon}&hourly=${[...sv,...pv].join(',')}&wind_speed_unit=mph&temperature_unit=fahrenheit&timezone=${encodeURIComponent(getTZ())}&models=gfs_seamless&daily=sunrise,sunset`;
+  // pressure_msl is the sea-level equivalent that METARs and altimeters report (was surface_pressure —
+  // that's station pressure at actual elevation, which is ~2 inHg low at Mesquite/Reno/anywhere >1000 ft).
+  const sv=['temperature_2m','dew_point_2m','relative_humidity_2m','wind_speed_10m','wind_direction_10m','wind_gusts_10m','cloud_cover','cloud_cover_low','cloud_cover_mid','cloud_cover_high','visibility','precipitation_probability','pressure_msl','surface_pressure'];
+  // Use best_match model instead of gfs_seamless: Open-Meteo auto-picks HRRR (3 km) for CONUS surface
+  // vars — resolves terrain drainage that GFS (28 km) smooths over — while still using GFS/ICON/ECMWF
+  // for pressure-level winds aloft. Falls back to GFS everywhere HRRR isn't available.
+  let url=`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=${[...sv,...pv].join(',')}&wind_speed_unit=mph&temperature_unit=fahrenheit&timezone=${encodeURIComponent(getTZ())}&models=best_match&daily=sunrise,sunset`;
   if(isHistorical()){const target=getDateForOffset(selectedOffset);const ds=isoDate(target);url+=`&start_date=${ds}&end_date=${ds}`}
   else if(isForecast()){url+=`&forecast_days=${Math.abs(selectedOffset)+1}`}
   else{url+=`&forecast_days=5`}
@@ -935,7 +940,8 @@ function rSurf(d,metars,sunTimes){
   const tmp=h.temperature_2m?.[i],dew=h.dew_point_2m?.[i],spr=(tmp!=null&&dew!=null)?(tmp-dew).toFixed(1):null;
   const wnd=h.wind_speed_10m?.[i],gst=h.wind_gusts_10m?.[i],wdr=h.wind_direction_10m?.[i];
   const cld=h.cloud_cover?.[i],vis=h.visibility?.[i],viMi=vis!=null?(vis/1609.34).toFixed(1):null;
-  const prc=h.precipitation_probability?.[i],prs=h.surface_pressure?.[i],inhg=prs!=null?(prs*0.02953).toFixed(2):null;
+  // Prefer pressure_msl (sea-level, matches METAR altimeter); fall back to surface_pressure if unavailable.
+  const prc=h.precipitation_probability?.[i],prs=h.pressure_msl?.[i]??h.surface_pressure?.[i],inhg=prs!=null?(prs*0.02953).toFixed(2):null;
   if(isToday())chkG(h,i);else document.getElementById('ga').classList.remove('v');
   const wndCol=wnd!=null?wH(wnd):'#5a6680';
   const timeLabel=!isToday()?`<div style="font-size:11px;color:${isHistorical()?'var(--violet)':'var(--blue)'};margin-bottom:6px">${isHistorical()?'Past':'Forecast'} conditions at 6:00 AM · ${fmtDate(getDateForOffset(selectedOffset))}</div>`:'';
@@ -1037,7 +1043,7 @@ function rSurf(d,metars,sunTimes){
         {lbl:'Cloud %',fn:(h,ci)=>{const v=h.cloud_cover?.[ci];return v!=null?`${Math.round(v)}%`:'—'}},
         {lbl:'Visibility',fn:(h,ci)=>{const v=h.visibility?.[ci];return v!=null?`${(v/1609.34).toFixed(1)} mi`:'—'}},
         {lbl:'Precip %',fn:(h,ci)=>{const v=h.precipitation_probability?.[ci];if(v==null)return'—';return v>0?`<span style="color:var(--blue)">${Math.round(v)}%</span>`:`<span style="color:var(--tx4)">0%</span>`}},
-        {lbl:'Pressure',fn:(h,ci)=>{const v=h.surface_pressure?.[ci];return v!=null?`${(v*0.02953).toFixed(2)}`:'—'}},
+        {lbl:'Pressure',fn:(h,ci)=>{const v=h.pressure_msl?.[ci]??h.surface_pressure?.[ci];return v!=null?`${(v*0.02953).toFixed(2)}`:'—'}},
       ];
       scRows.forEach((row,ri)=>{
         o+=`<div class="sc-row"${ri%2===0?' style="background:rgba(15,21,37,.4)"':''}>`;
@@ -1236,7 +1242,7 @@ function showHourDet(colEl,i){
   const h=_hourlyData.hourly;
   const tmp=h.temperature_2m?.[i],dew=h.dew_point_2m?.[i],rh=h.relative_humidity_2m?.[i];
   const wnd=h.wind_speed_10m?.[i],gst=h.wind_gusts_10m?.[i],wdr=h.wind_direction_10m?.[i];
-  const cld=h.cloud_cover?.[i],vis=h.visibility?.[i],prc=h.precipitation_probability?.[i],prs=h.surface_pressure?.[i];
+  const cld=h.cloud_cover?.[i],vis=h.visibility?.[i],prc=h.precipitation_probability?.[i],prs=h.pressure_msl?.[i]??h.surface_pressure?.[i];
   const spr=(tmp!=null&&dew!=null)?(tmp-dew).toFixed(1):null;
   const cBase=(tmp!=null&&dew!=null)?Math.round(((tmp-dew)/4.4)*1000):null;
   const cBStr=cBase!=null?(cBase>=1000?(cBase/1000).toFixed(1)+'k ft AGL':cBase+' ft AGL'):'—';
@@ -1587,7 +1593,11 @@ async function refreshAll(){if(busy)return;busy=true;document.getElementById('rb
 // ═══ INIT ═══
 const CFG_VER=2; // bump this to force station rediscovery for all users
 document.addEventListener('DOMContentLoaded',()=>{
-  // Load saved location from localStorage
+  // Load saved location from localStorage.
+  // Diagnostic: if storage is empty on a page load we should have expected it to have data,
+  // the location will silently fall back to the Temecula default — log so we can catch this
+  // (reports of location "reverting" are likely iOS clearing localStorage under memory pressure or ITP).
+  let locSource='default (no saved location)';
   try{
     const saved=localStorage.getItem('balloonWeatherLoc');
     if(saved){const s=JSON.parse(saved);
@@ -1595,15 +1605,17 @@ document.addEventListener('DOMContentLoaded',()=>{
         C.lat=s.lat;C.lon=s.lon;C.elev=s.elev||0;C.name=s.name||'Unknown';C.locName=s.locName||s.name||'Unknown';
         C.timezone=s.timezone||'America/New_York';C.nwsOffice=s.nwsOffice||'';
         C.metarStns=s.metarStns||C.metarStns;
+        locSource='localStorage ('+C.name+')';
         // Only load saved stations if config version matches — otherwise use fresh defaults
         if(s.cfgVer===CFG_VER&&s.stations&&s.stations.length>=6){C.stations=s.stations}
         else{console.log('Station config outdated, using defaults + rediscovering...');
           // Trigger async rediscovery with new broader logic
           setTimeout(()=>selectLocation({name:C.name,lat:C.lat,lon:C.lon,elevation:C.elev/3.28084,timezone:C.timezone}),2000);
         }
-      }
+      } else locSource='default (saved data was malformed)';
     }
-  }catch(e){console.warn('Load location:',e)}
+  }catch(e){console.warn('Load location:',e);locSource='default (localStorage threw '+e.message+')'}
+  console.log('[balloon-weather] location source:',locSource,'→',C.name,C.lat.toFixed(2)+','+C.lon.toFixed(2));
   // Load font scale + custom stations, then merge customs into the active station lists
   loadSettings();
   applyCustomStations();
