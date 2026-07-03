@@ -665,7 +665,7 @@ async function addCustomStn(){
   if(C.metarStns.find(s=>s.id===id)||C.stations.find(s=>('K'+s.label)===id||s.label===id.replace(/^K/,''))){msg.innerHTML='<div class="cs-msg info">'+id+' is already an auto-discovered station.</div>';return}
   msg.innerHTML='<div class="cs-msg info">Looking up '+id+'…</div>';
   try{
-    const r=await fetch(`https://api.weather.gov/stations/${id}`,{headers:{'Accept':'application/geo+json','User-Agent':'BalloonWeather/1.0'}});
+    const r=await fetchT(`https://api.weather.gov/stations/${id}`,{headers:{'Accept':'application/geo+json','User-Agent':'BalloonWeather/1.0'}});
     if(!r.ok)throw new Error('Station '+id+' not found');
     const d=await r.json();const p=d.properties||{},c=d.geometry?.coordinates||[];
     const stn={id,name:(p.name||id).split(',')[0].trim(),lat:c[1],lon:c[0],elev:p.elevation?.value!=null?Math.round(p.elevation.value*3.28084):0};
@@ -733,12 +733,12 @@ async function doSearch(){
   try{
     let results=[];
     if(/^\d{5}$/.test(q)){
-      const r=await fetch(`https://api.zippopotam.us/us/${q}`);
+      const r=await fetchT(`https://api.zippopotam.us/us/${q}`);
       if(!r.ok)throw new Error('ZIP not found');
       const d=await r.json();const p=d.places?.[0];
       if(p)results=[{name:p['place name'],admin:d['country abbreviation']+', '+p['state abbreviation'],lat:parseFloat(p.latitude),lon:parseFloat(p.longitude),elevation:null,timezone:null,country:'US'}];
     }else{
-      const r=await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=5&language=en&format=json`);
+      const r=await fetchT(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=5&language=en&format=json`);
       if(!r.ok)throw new Error('Geocoding failed');
       const d=await r.json();
       results=(d.results||[]).map(r=>({name:r.name,admin:[r.admin1,r.country].filter(Boolean).join(', '),lat:r.latitude,lon:r.longitude,elevation:r.elevation,timezone:r.timezone,country:r.country_code}));
@@ -764,7 +764,7 @@ async function selectLocation(geo){
     let office='';
     // NWS points lookup
     try{
-      const pr=await fetch(`https://api.weather.gov/points/${geo.lat.toFixed(4)},${geo.lon.toFixed(4)}`);
+      const pr=await fetchT(`https://api.weather.gov/points/${geo.lat.toFixed(4)},${geo.lon.toFixed(4)}`);
       if(pr.ok){const pd=await pr.json();
         office=(pd.properties?.forecastOffice||'').split('/').pop()||'';
         tz=tz||pd.properties?.timeZone||'America/New_York';
@@ -772,7 +772,7 @@ async function selectLocation(geo){
     }catch(e){console.warn('NWS points:',e)}
     // Get elevation from Open-Meteo if still missing
     if(elev==null){try{
-      const er=await fetch(`https://api.open-meteo.com/v1/elevation?latitude=${geo.lat}&longitude=${geo.lon}`);
+      const er=await fetchT(`https://api.open-meteo.com/v1/elevation?latitude=${geo.lat}&longitude=${geo.lon}`);
       if(er.ok){const ed=await er.json();elev=ed.elevation?.[0]!=null?Math.round(ed.elevation[0]*3.28084):0}
     }catch(e){elev=0}}
     // Discover nearby stations — query home point + offset points to cover adjacent forecast offices
@@ -785,7 +785,7 @@ async function selectLocation(geo){
       // Fetch stations from home point + 4 offset points (~0.7° in each direction) to span multiple NWS offices
       const offsets=[[0,0],[0.6,0],[-0.6,0],[0,0.7],[0,-0.7]];
       const stnFetches=offsets.map(([dLat,dLon])=>
-        fetch(`https://api.weather.gov/points/${(geo.lat+dLat).toFixed(4)},${(geo.lon+dLon).toFixed(4)}/stations`)
+        fetchT(`https://api.weather.gov/points/${(geo.lat+dLat).toFixed(4)},${(geo.lon+dLon).toFixed(4)}/stations`)
           .then(r=>r.ok?r.json():{features:[]}).catch(()=>({features:[]}))
       );
       const stnResults=await Promise.all(stnFetches);
@@ -866,28 +866,37 @@ function omUrl(lat,lon){
   else{url+=`&forecast_days=5`}
   return url;
 }
-async function fetchOM(a,b){const r=await fetch(omUrl(a,b));if(!r.ok)throw new Error('Open-Meteo '+r.status);return r.json()}
+// Wraps fetch with a hard timeout so a single hung upstream (Open-Meteo, aviationweather, etc.)
+// can't leave the whole page spinning. The AbortController actually cancels the in-flight request.
+// Uses window.fetch explicitly so the search-and-replace of fetch()->fetchT() doesn't create recursion.
+async function fetchT(url, opts={}, ms=8000){
+  const ctl=new AbortController();
+  const to=setTimeout(()=>ctl.abort(),ms);
+  try{ return await window.fetch(url,{...opts,signal:ctl.signal}) }
+  finally{ clearTimeout(to) }
+}
+async function fetchOM(a,b){const r=await fetchT(omUrl(a,b));if(!r.ok)throw new Error('Open-Meteo '+r.status);return r.json()}
 async function fetchSunTimes(){
-  const r=await fetch(`https://api.sunrise-sunset.org/json?lat=${C.lat}&lng=${C.lon}&formatted=0`);
+  const r=await fetchT(`https://api.sunrise-sunset.org/json?lat=${C.lat}&lng=${C.lon}&formatted=0`);
   if(!r.ok)throw new Error('Sun API '+r.status);
   const d=await r.json();if(d.status!=='OK')throw new Error('Sun API: '+d.status);
   return d.results;
 }
 async function fetchAFD(){
   if(!C.nwsOffice)throw new Error('No NWS office');
-  const lr=await fetch(`https://api.weather.gov/products/types/AFD/locations/${C.nwsOffice}`);if(!lr.ok)throw new Error('AFD '+lr.status);
+  const lr=await fetchT(`https://api.weather.gov/products/types/AFD/locations/${C.nwsOffice}`);if(!lr.ok)throw new Error('AFD '+lr.status);
   const ld=await lr.json();const id=ld['@graph']?.[0]?.id;if(!id)throw new Error('No AFD');
-  const pr=await fetch(`https://api.weather.gov/products/${id}`);if(!pr.ok)throw new Error('AFD '+pr.status);
+  const pr=await fetchT(`https://api.weather.gov/products/${id}`);if(!pr.ok)throw new Error('AFD '+pr.status);
   const pd=await pr.json();return{text:pd.productText,time:pd.issuanceTime};
 }
-async function fetchMETARs(){const results={};if(!C.metarStns.length)return results;await Promise.all(C.metarStns.map(async stn=>{try{const r=await fetch(`https://api.weather.gov/stations/${stn.id}/observations/latest`,{headers:{'Accept':'application/geo+json','User-Agent':'BalloonWeather/1.0'}});if(!r.ok)return;const d=await r.json();results[stn.id]={name:stn.nm,elev:stn.elev,layers:d.properties?.cloudLayers||[],raw:d.properties?.rawMessage||'',time:d.properties?.timestamp}}catch(e){console.warn('METAR',stn.id,e)}}));return results}
+async function fetchMETARs(){const results={};if(!C.metarStns.length)return results;await Promise.all(C.metarStns.map(async stn=>{try{const r=await fetchT(`https://api.weather.gov/stations/${stn.id}/observations/latest`,{headers:{'Accept':'application/geo+json','User-Agent':'BalloonWeather/1.0'}});if(!r.ok)return;const d=await r.json();results[stn.id]={name:stn.nm,elev:stn.elev,layers:d.properties?.cloudLayers||[],raw:d.properties?.rawMessage||'',time:d.properties?.timestamp}}catch(e){console.warn('METAR',stn.id,e)}}));return results}
 
 // ═══ AVIATION BRIEFING FETCHES ═══
 async function fetchTAFs(){
   const results={};if(!C.metarStns.length)return results;
   try{
     const ids=C.metarStns.map(s=>s.id).join(',');
-    const r=await fetch(`https://aviationweather.gov/api/data/taf?ids=${ids}&format=json`);
+    const r=await fetchT(`https://aviationweather.gov/api/data/taf?ids=${ids}&format=json`);
     if(!r.ok)throw new Error('TAF '+r.status);
     const d=await r.json();
     // Handle both array and wrapped formats
@@ -902,7 +911,7 @@ async function fetchTAFs(){
 
 async function fetchAirSigmet(){
   try{
-    const r=await fetch('https://aviationweather.gov/api/data/airsigmet?format=json');
+    const r=await fetchT('https://aviationweather.gov/api/data/airsigmet?format=json');
     if(!r.ok)throw new Error('AIRSIGMET '+r.status);
     const d=await r.json();
     const arr=Array.isArray(d)?d:(d.data||[]);
@@ -912,7 +921,7 @@ async function fetchAirSigmet(){
 
 async function fetchPIREPs(){
   try{
-    const r=await fetch(`https://aviationweather.gov/api/data/pirep?lat=${C.lat}&lon=${C.lon}&dist=100&format=json`);
+    const r=await fetchT(`https://aviationweather.gov/api/data/pirep?lat=${C.lat}&lon=${C.lon}&dist=100&format=json`);
     if(!r.ok)throw new Error('PIREP '+r.status);
     const d=await r.json();
     return Array.isArray(d)?d:(d.data||d.PIREPs||[]);
@@ -1554,8 +1563,14 @@ async function refreshAll(){if(busy)return;busy=true;document.getElementById('rb
     const homeData=stnData[0]||stnData.find(d=>d!=null);
     _allStnData=allData;
     window._tpHomeData=homeData;window._tpAllData=allData;window._tpMetars=metars;window._tpSunTimes=sunTimes;
-    if(liveMode)buildTimePicker(homeData);
+    if(liveMode&&homeData)buildTimePicker(homeData);
     if(homeData){rSurf(homeData,metars,sunTimes);rHourly(homeData);rGoNoGo(homeData);rDailySummary(homeData)}
+    else{
+      // OM was fully unreachable — show a clear message in the primary cards instead of a stuck spinner.
+      // Micro Winds and Winds Aloft handle null data on their own (they render "No wind data").
+      const omMsg='<div class="err">Forecast data unavailable — Open-Meteo may be having an outage. Will retry automatically.</div>';
+      ['surfB','hB','gngB','dayB'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=omMsg});
+    }
     rMicroProfile(allData);
     rProfile(allData);
     if(afd)rAFD(afd);else document.getElementById('afdB').innerHTML='<div class="err">AFD unavailable</div>';
