@@ -1164,6 +1164,8 @@ function rProfile(allData){
   o+='</div><div class="vf-wrap">';
   // Data rows — one per altitude, with shear detection
   let prevHomeW=null;
+  // Per-station temp at the level below — temp rising with altitude = inversion
+  const prevTmp={};
   C.dispAlts.forEach(ag=>{
     const msl=ag+C.elev,al=(ag/1000)+'k',ml=(msl/1000).toFixed(1)+'k';
     // Get home station wind for shear check
@@ -1186,28 +1188,32 @@ function rProfile(allData){
     o+=`<div class="vf-alt">${al} ft<span class="msl">${ml} MSL</span></div>`;
     sources.forEach((src,i)=>{
       const h=src.data.hourly,si=getIdx(h.time);
-      const w=interpAt(h,si,msl);const spd=w?.spd??null,dir=w?.dir??null;
+      const w=interpAt(h,si,msl);const spd=w?.spd??null,dir=w?.dir??null,tmp=w?.tmp??null;
+      const inv=tmp!=null&&prevTmp[i]!=null&&tmp>prevTmp[i]+0.2;prevTmp[i]=tmp;
       const col=spd!=null?wH(spd):'#3d4a60';
       const dirLabel=dir!=null?`→${pad3(toD(dir))}°`:'—';
       o+=`<div class="vf-cell"${i>0?' style="border-left:1px solid rgba(30,41,59,.3)"':''}>`;
       o+=vecArrow(dir,spd,maxSpd,col,cellW);
       o+=`<div style="font-family:'JetBrains Mono',monospace;white-space:nowrap;text-align:left;min-width:0">`;
       o+=`<div style="color:${spd!=null?wC(spd):'var(--tx3)'};font-weight:700;font-size:13px">${spd!=null?Math.round(spd):'—'}<span style="font-size:9px;font-weight:400;color:var(--tx3)"> mph</span></div>`;
-      o+=`<div style="font-size:9px;color:var(--tx2)">${dirLabel}</div>`;
+      o+=`<div style="font-size:9px;color:var(--tx2)">${dirLabel}${tmp!=null?` <span style="color:${inv?'var(--strong)':'var(--tx4)'}${inv?';font-weight:700':''}">${Math.round(tmp)}°${inv?'▲':''}</span>`:''}</div>`;
       o+=`</div></div>`;
     });
     o+='</div>';
   });
   o+='</div></div>';
+  o+=`<div style="text-align:center;padding:3px 0"><span style="font-size:9px;color:var(--tx4);font-family:'JetBrains Mono',monospace">temps °F · <span style="color:var(--strong);font-weight:700">▲</span> = inversion (warmer than level below)</span></div>`;
   if(sources.length>3){o+=`<div style="text-align:center;padding:4px 0"><span style="font-size:9px;color:var(--tx4);font-family:'JetBrains Mono',monospace">← Scroll for ${sources.length} stations →</span></div>`}
   const homeLbl=C.stations[0].label;
   o+=`<div style="text-align:center;margin-top:8px"><button class="atog" onclick="this.nextElementSibling.classList.toggle('hide');this.textContent=this.nextElementSibling.classList.contains('hide')?'Show ${homeLbl} 6-Hour Data Table':'Hide Data Table'" style="width:auto;display:inline-block;padding:5px 16px">Show ${homeLbl} 6-Hour Data Table</button>`;
   const hrs=[];for(let i=ci;i<Math.min(ci+6,homeH.time.length);i++)hrs.push(i);
   o+=`<div class="hide"><table class="dtable"><thead><tr><th>Alt</th>`;hrs.forEach((hi,j)=>o+=`<th>${j===0?'Now':fH(homeH.time[hi])}</th>`);o+=`</tr></thead><tbody>`;
+  const prevTmpH={};
   C.dispAlts.forEach(ag=>{const msl=ag+C.elev,al=(ag/1000)+'k ft';
     o+=`<tr><td style="color:var(--tx2)">${al}</td>`;
     hrs.forEach(hi=>{const w=interpAt(homeH,hi,msl);const spd=w?.spd??null,dir=w?.dir??null,tmp=w?.tmp??null,col=spd!=null?wC(spd):'var(--tx3)';
-      o+=`<td><span style="color:${col};font-weight:600">${spd!=null?Math.round(spd):'—'}</span> <span style="color:var(--tx3);font-size:9px">${fDir(dir)}</span>${tmp!=null?` <span style="font-size:9px;color:var(--tx4)">${Math.round(tmp)}°F</span>`:''}</td>`;
+      const inv=tmp!=null&&prevTmpH[hi]!=null&&tmp>prevTmpH[hi]+0.2;prevTmpH[hi]=tmp;
+      o+=`<td><span style="color:${col};font-weight:600">${spd!=null?Math.round(spd):'—'}</span> <span style="color:var(--tx3);font-size:9px">${fDir(dir)}</span>${tmp!=null?` <span style="font-size:9px;color:${inv?'var(--strong)':'var(--tx4)'}${inv?';font-weight:700':''}">${Math.round(tmp)}°F${inv?'▲':''}</span>`:''}</td>`;
     });o+='</tr>';});
   o+=`</tbody></table></div></div>`;
   el.innerHTML=o;
