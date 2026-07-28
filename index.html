@@ -151,7 +151,20 @@ a.badge{cursor:pointer}a.badge:hover{background:rgba(56,189,248,.2);color:#7dd3f
 .winds-pair{display:flex;gap:14px;align-items:stretch}
 .winds-micro{width:280px;min-width:280px;flex-shrink:0}
 .winds-main{flex:1;min-width:0;overflow:hidden}
-@media(max-width:900px){.winds-pair{flex-direction:column}.winds-micro{width:100%;min-width:0}}
+/* Mobile: keep micro + macro side by side (Brian 2026-07-28) — micro compacts hard,
+   winds aloft keeps its own horizontal station scroll in the remaining width */
+@media(max-width:900px){
+  .winds-pair{gap:8px}
+  .winds-pair .ch{flex-wrap:wrap;padding:10px 8px}
+  .winds-pair .ct .sub{display:none}
+  .winds-micro{width:auto;min-width:0;flex:0 0 auto}
+  .winds-micro .badge{display:none}
+  .winds-micro .body{padding:10px 4px}
+  .winds-micro .mvf-alt{width:52px;min-width:52px}
+  .winds-micro .mvf-cell{width:126px;min-width:126px}
+  .winds-main .body{padding:10px 4px}
+  .winds-main .vf-alt{width:58px;min-width:58px}
+}
 
 /* ═══ SURFACE COMPARISON GRID ═══ */
 .sc-wrap{margin-top:16px;padding-top:14px;border-top:1px solid var(--bdr)}
