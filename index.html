@@ -35,10 +35,10 @@ body.modal-open{overflow:hidden;touch-action:none}
 .ga{background:var(--gust-bg);border:1px solid var(--gust-bdr);border-radius:var(--rs);padding:10px 18px;margin:12px 24px 0;display:none;align-items:center;gap:10px;font-size:13px;font-weight:500;color:var(--gust);animation:pulse 3s ease-in-out infinite}
 .ga.v{display:flex}@keyframes pulse{0%,100%{border-color:rgba(255,107,53,.25)}50%{border-color:rgba(255,107,53,.5)}}
 
-.dash{max-width:1400px;margin:0 auto;padding:16px 24px 60px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.dash{max-width:1400px;margin:0 auto;padding:6px 24px 60px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .full{grid-column:1/-1}
 @media(max-width:900px){
-.dash{grid-template-columns:1fr;padding:12px 14px 40px}.full{grid-column:1}
+.dash{grid-template-columns:1fr;padding:4px 14px 40px}.full{grid-column:1}
 /* Header: stack vertically and center */
 .hdr{flex-direction:column;gap:8px;padding:10px 16px;text-align:center}
 .hdr-l{justify-content:center}
@@ -353,6 +353,24 @@ a.badge{cursor:pointer}a.badge:hover{background:rgba(56,189,248,.2);color:#7dd3f
 .tp-sel{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--tx2);padding:4px 0;text-align:center}
 .tp-sel .tp-sel-time{color:var(--blue);font-weight:700}
 
+/* ═══ STICKY FORECAST WINDOW ═══ */
+/* Lives OUTSIDE the .dash grid — a sticky grid item only pins within its own row, so the
+   picker gets its own wrapper pinned to the viewport for the whole page scroll. */
+.tpwrap{position:sticky;top:0;z-index:90;max-width:1400px;margin:0 auto;padding:16px 24px 10px;background:var(--bg)}
+.tp-mini{display:none;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:var(--blue);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:0 10px;flex:1;text-align:right;min-width:0}
+.tpwrap.stuck .tp{box-shadow:0 12px 32px rgba(0,0,0,.55);border-color:var(--bdr2)}
+.tpwrap.stuck .tp-mini{display:block}
+.tpwrap.stuck .tp-hdr{padding:5px 14px}
+.tpwrap.stuck .tp-body{padding:6px 14px;gap:5px}
+.tpwrap.stuck .tp-days,.tpwrap.stuck .tp-hours{padding-bottom:2px}
+.tpwrap.stuck .tp-day{padding:3px 10px}
+.tpwrap.stuck .tp-day .day-name{font-size:12px}
+.tpwrap.stuck .tp-day .day-date{display:none}
+.tpwrap.stuck .tp-hr{flex-basis:42px;padding:4px 3px;font-size:12px}
+.tpwrap.stuck .tp-sel{display:none}
+.tpwrap.stuck .hist-banner{padding:4px 10px;font-size:11px}
+@media(max-width:900px){.tpwrap{padding:12px 14px 8px}}
+
 /* ═══ GO/NO-GO SCORECARD ═══ */
 .gng-grid{display:flex;flex-direction:column;gap:8px}
 .gng-verdict{text-align:center;padding:16px;border-radius:var(--rs);margin-bottom:8px}
@@ -422,8 +440,9 @@ a.badge{cursor:pointer}a.badge:hover{background:rgba(56,189,248,.2);color:#7dd3f
   </div>
 </div></div></div>
 <div class="ga" id="ga"><span>⚠</span><span id="gaTxt"></span></div>
-<div class="dash">
-  <div class="tp full"><div class="tp-hdr"><div class="tp-title">🕐 Forecast Window</div><button class="tp-now active" id="tpNow" onclick="setNow()">● LIVE</button></div>
+<div id="tpSentinel" style="height:1px"></div>
+<div class="tpwrap" id="tpWrap">
+  <div class="tp"><div class="tp-hdr"><div class="tp-title">🕐 Forecast Window</div><div class="tp-mini" id="tpSelMini"></div><button class="tp-now active" id="tpNow" onclick="setNow()">● LIVE</button></div>
     <div class="tp-body">
       <div class="tp-days" id="tpDays"></div>
       <div class="tp-hours" id="tpHours"></div>
@@ -431,6 +450,8 @@ a.badge{cursor:pointer}a.badge:hover{background:rgba(56,189,248,.2);color:#7dd3f
       <div class="tp-sel" id="tpSel">Showing: <span class="tp-sel-time">Current conditions</span></div>
     </div>
   </div>
+</div>
+<div class="dash">
   <div class="cd full"><div class="ch"><div class="ct">🌡 Surface Conditions</div><a class="badge" id="srcSurf" href="#" target="_blank" rel="noopener">Open-Meteo GFS</a></div><div class="body" id="surfB"><div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
   <div class="cd full"><div class="ch tg open" onclick="tog(this)"><div class="ct">📊 Hourly Forecast<span class="sub">Next 24h</span></div><a class="badge" id="srcHr" href="#" target="_blank" rel="noopener" onclick="event.stopPropagation()">Open-Meteo GFS</a><span class="chv">▾</span></div><div class="body" id="hB"><div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
   <div class="full winds-pair">
@@ -440,6 +461,7 @@ a.badge{cursor:pointer}a.badge:hover{background:rgba(56,189,248,.2);color:#7dd3f
   <div class="cd full"><div class="ch tg open" onclick="tog(this)"><div class="ct">📝 Area Forecast Discussion</div><a class="badge" id="afdT" href="#" target="_blank" rel="noopener" onclick="event.stopPropagation()">NWS</a><span class="chv" style="margin-left:auto;padding-left:10px">▾</span></div><div class="body" id="afdB"><div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
   <div class="cd"><div class="ch tg open" onclick="tog(this)"><div class="ct">🗺 Wind Map</div><a class="badge" id="srcWindy" href="#" target="_blank" rel="noopener" onclick="event.stopPropagation()">Windy</a><span class="chv">▾</span></div><div class="body" style="padding:0"><iframe class="efr" id="windyFrame" loading="lazy"></iframe></div></div>
   <div class="cd"><div class="ch"><div class="ct">✈️ Aviation Briefing<span class="sub">TAFs · SIGMETs · AIRMETs · PIREPs</span></div><a class="badge" id="srcAv" href="#" target="_blank" rel="noopener">aviationweather.gov</a></div><div class="body" id="avB"><div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
+  <div class="cd full"><div class="ch tg open" onclick="tog(this)"><div class="ct">📡 Radar<span class="sub">Precipitation · animated</span></div><a class="badge" id="srcRadar" href="#" target="_blank" rel="noopener" onclick="event.stopPropagation()">Windy Radar</a><span class="chv">▾</span></div><div class="body" style="padding:0"><iframe class="efr" id="radarFrame" loading="lazy"></iframe></div></div>
   <div class="cd full"><div class="ch tg open" onclick="tog(this)"><div class="ct">📅 5-Day Overview</div><span class="chv">▾</span></div><div class="body" id="dayB"><div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
   <div class="cd full"><div class="ch tg open" onclick="tog(this)"><div class="ct">✅ Go / No-Go<span class="sub">Flight Decision</span></div><span class="chv">▾</span></div><div class="body" id="gngB"><div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
 </div>
@@ -491,6 +513,11 @@ function nI(times){
 }
 
 // ═══ TIME PICKER STATE & FUNCTIONS ═══
+// Sticky forecast window: compact the picker once it pins to the viewport top
+new IntersectionObserver(([e])=>{document.getElementById('tpWrap').classList.toggle('stuck',!e.isIntersecting)},{threshold:0}).observe(document.getElementById('tpSentinel'));
+// Mirror the "Showing:" time into the compact header (the full line hides when stuck)
+function syncTpMini(){const m=document.getElementById('tpSelMini'),s=document.querySelector('#tpSel .tp-sel-time');m.textContent=s?s.textContent:''}
+syncTpMini();
 let liveMode=true, selectedIdx=null;
 function getIdx(times){ return liveMode ? nI(times) : selectedIdx; }
 function setNow(){
@@ -501,6 +528,7 @@ function setNow(){
   document.querySelectorAll('.tp-hr').forEach(h=>h.classList.remove('sel'));
   document.getElementById('histB').classList.remove('v');
   document.getElementById('tpSel').innerHTML='Showing: <span class="tp-sel-time">Current conditions</span>';
+  syncTpMini();
   if(wasHistorical){refreshAll()}else{reRender()}
 }
 function buildTimePicker(d){
@@ -541,6 +569,7 @@ function pickPastDay(offset){
   hb.style.background='rgba(168,85,247,.08)';hb.style.borderColor='rgba(168,85,247,.2)';hb.style.color='var(--violet)';
   ht.textContent=`Loading past conditions for ${fmtDate(getDateForOffset(offset))}…`;
   document.getElementById('tpSel').innerHTML='Showing: <span class="tp-sel-time" style="color:var(--violet)">'+fmtDate(getDateForOffset(offset))+' · 6:00 AM</span>';
+  syncTpMini();
   // Show loading spinners and re-fetch with historical data
   ['surfB','profB','hB','microProfB','gngB','dayB'].forEach(id=>{const e=document.getElementById(id);if(e)e.innerHTML='<div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>'});
   refreshAll();
@@ -571,6 +600,7 @@ function pickHour(idx){
     const t=homeData.hourly.time[idx];
     const dt=new Date(t);
     document.getElementById('tpSel').innerHTML=`Showing: <span class="tp-sel-time">${dt.toLocaleString('en-US',{timeZone:getTZ(),weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit',hour12:true})}</span>`;
+    syncTpMini();
     reRender();
   }
 }
@@ -842,18 +872,22 @@ function updateUI(){
   document.getElementById('srcWA').href=omUrl;
   document.getElementById('srcHr').href=omUrl;
   document.getElementById('srcWindy').href=`https://www.windy.com/?${C.lat},${C.lon},9,wind`;
+  document.getElementById('srcRadar').href=`https://www.windy.com/?radar,${C.lat},${C.lon},8`;
   const metarIds=C.metarStns.map(s=>s.id).join(',');
   document.getElementById('srcAv').href=`https://aviationweather.gov/data/taf/?id=${metarIds}`;
   // Update iframe URLs
-  const wf=document.getElementById('windyFrame');
-  const wUrl=`https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=default&metricTemp=%C2%B0F&metricWind=mph&zoom=9&overlay=wind&product=ecmwf&level=surface&lat=${C.lat}&lon=${C.lon}`;
   // If iframe already has a src OR its card is currently open, load immediately.
   // Otherwise stash on data-src so tog() loads it on first open.
-  const wfCard=wf.closest('.cd');
-  const wfHeader=wfCard?wfCard.querySelector('.ch.tg'):null;
-  const wfOpen=wfHeader?wfHeader.classList.contains('open'):true;
-  if(wf.src||wfOpen){wf.src=wUrl;wf.removeAttribute('data-src')}
-  else{wf.dataset.src=wUrl}
+  function setEmbed(id,url){
+    const f=document.getElementById(id);
+    const card=f.closest('.cd');
+    const header=card?card.querySelector('.ch.tg'):null;
+    const open=header?header.classList.contains('open'):true;
+    if(f.src||open){f.src=url;f.removeAttribute('data-src')}
+    else{f.dataset.src=url}
+  }
+  setEmbed('windyFrame',`https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=default&metricTemp=%C2%B0F&metricWind=mph&zoom=9&overlay=wind&product=ecmwf&level=surface&lat=${C.lat}&lon=${C.lon}`);
+  setEmbed('radarFrame',`https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=default&metricTemp=%C2%B0F&metricWind=mph&zoom=8&overlay=radar&product=radar&level=surface&lat=${C.lat}&lon=${C.lon}`);
 }
 
 // ═══ DATA FETCH ═══
