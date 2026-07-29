@@ -429,7 +429,7 @@ a.badge{cursor:pointer}a.badge:hover{background:rgba(56,189,248,.2);color:#7dd3f
 </style>
 </head>
 <body>
-<header class="hdr"><div class="hdr-l"><div class="logo">🎈</div><div><div class="hdr-title" id="hdrTitle">Balloon Weather</div><div class="hdr-sub" id="hdrSub">Loading...</div></div></div><div class="hdr-r"><div class="upd" id="upd">—</div><button class="rbtn" onclick="openLoc()">📍 Location</button><button class="rbtn" onclick="openSet()">⚙ Settings</button><button class="rbtn" id="rbtn" onclick="refreshAll()"><span class="ri">↻</span> Refresh</button></div></header>
+<header class="hdr"><div class="hdr-l"><div class="logo">🎈</div><div><div class="hdr-title" id="hdrTitle">Balloon Weather</div><div class="hdr-sub" id="hdrSub">Loading...</div></div></div><div class="hdr-r"><div class="upd" id="upd">—</div><button class="rbtn" onclick="openLoc()">📍 Location</button><button class="rbtn" onclick="openSet()">⚙ Settings</button><button class="rbtn" id="rbtn" onclick="refreshAll(true)"><span class="ri">↻</span> Refresh</button></div></header>
 <div class="loc-ov" id="locOv" onclick="if(event.target===this)closeLoc()"><div class="loc-panel"><div class="loc-hd"><span class="loc-hd-t">Set Location</span><button class="loc-close" onclick="closeLoc()">✕</button></div><div class="loc-body"><div class="loc-cur" id="locCur"></div><div class="loc-row"><input class="loc-input" id="locIn" placeholder="City, State or ZIP code" autocomplete="off"><button class="loc-go" onclick="doSearch()">Search</button></div><div class="loc-results" id="locRes"></div></div></div></div>
 <div class="loc-ov" id="setOv" onclick="if(event.target===this)closeSet()"><div class="loc-panel set-panel"><div class="loc-hd"><span class="loc-hd-t">⚙ Settings</span><button class="loc-close" onclick="closeSet()">✕</button></div><div class="loc-body">
   <div class="set-sec"><div class="set-st">🔠 Text Size</div><div class="set-desc">Make all text bigger or smaller — applies everywhere on the dashboard.</div>
@@ -927,7 +927,8 @@ async function fetchT(url, opts={}, ms=8000){
   try{ return await window.fetch(url,{...opts,signal:ctl.signal}) }
   finally{ clearTimeout(to) }
 }
-async function fetchOM(a,b){const r=await fetchT(omUrl(a,b));if(!r.ok)throw new Error('Open-Meteo '+r.status);return r.json()}
+let _om429=false; // set when Open-Meteo returns 429 (free daily quota exhausted — shared per IP)
+async function fetchOM(a,b){const r=await fetchT(omUrl(a,b));if(!r.ok){if(r.status===429)_om429=true;throw new Error('Open-Meteo '+r.status)}return r.json()}
 async function fetchSunTimes(){
   const r=await fetchT(`https://api.sunrise-sunset.org/json?lat=${C.lat}&lng=${C.lon}&formatted=0`);
   if(!r.ok)throw new Error('Sun API '+r.status);
@@ -1602,11 +1603,20 @@ function rGoNoGo(d){
 }
 
 // ═══ REFRESH ═══
-let busy=false;
-async function refreshAll(){if(busy)return;busy=true;document.getElementById('rbtn').classList.add('ld');
+let busy=false,_lastRefreshTs=0,_stnCache={ts:0,key:'',data:null};
+async function refreshAll(force){if(busy)return;busy=true;document.getElementById('rbtn').classList.add('ld');
   try{
-    // Fetch weather data for all stations + AFD + METARs in parallel
-    const fetches=C.stations.map(s=>fetchOM(s.lat,s.lon).catch(e=>{console.warn('OM',s.label,e);return null}));
+    _om429=false;_lastRefreshTs=Date.now();
+    // Fetch weather data for all stations + AFD + METARs in parallel.
+    // The home station is always fetched fresh; the OTHER stations' profiles change slowly, so in
+    // live mode they're reused for up to 15 min — each station call is a heavy Open-Meteo request
+    // and the full 12-station fan-out every 5 min was burning the free daily quota (429, 2026-07-29).
+    // force=true (the manual Refresh button) bypasses the cache; historical/forecast offsets always do.
+    const locKey=C.lat+','+C.lon;
+    const cacheOK=!force&&selectedOffset===0&&_stnCache.data&&_stnCache.key===locKey&&(Date.now()-_stnCache.ts)<15*60*1000;
+    const fetches=C.stations.map((s,i)=>(i>0&&cacheOK&&_stnCache.data[s.label])
+      ?Promise.resolve(_stnCache.data[s.label])
+      :fetchOM(s.lat,s.lon).catch(e=>{console.warn('OM',s.label,e);return null}));
     const [stnData,afd,metars,tafs,airSig,pireps,sunTimes]=await Promise.all([
       Promise.all(fetches),
       fetchAFD().catch(e=>{console.warn('AFD:',e);return null}),
@@ -1618,6 +1628,8 @@ async function refreshAll(){if(busy)return;busy=true;document.getElementById('rb
     ]);
     // Build keyed data object
     const allData={};C.stations.forEach((s,i)=>{allData[s.label]=stnData[i]});
+    // Store/refresh the station cache only on a full live fetch that actually got station data
+    if(!cacheOK&&selectedOffset===0&&stnData.some((d,i)=>i>0&&d))_stnCache={ts:Date.now(),key:locKey,data:allData};
     // Render
     const homeData=stnData[0]||stnData.find(d=>d!=null);
     _allStnData=allData;
@@ -1627,7 +1639,9 @@ async function refreshAll(){if(busy)return;busy=true;document.getElementById('rb
     else{
       // OM was fully unreachable — show a clear message in the primary cards instead of a stuck spinner.
       // Micro Winds and Winds Aloft handle null data on their own (they render "No wind data").
-      const omMsg='<div class="err">Forecast data unavailable — Open-Meteo may be having an outage. Will retry automatically.</div>';
+      const omMsg=_om429
+        ?'<div class="err">Open-Meteo daily free limit reached — every device on this network shares it. Data resumes at midnight UTC (5:00 PM Pacific). Auto-retry continues.</div>'
+        :'<div class="err">Forecast data unavailable — Open-Meteo may be having an outage. Will retry automatically.</div>';
       ['surfB','hB','gngB','dayB'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=omMsg});
     }
     rMicroProfile(allData);
@@ -1674,7 +1688,13 @@ document.addEventListener('DOMContentLoaded',()=>{
   applyCustomStations();
   updateUI();
   refreshAll();
-  setInterval(()=>{if(isToday())refreshAll()},5*60*1000);
+  // Auto-refresh every 10 min, and ONLY while the tab is visible — a left-open background tab
+  // hammering the API is what exhausted the Open-Meteo daily quota (2026-07-29).
+  setInterval(()=>{if(isToday()&&document.visibilityState==='visible')refreshAll()},10*60*1000);
+  // Coming back to the tab after a while → catch up immediately instead of waiting for the tick
+  document.addEventListener('visibilitychange',()=>{
+    if(document.visibilityState==='visible'&&isToday()&&Date.now()-_lastRefreshTs>10*60*1000)refreshAll();
+  });
 });
 </script>
 </body>
