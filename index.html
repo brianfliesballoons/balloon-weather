@@ -1688,13 +1688,9 @@ document.addEventListener('DOMContentLoaded',()=>{
   applyCustomStations();
   updateUI();
   refreshAll();
-  // Auto-refresh every 10 min, and ONLY while the tab is visible — a left-open background tab
-  // hammering the API is what exhausted the Open-Meteo daily quota (2026-07-29).
-  setInterval(()=>{if(isToday()&&document.visibilityState==='visible')refreshAll()},10*60*1000);
-  // Coming back to the tab after a while → catch up immediately instead of waiting for the tick
-  document.addEventListener('visibilitychange',()=>{
-    if(document.visibilityState==='visible'&&isToday()&&Date.now()-_lastRefreshTs>10*60*1000)refreshAll();
-  });
+  // NO auto-refresh — Brian's call (2026-07-29): one fetch on page load, after that the manual
+  // Refresh button is the only thing that hits the APIs. (The old 5-min setInterval here is what
+  // silently burned the Open-Meteo daily quota from left-open tabs.)
 });
 </script>
 </body>
