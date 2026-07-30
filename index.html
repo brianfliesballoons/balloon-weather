@@ -22,6 +22,11 @@ body.modal-open{overflow:hidden;touch-action:none}
 ::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--bdr2);border-radius:3px}
 
 .hdr{background:rgba(10,14,26,.88);backdrop-filter:blur(16px);border-bottom:1px solid var(--bdr);padding:12px 24px;display:flex;align-items:center;justify-content:space-between;z-index:100}
+/* Embed mode (?embed=1) — for hosting inside another app (e.g. Flight Maps WKWebView):
+   drops the logo/title block, keeps Location/Settings/Refresh fully functional */
+body.embed .hdr-l{display:none}
+body.embed .hdr{padding:8px 12px}
+body.embed .hdr-r{width:100%;justify-content:space-between}
 .hdr-l{display:flex;align-items:center;gap:12px}
 .logo{width:36px;height:36px;background:linear-gradient(135deg,var(--mod),#f97316);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
 .hdr-title{font-family:'Instrument Serif',serif;font-size:21px}
@@ -1687,7 +1692,22 @@ document.addEventListener('DOMContentLoaded',()=>{
   loadSettings();
   applyCustomStations();
   updateUI();
-  refreshAll();
+  // ═══ EMBED MODE (?embed=1&lat=..&lon=..&name=..) ═══
+  // For hosting inside another app (e.g. Flight Maps): embed=1 hides the title chrome, and
+  // lat/lon feed the host's GPS position through the full selectLocation pipeline (elevation,
+  // timezone, NWS office, station discovery). The Location button still works — host-passed
+  // coords are just the starting point, not a lock.
+  const qp=new URLSearchParams(location.search);
+  if(qp.get('embed')==='1')document.body.classList.add('embed');
+  const qLat=parseFloat(qp.get('lat')),qLon=parseFloat(qp.get('lon'));
+  if(!isNaN(qLat)&&!isNaN(qLon)){
+    // If the saved location is already within ~3.5 mi of the passed coords, skip re-discovery
+    // (saves ~6 NWS station-lookup calls) and just fetch with the existing station set.
+    if(Math.abs(C.lat-qLat)<0.05&&Math.abs(C.lon-qLon)<0.05){refreshAll()}
+    else{selectLocation({name:qp.get('name')||'GPS',lat:qLat,lon:qLon})} // ends in refreshAll()
+  }else{
+    refreshAll();
+  }
   // NO auto-refresh — Brian's call (2026-07-29): one fetch on page load, after that the manual
   // Refresh button is the only thing that hits the APIs. (The old 5-min setInterval here is what
   // silently burned the Open-Meteo daily quota from left-open tabs.)
