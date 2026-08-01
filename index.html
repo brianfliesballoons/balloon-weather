@@ -40,10 +40,10 @@ body.embed .hdr-r{width:100%;justify-content:space-between}
 .ga{background:var(--gust-bg);border:1px solid var(--gust-bdr);border-radius:var(--rs);padding:10px 18px;margin:12px 24px 0;display:none;align-items:center;gap:10px;font-size:13px;font-weight:500;color:var(--gust);animation:pulse 3s ease-in-out infinite}
 .ga.v{display:flex}@keyframes pulse{0%,100%{border-color:rgba(255,107,53,.25)}50%{border-color:rgba(255,107,53,.5)}}
 
-.dash{max-width:1400px;margin:0 auto;padding:6px 24px 60px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.dash{max-width:1400px;margin:0 auto;padding:6px 24px 60px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px}
 .full{grid-column:1/-1}
 @media(max-width:900px){
-.dash{grid-template-columns:1fr;padding:4px 14px 40px}.full{grid-column:1}
+.dash{grid-template-columns:minmax(0,1fr);padding:4px 14px 40px}.full{grid-column:1}
 /* Header: stack vertically and center */
 .hdr{flex-direction:column;gap:8px;padding:10px 16px;text-align:center}
 .hdr-l{justify-content:center}
