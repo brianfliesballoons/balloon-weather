@@ -1642,7 +1642,10 @@ function buildClaudeBriefing(){
   md+=`## Context\n- Location: ${C.locName} (${C.name}) — ${C.lat.toFixed(2)}°N ${Math.abs(C.lon).toFixed(2)}°W, field elevation ${Math.round(C.elev)} ft MSL (altitudes below are ft AGL)\n- Target flight time: ${fmtFull(h.time[i])} local\n- Pilot's personal limits: max wind ${gngLimits.maxWind} mph · max gust ${gngLimits.maxGust} mph · min visibility ${gngLimits.minVis} mi · min ceiling ${gngLimits.minCeiling} ft · min temp/dew spread ${gngLimits.minSpread}°F · max precip ${gngLimits.maxPrecip}%\n`;
   if(d.daily&&d.daily.sunrise&&d.daily.time){
     const di=d.daily.time.indexOf(h.time[i].slice(0,10));
-    if(di>=0)md+=`- Sunrise ${fT(d.daily.sunrise[di])} · Sunset ${fT(d.daily.sunset[di])}\n`;
+    // daily.sunrise/sunset are location-local naive ISO strings — format the raw string;
+    // routing through new Date()/fT shifts them whenever browser TZ ≠ location TZ
+    const fRaw=s=>{const hh=+s.slice(11,13),mm=s.slice(14,16);return`${((hh+11)%12)+1}:${mm} ${hh<12?'AM':'PM'}`};
+    if(di>=0)md+=`- Sunrise ${fRaw(d.daily.sunrise[di])} · Sunset ${fRaw(d.daily.sunset[di])}\n`;
   }
   md+=`\n## Surface — hourly (target ±2h)\n| Time | Wind mph | Gust | Dir | Temp°F | Dew°F | Spread | Vis mi | Cloud % | Precip % |\n|---|---|---|---|---|---|---|---|---|---|\n`;
   for(let k=iM;k<=iP;k++){
