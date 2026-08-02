@@ -162,17 +162,17 @@ a.badge{cursor:pointer}a.badge:hover{background:rgba(56,189,248,.2);color:#7dd3f
    horizontally across both cards, while the sticky forecast window floats above.
    Columns compact to 118px so more stations fit per screenful. */
 @media(max-width:900px){
-  /* align-items:flex-start is load-bearing: with the default stretch, the cards get the
-     band's clamped height and .cd's overflow:clip silently CUTS OFF the lower altitudes
-     (clip can't scroll) — flex-start keeps cards natural-height so the band scrolls them */
-  .winds-pair{gap:8px;overflow:auto;max-height:78vh;-webkit-overflow-scrolling:touch;padding-bottom:4px;align-items:flex-start}
-  .winds-pair .ch{flex-wrap:wrap;padding:10px 8px;position:sticky;top:0;z-index:7;background:var(--card)}
+  /* HORIZONTAL-ONLY band (v4.9.4): no max-height / no overflow-y — the page owns all
+     vertical scrolling so a downward swipe anywhere on the band moves the page instead
+     of trapping inside a nested scroller (Brian 2026-08-02). Cards sit at natural height
+     (flex-start: stretch + .cd overflow:clip cut off the lower altitudes in the past). */
+  .winds-pair{gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px;align-items:flex-start}
+  .winds-pair .ch{flex-wrap:wrap;padding:10px 8px}
   .winds-pair .ct .sub{display:none}
-  .winds-pair .ct{position:sticky;left:10px;align-self:flex-start}
-  /* Vertical clamp lives on .winds-pair (above), so the inner vf-scroll must NOT be a
-     scroll container here — otherwise the sticky alt labels/headers can't reach the band */
+  .winds-pair .ct{position:sticky;left:10px;align-self:flex-start;z-index:7;background:var(--card)}
+  /* The inner vf-scroll must NOT be a scroll container here — the sticky altitude
+     labels pin against the band's horizontal swipe, so they need to reach it */
   .winds-main .vf-scroll{overflow:visible;max-height:none}
-  .winds-main .vf-hdr{top:40px}
   .winds-micro{width:auto;min-width:0;flex:0 0 auto}
   .winds-micro .badge{display:none}
   .winds-micro .body{padding:10px 4px}
