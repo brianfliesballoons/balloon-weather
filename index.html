@@ -1592,9 +1592,8 @@ function saveGngLimits(){
   try{localStorage.setItem('gngLimits',JSON.stringify(gngLimits))}catch(e){}
   if(window._tpHomeData)rGoNoGo(window._tpHomeData);
 }
-function rGoNoGo(d){
-  const el=document.getElementById('gngB');if(!el)return;
-  const h=d.hourly,i=getIdx(h.time);
+// Shared by the Go/No-Go card and the Ask Claude briefing — one source of truth for the checks
+function computeGng(h,i){
   const wnd=h.wind_speed_10m?.[i],gst=h.wind_gusts_10m?.[i],vis=h.visibility?.[i],viMi=vis!=null?(vis/1609.34):null;
   const tmp=h.temperature_2m?.[i],dew=h.dew_point_2m?.[i],spr=(tmp!=null&&dew!=null)?(tmp-dew):null;
   const ceil=(tmp!=null&&dew!=null)?Math.round(((tmp-dew)/4.4)*1000):null;
@@ -1610,6 +1609,12 @@ function rGoNoGo(d){
   const nogoCount=checks.filter(c=>c.status==='nogo').length;
   const cautionCount=checks.filter(c=>c.status==='caution').length;
   const verdict=nogoCount>0?'NO-GO':cautionCount>0?'MARGINAL':'FLYABLE';
+  return{checks,verdict,nogoCount,cautionCount};
+}
+function rGoNoGo(d){
+  const el=document.getElementById('gngB');if(!el)return;
+  const h=d.hourly,i=getIdx(h.time);
+  const {checks,verdict,nogoCount,cautionCount}=computeGng(h,i);
   const vColor=verdict==='FLYABLE'?'var(--calm)':verdict==='MARGINAL'?'var(--mod)':'var(--danger)';
   const vBg=verdict==='FLYABLE'?'rgba(52,211,153,.1)':verdict==='MARGINAL'?'rgba(251,191,36,.1)':'rgba(248,113,113,.1)';
   let o=`<div class="gng-grid"><div class="gng-verdict" style="background:${vBg}"><div class="gng-verdict-text" style="color:${vColor}">${verdict}</div><div class="gng-verdict-sub" style="color:${vColor}">${nogoCount} no-go · ${cautionCount} caution · ${checks.filter(c=>c.status==='go').length} go</div></div>`;
@@ -1641,7 +1646,7 @@ function buildClaudeBriefing(){
   const r1=v=>v==null?'—':Math.round(v);
   const iM=Math.max(0,i-2),iP=Math.min(h.time.length-1,i+2);
   let md=`# Balloon flight briefing request\n\n`;
-  md+=`You're briefing a hot air balloon pilot. Using ONLY the raw data below, assess flyability at the target time and across the ±2 h window: surface wind/gusts vs the pilot's limits, wind shear (speed or direction changes between altitude layers), inversion layers (temperature rising with altitude), fog risk (temp−dew spread), and whether conditions are improving or deteriorating. Weigh the NWS forecaster's Area Forecast Discussion (bottom) alongside the model numbers — the AFD is the human read on timing and pattern (onshore push, marine layer, gust timing) that raw model output can miss. Respond like a concise preflight brief: 1) verdict — FLYABLE / MARGINAL / NO-GO, 2) best launch time within the window and why, 3) key risks to watch, 4) what the wind does with altitude (steerage options for the pilot). Wind directions are degrees FROM which the wind blows.\n\n`;
+  md+=`You're briefing a hot air balloon pilot. Using ONLY the raw data below, assess flyability at the target time and across the ±2 h window: surface wind/gusts vs the pilot's limits, wind shear (speed or direction changes between altitude layers), inversion layers (temperature rising with altitude), fog risk (temp−dew spread), and whether conditions are improving or deteriorating. Weigh the NWS forecaster's Area Forecast Discussion (bottom) alongside the model numbers — the AFD is the human read on timing and pattern (onshore push, marine layer, gust timing) that raw model output can miss. The "Widget's automated read" section gives pre-computed go/no-go, shear, and AFD-keyword signals — anchor on those first, then verify and refine them against the raw tables. Respond like a concise preflight brief: 1) verdict — FLYABLE / MARGINAL / NO-GO, 2) best launch time within the window and why, 3) key risks to watch, 4) what the wind does with altitude (steerage options for the pilot). Wind directions are degrees FROM which the wind blows.\n\n`;
   md+=`## Context\n- Location: ${C.locName} (${C.name}) — ${C.lat.toFixed(2)}°N ${Math.abs(C.lon).toFixed(2)}°W, field elevation ${Math.round(C.elev)} ft MSL (altitudes below are ft AGL)\n- Target flight time: ${fmtFull(h.time[i])} local\n- Pilot's personal limits: max wind ${gngLimits.maxWind} mph · max gust ${gngLimits.maxGust} mph · min visibility ${gngLimits.minVis} mi · min ceiling ${gngLimits.minCeiling} ft · min temp/dew spread ${gngLimits.minSpread}°F · max precip ${gngLimits.maxPrecip}%\n`;
   if(d.daily&&d.daily.sunrise&&d.daily.time){
     const di=d.daily.time.indexOf(h.time[i].slice(0,10));
@@ -1668,6 +1673,25 @@ function buildClaudeBriefing(){
     md+=`| ${a} | ${fw(interpAt(h,iM,msl))} | ${fw(w1)} | ${fw(interpAt(h,iP,msl))} |\n`;
   }
   md+=`\nData: Open-Meteo best_match model (HRRR/GFS blend). Speeds mph · temps °F · altitudes ft AGL above the ${Math.round(C.elev)} ft field.\n`;
+  // ── Widget's pre-computed read — cliff notes so smaller models don't have to derive
+  //    everything from the raw tables; stronger models use it as a cross-check ──
+  md+=`\n## Widget's automated read at target time (pre-computed — verify against the raw data above)\n`;
+  const g=computeGng(h,i);
+  md+=`- Go/No-Go scorecard: **${g.verdict}** — ${g.checks.map(c=>`${c.name} ${c.val} [${c.status.toUpperCase()}]`).join(' · ')}\n`;
+  const shearFlags=[];
+  const scan=(alts,lbl)=>{let prev=null,prevA=null;alts.forEach(a=>{const w=interpAt(h,i,a+C.elev);if(w&&prev){const sh=detectShear(prev,w);if(sh)shearFlags.push(`${sh.severity} ${lbl} shear ${prevA}→${a} ft (Δ${sh.spdDelta} mph${sh.dirDelta>=10?', Δ'+sh.dirDelta+'°':''})`)}if(w){prev=w;prevA=a}})};
+  scan(Array.from({length:20},(_,n)=>(n+1)*100),'micro');
+  scan(C.dispAlts,'aloft');
+  md+=shearFlags.length?`- Wind shear flags: ${shearFlags.slice(0,8).join(' · ')}\n`:`- Wind shear flags: none detected between adjacent layers\n`;
+  const afdN=window._tpAfd;
+  if(afdN&&afdN.text){
+    const lo=afdN.text.toLowerCase(),kws=[];
+    for(const[kw,cfg]of Object.entries(C.kw))if(lo.includes(kw))kws.push(cfg.l);
+    if(kws.length)md+=`- Keywords detected in the forecast discussion: ${kws.join(', ')}\n`;
+    const sents=afdN.text.split(/[.!]\s+/).filter(s=>s.trim().length>20),pts=[],seen=new Set();
+    for(const s of sents){const sl=s.toLowerCase();for(const kw of Object.keys(C.kw)){if(sl.includes(kw)&&pts.length<6){const cl=s.trim().replace(/\s+/g,' ');if(cl.length>30&&cl.length<300&&!seen.has(cl)){pts.push(cl);seen.add(cl)}break}}}
+    if(pts.length){md+=`- Key AFD sentences the widget flagged:\n`;pts.forEach(p=>md+=`  - "${p}."\n`)}
+  }
   // ── NWS Area Forecast Discussion (nearest office, fetched with every refresh) ──
   // Include the balloon-relevant sections, trimmed to a budget that keeps the whole
   // prompt URL-safe (~12k chars raw). Falls back to the raw head if no sections match.
