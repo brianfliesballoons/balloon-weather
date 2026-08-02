@@ -368,6 +368,9 @@ a.badge{cursor:pointer}a.badge:hover{background:rgba(56,189,248,.2);color:#7dd3f
 .tp-now{background:rgba(52,211,153,.12);border:1px solid rgba(52,211,153,.25);color:var(--calm);padding:4px 12px;border-radius:var(--rs);cursor:pointer;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;transition:all .15s}
 .tp-now:hover{background:rgba(52,211,153,.2)}
 .tp-now.active{background:rgba(52,211,153,.25);box-shadow:0 0 8px rgba(52,211,153,.2)}
+.tp-ask{background:rgba(96,165,250,.12);border:1px solid rgba(96,165,250,.3);color:var(--blue);padding:4px 12px;border-radius:var(--rs);cursor:pointer;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;transition:all .15s;margin-left:8px;white-space:nowrap}
+.tp-ask:hover{background:rgba(96,165,250,.22)}
+.tpwrap.stuck .tp-ask{padding:4px 8px}
 .tp-body{padding:10px 14px;display:flex;flex-direction:column;gap:8px}
 .tp-days{display:flex;gap:4px;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch}
 .tp-day{flex:0 0 auto;padding:6px 14px;border-radius:6px;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500;color:var(--tx3);background:var(--card2);border:1px solid var(--bdr);transition:all .15s;white-space:nowrap;text-align:center}
@@ -475,7 +478,7 @@ a.badge{cursor:pointer}a.badge:hover{background:rgba(56,189,248,.2);color:#7dd3f
 <div class="ga" id="ga"><span>⚠</span><span id="gaTxt"></span></div>
 <div id="tpSentinel" style="height:1px"></div>
 <div class="tpwrap" id="tpWrap">
-  <div class="tp"><div class="tp-hdr"><div class="tp-title">🕐 Forecast Window</div><div class="tp-mini" id="tpSelMini"></div><button class="tp-now active" id="tpNow" onclick="setNow()">● LIVE</button></div>
+  <div class="tp"><div class="tp-hdr"><div class="tp-title">🕐 Forecast Window</div><div class="tp-mini" id="tpSelMini"></div><button class="tp-now active" id="tpNow" onclick="setNow()">● LIVE</button><button class="tp-ask" id="askBtn" onclick="askClaude()" title="Open Claude with the full raw briefing for the selected flight time (±2h) — works with a free Claude account">✨ Ask Claude</button></div>
     <div class="tp-body">
       <div class="tp-days" id="tpDays"></div>
       <div class="tp-hours" id="tpHours"></div>
@@ -1621,6 +1624,51 @@ function rGoNoGo(d){
   o+=`<div class="gng-limit-row"><div class="gng-limit-lbl">Max Precip</div><input class="gng-limit-input" id="gng_maxPrecip" type="number" value="${gngLimits.maxPrecip}"><div class="gng-limit-unit">%</div></div>`;
   o+=`<button class="gng-save" onclick="saveGngLimits()">Save Limits</button></div></div>`;
   el.innerHTML=o;
+}
+
+// ═══ ASK CLAUDE (v4.10.0) ═══
+// Packages the selected flight time's raw numbers (target ±2h: surface hourly, winds-aloft
+// and micro-wind profiles at -2h/target/+2h) into a markdown briefing prompt and opens
+// claude.ai prefilled with it (?q=). Zero API cost/keys — users chat on their own Claude
+// account (free tier works). Home-station data only, to keep the URL small.
+function buildClaudeBriefing(){
+  const d=window._tpHomeData;if(!d||!d.hourly)return null;
+  const h=d.hourly,i=getIdx(h.time),tz=getTZ();
+  const fmtFull=iso=>new Date(iso).toLocaleString('en-US',{weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit',hour12:true,timeZone:tz});
+  const r1=v=>v==null?'—':Math.round(v);
+  const iM=Math.max(0,i-2),iP=Math.min(h.time.length-1,i+2);
+  let md=`# Balloon flight briefing request\n\n`;
+  md+=`You're briefing a hot air balloon pilot. Using ONLY the raw forecast data below, assess flyability at the target time and across the ±2 h window: surface wind/gusts vs the pilot's limits, wind shear (speed or direction changes between altitude layers), inversion layers (temperature rising with altitude), fog risk (temp−dew spread), and whether conditions are improving or deteriorating. Respond like a concise preflight brief: 1) verdict — FLYABLE / MARGINAL / NO-GO, 2) best launch time within the window and why, 3) key risks to watch, 4) what the wind does with altitude (steerage options for the pilot). Wind directions are degrees FROM which the wind blows.\n\n`;
+  md+=`## Context\n- Location: ${C.locName} (${C.name}) — ${C.lat.toFixed(2)}°N ${Math.abs(C.lon).toFixed(2)}°W, field elevation ${Math.round(C.elev)} ft MSL (altitudes below are ft AGL)\n- Target flight time: ${fmtFull(h.time[i])} local\n- Pilot's personal limits: max wind ${gngLimits.maxWind} mph · max gust ${gngLimits.maxGust} mph · min visibility ${gngLimits.minVis} mi · min ceiling ${gngLimits.minCeiling} ft · min temp/dew spread ${gngLimits.minSpread}°F · max precip ${gngLimits.maxPrecip}%\n`;
+  if(d.daily&&d.daily.sunrise&&d.daily.time){
+    const di=d.daily.time.indexOf(h.time[i].slice(0,10));
+    if(di>=0)md+=`- Sunrise ${fT(d.daily.sunrise[di])} · Sunset ${fT(d.daily.sunset[di])}\n`;
+  }
+  md+=`\n## Surface — hourly (target ±2h)\n| Time | Wind mph | Gust | Dir | Temp°F | Dew°F | Spread | Vis mi | Cloud % | Precip % |\n|---|---|---|---|---|---|---|---|---|---|\n`;
+  for(let k=iM;k<=iP;k++){
+    const spr=(h.temperature_2m?.[k]!=null&&h.dew_point_2m?.[k]!=null)?(h.temperature_2m[k]-h.dew_point_2m[k]).toFixed(1):'—';
+    const vis=h.visibility?.[k]!=null?(h.visibility[k]/1609.34).toFixed(1):'—';
+    md+=`| ${fT(h.time[k])}${k===i?' ◀ target':''} | ${r1(h.wind_speed_10m?.[k])} | ${r1(h.wind_gusts_10m?.[k])} | ${r1(h.wind_direction_10m?.[k])}° ${cp(h.wind_direction_10m?.[k])} | ${r1(h.temperature_2m?.[k])} | ${r1(h.dew_point_2m?.[k])} | ${spr} | ${vis} | ${r1(h.cloud_cover?.[k])} | ${r1(h.precipitation_probability?.[k])} |\n`;
+  }
+  const fw=w=>w?`${Math.round(w.dir)}°/${Math.round(w.spd)}`:'—';
+  md+=`\n## Winds aloft — dir°/speed mph at −2h / target / +2h, temp°F at target\n| Alt ft AGL | ${fT(h.time[iM])} | ${fT(h.time[i])} ◀ | ${fT(h.time[iP])} | Temp°F |\n|---|---|---|---|---|\n`;
+  C.dispAlts.forEach(a=>{
+    const msl=a+C.elev,w1=interpAt(h,i,msl);if(!w1)return;
+    md+=`| ${a} | ${fw(interpAt(h,iM,msl))} | ${fw(w1)} | ${fw(interpAt(h,iP,msl))} | ${w1.tmp!=null?Math.round(w1.tmp):'—'} |\n`;
+  });
+  md+=`\n## Micro winds 0–2000 ft AGL (100-ft steps) — dir°/speed mph\n| Alt ft AGL | ${fT(h.time[iM])} | ${fT(h.time[i])} ◀ | ${fT(h.time[iP])} |\n|---|---|---|---|\n`;
+  for(let a=100;a<=2000;a+=100){
+    const msl=a+C.elev,w1=interpAt(h,i,msl);if(!w1)continue;
+    md+=`| ${a} | ${fw(interpAt(h,iM,msl))} | ${fw(w1)} | ${fw(interpAt(h,iP,msl))} |\n`;
+  }
+  md+=`\nData: Open-Meteo best_match model (HRRR/GFS blend). Speeds mph · temps °F · altitudes ft AGL above the ${Math.round(C.elev)} ft field.\n`;
+  return md;
+}
+function askClaude(){
+  const md=buildClaudeBriefing();
+  const btn=document.getElementById('askBtn');
+  if(!md){if(btn){btn.textContent='No data yet…';setTimeout(()=>{btn.textContent='✨ Ask Claude'},1600)}return}
+  window.open('https://claude.ai/new?q='+encodeURIComponent(md),'_blank','noopener');
 }
 
 // ═══ REFRESH ═══
