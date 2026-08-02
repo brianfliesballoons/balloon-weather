@@ -156,19 +156,25 @@ a.badge{cursor:pointer}a.badge:hover{background:rgba(56,189,248,.2);color:#7dd3f
 .winds-pair{display:flex;gap:14px;align-items:stretch}
 .winds-micro{width:280px;min-width:280px;flex-shrink:0}
 .winds-main{flex:1;min-width:0;overflow:hidden}
-/* Mobile: keep micro + macro side by side (Brian 2026-07-28) — micro compacts hard,
-   winds aloft keeps its own horizontal station scroll in the remaining width */
+/* Mobile: micro + macro side by side (Brian 2026-07-28), and since 2026-08-01 the PAIR
+   is one wide swipeable band (Brian: "see a bunch of the winds aloft side by side") —
+   the winds-aloft card grows to its full multi-station width and .winds-pair scrolls
+   horizontally across both cards, while the sticky forecast window floats above.
+   Columns compact to 118px so more stations fit per screenful. */
 @media(max-width:900px){
-  .winds-pair{gap:8px}
+  .winds-pair{gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px}
   .winds-pair .ch{flex-wrap:wrap;padding:10px 8px}
   .winds-pair .ct .sub{display:none}
+  .winds-pair .ct{position:sticky;left:10px;align-self:flex-start}
   .winds-micro{width:auto;min-width:0;flex:0 0 auto}
   .winds-micro .badge{display:none}
   .winds-micro .body{padding:10px 4px}
   .winds-micro .mvf-alt{width:52px;min-width:52px}
   .winds-micro .mvf-cell{width:126px;min-width:126px}
+  .winds-main{flex:0 0 auto;min-width:0}
   .winds-main .body{padding:10px 4px}
   .winds-main .vf-alt{width:58px;min-width:58px}
+  .winds-main .vf-cell{width:118px;min-width:118px;max-width:118px}
 }
 
 /* ═══ SURFACE COMPARISON GRID ═══ */
@@ -1229,9 +1235,10 @@ function rProfile(allData){
       if(sh){
         o+=`<div class="vf-row vf-shear${sh.severity==='strong'?' strong':''}">`;
         o+=`<div class="vf-alt">⚠ shear</div>`;
+        // Shear readout repeats in every column so the band stays self-labeling
+        // wherever the station strip is scrolled (mobile swipe band + desktop scroll)
         sources.forEach((src,si)=>{
-          if(si===0){o+=`<div class="vf-cell">⚡ Δ${sh.spdDelta} mph${sh.dirDelta>=10?' / '+sh.dirDelta+'°':''}</div>`}
-          else{o+=`<div class="vf-cell" style="border-left:1px solid rgba(30,41,59,.15)"></div>`}
+          o+=`<div class="vf-cell"${si>0?' style="border-left:1px solid rgba(30,41,59,.15)"':''}>⚡ Δ${sh.spdDelta} mph${sh.dirDelta>=10?' / '+sh.dirDelta+'°':''}</div>`;
         });
         o+=`</div>`;
       }
