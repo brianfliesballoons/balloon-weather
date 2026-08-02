@@ -369,6 +369,9 @@ a.badge{cursor:pointer}a.badge:hover{background:rgba(56,189,248,.2);color:#7dd3f
 .tp-now:hover{background:rgba(52,211,153,.2)}
 .tp-now.active{background:rgba(52,211,153,.25);box-shadow:0 0 8px rgba(52,211,153,.2)}
 .tp-ask{background:rgba(96,165,250,.12);border:1px solid rgba(96,165,250,.3);color:var(--blue);padding:4px 12px;border-radius:var(--rs);cursor:pointer;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;transition:all .15s;margin-left:8px;white-space:nowrap}
+/* keep LIVE beside Ask Claude on the right — tp-mini is display:none when unpinned, so
+   space-between would otherwise strand LIVE in the middle of the header */
+.tp-hdr .tp-now{margin-left:auto}
 .tp-ask:hover{background:rgba(96,165,250,.22)}
 .tpwrap.stuck .tp-ask{padding:4px 8px}
 .tp-body{padding:10px 14px;display:flex;flex-direction:column;gap:8px}
