@@ -782,7 +782,8 @@ function renderSetGngLimits(){
     {k:'minVis',lbl:'Min Visibility',unit:'mi'},
     {k:'minCeiling',lbl:'Min Ceiling',unit:'ft'},
     {k:'minSpread',lbl:'Min Spread',unit:'°F'},
-    {k:'maxPrecip',lbl:'Max Precip',unit:'%'}
+    {k:'maxPrecip',lbl:'Max Precip',unit:'%'},
+    {k:'maxShear',lbl:'Max Low-Level Shear',unit:'mph'}
   ];
   el.innerHTML=fields.map(f=>`<div class="gng-set-row"><div class="gng-limit-lbl">${f.lbl}</div><input class="gng-limit-input" id="setgng_${f.k}" type="number" value="${gngLimits[f.k]}"><div class="gng-limit-unit">${f.unit}</div></div>`).join('');
 }
@@ -1149,6 +1150,25 @@ function detectShear(w1,w2){
   }
   return null;
 }
+// Low-level shear for the Go/No-Go verdicts: how different the 0–2000 ft AGL band is from
+// the surface at hour i — max speed excess over the 10 m wind, and max direction departure
+// from the surface direction (counted only where the aloft wind is ≥8 mph; the direction of
+// a 2 mph drift is noise). Graded against gngLimits.maxShear. This is what catches a calm
+// decoupled surface sitting under a low-level jet (the Enumclaw 2026-08-02 case).
+function lowLevelShear(h,i){
+  const sSpd=h.wind_speed_10m?.[i],sDir=h.wind_direction_10m?.[i];
+  if(sSpd==null)return null;
+  let maxSpd=sSpd,dirD=0,pts=0;
+  for(let a=100;a<=2000;a+=100){
+    const w=interpAt(h,i,a+C.elev);if(!w)continue;pts++;
+    if(w.spd>maxSpd)maxSpd=w.spd;
+    if(sDir!=null&&w.dir!=null&&w.spd>=8){const raw=Math.abs(w.dir-sDir),dd=Math.min(raw,360-raw);if(dd>dirD)dirD=dd}
+  }
+  if(!pts)return null;
+  const spdDelta=maxSpd-sSpd;
+  const status=(spdDelta>gngLimits.maxShear*1.5||dirD>=90)?'nogo':(spdDelta>gngLimits.maxShear||dirD>=45)?'caution':'go';
+  return{spdDelta,dirDelta:dirD,status};
+}
 
 // ═══ MICRO WINDS ALOFT (0–2000' AGL, 100' steps) ═══
 function rMicroProfile(allData){
@@ -1506,6 +1526,8 @@ function windowVerdict(h, idxs){
     if(w!=null&&w>gngLimits.maxWind*1.5)nogo++;else if(w!=null&&w>gngLimits.maxWind)caution++;
     if(g!=null&&g>gngLimits.maxGust*1.25)nogo++;else if(g!=null&&g>gngLimits.maxGust)caution++;
     if(spr!=null&&spr<gngLimits.minSpread*0.6)nogo++;else if(spr!=null&&spr<gngLimits.minSpread)caution++;
+    const s=lowLevelShear(h,i);
+    if(s){if(s.status==='nogo')nogo++;else if(s.status==='caution')caution++}
   });
   return nogo>0?'NO-GO':caution>0?'MARGINAL':'FLYABLE';
 }
@@ -1518,6 +1540,7 @@ function renderWindowTable(h, windowIdxs, title){
     {lbl:'Wind',fn:i=>{const v=h.wind_speed_10m?.[i];return v!=null?`<span style="color:${wC(v)}">${Math.round(v)}</span>`:'—'}},
     {lbl:'Gust',fn:i=>{const v=h.wind_gusts_10m?.[i];return v!=null?`<span style="color:${v>=gngLimits.maxGust?'var(--gust)':'var(--tx2)'}">${Math.round(v)}</span>`:'—'}},
     {lbl:'Dir',fn:i=>{const v=h.wind_direction_10m?.[i];return v!=null?`<span style="color:var(--tx3)">${cp(v)}</span>`:'—'}},
+    {lbl:'Shear',fn:i=>{const s=lowLevelShear(h,i);if(!s)return'—';const col=s.status==='nogo'?'var(--gust)':s.status==='caution'?'var(--mod)':'var(--calm)';return`<span style="color:${col}">+${Math.round(s.spdDelta)}${s.dirDelta>=45?'/'+Math.round(s.dirDelta)+'°':''}</span>`}},
     {lbl:'Temp',fn:i=>{const v=h.temperature_2m?.[i];return v!=null?Math.round(v)+'°':'—'}},
     {lbl:'Dew',fn:i=>{const v=h.dew_point_2m?.[i];return v!=null?`<span style="color:var(--tx3)">${Math.round(v)}°</span>`:'—'}},
     {lbl:'Spread',fn:i=>{const t=h.temperature_2m?.[i],d=h.dew_point_2m?.[i];if(t==null||d==null)return'—';const s=t-d;return`<span style="color:${spC(s)}">${s.toFixed(1)}°</span>`}},
@@ -1606,6 +1629,8 @@ function computeGng(h,i){
     {name:'Temp/Dew Spread',icon:'🌡',val:spr!=null?spr.toFixed(1)+'°F':'—',status:spr==null?'unknown':spr>=gngLimits.minSpread?'go':spr>=gngLimits.minSpread*0.6?'caution':'nogo'},
     {name:'Precipitation',icon:'🌧',val:prc!=null?Math.round(prc)+'%':'—',status:prc==null?'unknown':prc<=gngLimits.maxPrecip?'go':prc<=gngLimits.maxPrecip*1.5?'caution':'nogo'},
   ];
+  const shr=lowLevelShear(h,i);
+  checks.push({name:'Low-Level Shear',icon:'🌀',val:shr?`+${Math.round(shr.spdDelta)} mph${shr.dirDelta>=45?' / '+Math.round(shr.dirDelta)+'°':''} aloft`:'—',status:shr?shr.status:'unknown'});
   const nogoCount=checks.filter(c=>c.status==='nogo').length;
   const cautionCount=checks.filter(c=>c.status==='caution').length;
   const verdict=nogoCount>0?'NO-GO':cautionCount>0?'MARGINAL':'FLYABLE';
@@ -1630,6 +1655,7 @@ function rGoNoGo(d){
   o+=`<div class="gng-limit-row"><div class="gng-limit-lbl">Min Ceiling</div><input class="gng-limit-input" id="gng_minCeiling" type="number" value="${gngLimits.minCeiling}"><div class="gng-limit-unit">ft</div></div>`;
   o+=`<div class="gng-limit-row"><div class="gng-limit-lbl">Min Spread</div><input class="gng-limit-input" id="gng_minSpread" type="number" value="${gngLimits.minSpread}"><div class="gng-limit-unit">°F</div></div>`;
   o+=`<div class="gng-limit-row"><div class="gng-limit-lbl">Max Precip</div><input class="gng-limit-input" id="gng_maxPrecip" type="number" value="${gngLimits.maxPrecip}"><div class="gng-limit-unit">%</div></div>`;
+  o+=`<div class="gng-limit-row"><div class="gng-limit-lbl">Max Shear</div><input class="gng-limit-input" id="gng_maxShear" type="number" value="${gngLimits.maxShear}"><div class="gng-limit-unit">mph</div></div>`;
   o+=`<button class="gng-save" onclick="saveGngLimits()">Save Limits</button></div></div>`;
   el.innerHTML=o;
 }
@@ -1647,7 +1673,7 @@ function buildClaudeBriefing(){
   const iM=Math.max(0,i-2),iP=Math.min(h.time.length-1,i+2);
   let md=`# Balloon flight briefing request\n\n`;
   md+=`You're briefing a hot air balloon pilot. Using ONLY the raw data below, assess flyability at the target time and across the ±2 h window: surface wind/gusts vs the pilot's limits, wind shear (speed or direction changes between altitude layers), inversion layers (temperature rising with altitude), fog risk (temp−dew spread), and whether conditions are improving or deteriorating. Weigh the NWS forecaster's Area Forecast Discussion (bottom) alongside the model numbers — the AFD is the human read on timing and pattern (onshore push, marine layer, gust timing) that raw model output can miss. The "Widget's automated read" section gives pre-computed go/no-go, shear, and AFD-keyword signals — anchor on those first, then verify and refine them against the raw tables. Respond like a concise preflight brief: 1) verdict — FLYABLE / MARGINAL / NO-GO, 2) best launch time within the window and why, 3) key risks to watch, 4) what the wind does with altitude (steerage options for the pilot). Wind directions are degrees FROM which the wind blows.\n\n`;
-  md+=`## Context\n- Location: ${C.locName} (${C.name}) — ${C.lat.toFixed(2)}°N ${Math.abs(C.lon).toFixed(2)}°W, field elevation ${Math.round(C.elev)} ft MSL (altitudes below are ft AGL)\n- Target flight time: ${fmtFull(h.time[i])} local\n- Pilot's personal limits: max wind ${gngLimits.maxWind} mph · max gust ${gngLimits.maxGust} mph · min visibility ${gngLimits.minVis} mi · min ceiling ${gngLimits.minCeiling} ft · min temp/dew spread ${gngLimits.minSpread}°F · max precip ${gngLimits.maxPrecip}%\n`;
+  md+=`## Context\n- Location: ${C.locName} (${C.name}) — ${C.lat.toFixed(2)}°N ${Math.abs(C.lon).toFixed(2)}°W, field elevation ${Math.round(C.elev)} ft MSL (altitudes below are ft AGL)\n- Target flight time: ${fmtFull(h.time[i])} local\n- Pilot's personal limits: max wind ${gngLimits.maxWind} mph · max gust ${gngLimits.maxGust} mph · min visibility ${gngLimits.minVis} mi · min ceiling ${gngLimits.minCeiling} ft · min temp/dew spread ${gngLimits.minSpread}°F · max precip ${gngLimits.maxPrecip}% · max low-level shear ${gngLimits.maxShear} mph over surface\n`;
   if(d.daily&&d.daily.sunrise&&d.daily.time){
     const di=d.daily.time.indexOf(h.time[i].slice(0,10));
     // daily.sunrise/sunset are location-local naive ISO strings — format the raw string;
