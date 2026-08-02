@@ -1641,7 +1641,7 @@ function buildClaudeBriefing(){
   const r1=v=>v==null?'—':Math.round(v);
   const iM=Math.max(0,i-2),iP=Math.min(h.time.length-1,i+2);
   let md=`# Balloon flight briefing request\n\n`;
-  md+=`You're briefing a hot air balloon pilot. Using ONLY the raw forecast data below, assess flyability at the target time and across the ±2 h window: surface wind/gusts vs the pilot's limits, wind shear (speed or direction changes between altitude layers), inversion layers (temperature rising with altitude), fog risk (temp−dew spread), and whether conditions are improving or deteriorating. Respond like a concise preflight brief: 1) verdict — FLYABLE / MARGINAL / NO-GO, 2) best launch time within the window and why, 3) key risks to watch, 4) what the wind does with altitude (steerage options for the pilot). Wind directions are degrees FROM which the wind blows.\n\n`;
+  md+=`You're briefing a hot air balloon pilot. Using ONLY the raw data below, assess flyability at the target time and across the ±2 h window: surface wind/gusts vs the pilot's limits, wind shear (speed or direction changes between altitude layers), inversion layers (temperature rising with altitude), fog risk (temp−dew spread), and whether conditions are improving or deteriorating. Weigh the NWS forecaster's Area Forecast Discussion (bottom) alongside the model numbers — the AFD is the human read on timing and pattern (onshore push, marine layer, gust timing) that raw model output can miss. Respond like a concise preflight brief: 1) verdict — FLYABLE / MARGINAL / NO-GO, 2) best launch time within the window and why, 3) key risks to watch, 4) what the wind does with altitude (steerage options for the pilot). Wind directions are degrees FROM which the wind blows.\n\n`;
   md+=`## Context\n- Location: ${C.locName} (${C.name}) — ${C.lat.toFixed(2)}°N ${Math.abs(C.lon).toFixed(2)}°W, field elevation ${Math.round(C.elev)} ft MSL (altitudes below are ft AGL)\n- Target flight time: ${fmtFull(h.time[i])} local\n- Pilot's personal limits: max wind ${gngLimits.maxWind} mph · max gust ${gngLimits.maxGust} mph · min visibility ${gngLimits.minVis} mi · min ceiling ${gngLimits.minCeiling} ft · min temp/dew spread ${gngLimits.minSpread}°F · max precip ${gngLimits.maxPrecip}%\n`;
   if(d.daily&&d.daily.sunrise&&d.daily.time){
     const di=d.daily.time.indexOf(h.time[i].slice(0,10));
@@ -1668,6 +1668,27 @@ function buildClaudeBriefing(){
     md+=`| ${a} | ${fw(interpAt(h,iM,msl))} | ${fw(w1)} | ${fw(interpAt(h,iP,msl))} |\n`;
   }
   md+=`\nData: Open-Meteo best_match model (HRRR/GFS blend). Speeds mph · temps °F · altitudes ft AGL above the ${Math.round(C.elev)} ft field.\n`;
+  // ── NWS Area Forecast Discussion (nearest office, fetched with every refresh) ──
+  // Include the balloon-relevant sections, trimmed to a budget that keeps the whole
+  // prompt URL-safe (~12k chars raw). Falls back to the raw head if no sections match.
+  const afd=window._tpAfd;
+  if(afd&&afd.text){
+    const budget=Math.max(0,12000-md.length-300);
+    if(budget>400){
+      let out='';
+      const wanted=n=>/KEY MESSAGES|SYNOPSIS|UPDATE|DISCUSSION|NEAR TERM|SHORT TERM|AVIATION/.test(n);
+      afd.text.split(/\n(?=\.[A-Z])/).forEach(p=>{
+        const m=p.match(/^\.([A-Z][^.\n]*?)\.\.\.\s*/);if(!m||!wanted(m[1].toUpperCase()))return;
+        const body=p.slice(m[0].length).split(/\n\s*&&/)[0].trim();
+        if(body)out+=`### ${m[1].trim()}\n${body}\n\n`;
+      });
+      if(!out)out=afd.text.slice(0,budget);
+      if(out.length>budget)out=out.slice(0,budget)+'\n…[AFD truncated]';
+      md+=`\n## NWS Area Forecast Discussion — ${C.nwsOffice||'nearest office'}, issued ${new Date(afd.time).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit',hour12:true,timeZone:tz})} local\n`;
+      if(!isToday())md+=`(Note: this is the CURRENT discussion — the selected target time is on a different day.)\n`;
+      md+=`\n${out.trim()}\n`;
+    }
+  }
   return md;
 }
 function askClaude(){
@@ -1708,7 +1729,7 @@ async function refreshAll(force){if(busy)return;busy=true;document.getElementByI
     // Render
     const homeData=stnData[0]||stnData.find(d=>d!=null);
     _allStnData=allData;
-    window._tpHomeData=homeData;window._tpAllData=allData;window._tpMetars=metars;window._tpSunTimes=sunTimes;
+    window._tpHomeData=homeData;window._tpAllData=allData;window._tpMetars=metars;window._tpSunTimes=sunTimes;window._tpAfd=afd;
     if(liveMode&&homeData)buildTimePicker(homeData);
     if(homeData){rSurf(homeData,metars,sunTimes);rHourly(homeData);rGoNoGo(homeData);rDailySummary(homeData)}
     else{
