@@ -128,6 +128,11 @@ a.badge{cursor:pointer}a.badge:hover{background:rgba(56,189,248,.2);color:#7dd3f
 .vfs{font-weight:700;font-size:14px}
 .vfd{font-size:10px}
 @media(max-width:900px){.vfs{font-size:15px}.vfd{font-size:11px}}
+/* Frozen station header (mobile band mode, v4.15.2): fixed ghost copy of .vf-hdr shown
+   below the sticky forecast window during page scroll — native sticky can't pin there
+   because .winds-pair is a horizontal scroll container (v4.9.4 trade-off, now repaid). */
+#vfGhost{position:fixed;display:none;z-index:80;overflow:hidden;background:var(--card);border-bottom:1px solid var(--bdr2);box-shadow:0 6px 14px rgba(0,0,0,.45);pointer-events:none}
+#vfGhost .vf-hdr{position:static;display:inline-flex;min-width:0;background:transparent;will-change:transform}
 .vf-arrow-wrap{position:relative;display:flex;align-items:center;justify-content:center}
 .vf-hdr{background:var(--card);margin-bottom:0;padding:4px 0 3px;border-bottom:1px solid var(--bdr);position:sticky;top:-1px;z-index:5;display:inline-flex;min-width:100%}
 .vf-info{width:140px;min-width:140px;flex-shrink:0;padding-left:12px;font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--tx2);white-space:nowrap;display:flex;align-items:center;gap:6px}
@@ -1354,6 +1359,33 @@ function rProfile(allData){
     });o+='</tr>';});
   o+=`</tbody></table></div></div>`;
   el.innerHTML=o;
+  _vfGhostDirty=true;vfGhostSync();
+}
+
+// ═══ FROZEN WINDS-ALOFT STATION HEADER (mobile band mode, v4.15.2) ═══
+// On ≤900px the winds-pair band is a horizontal scroll container, which prevents native
+// position:sticky from pinning the station header during PAGE scroll (v4.9.4 trade-off).
+// This restores the pin without re-adding a vertical scroller: a position:fixed ghost
+// copy of .vf-hdr sits just below the sticky forecast window while altitude rows are on
+// screen, and tracks the band's horizontal scroll via transform so columns stay aligned.
+let _vfGhostDirty=true;
+function vfGhostSync(){
+  const ghost=document.getElementById('vfGhost');if(!ghost)return;
+  const card=document.querySelector('.winds-main'),hdr=card?card.querySelector('.vf-hdr'):null;
+  if(window.innerWidth>900||!hdr){ghost.style.display='none';return}
+  if(_vfGhostDirty||!ghost.firstChild){ghost.innerHTML='';ghost.appendChild(hdr.cloneNode(true));_vfGhostDirty=false}
+  const tp=document.getElementById('tpWrap');
+  const tpB=tp?tp.getBoundingClientRect().bottom:0;
+  const hR=hdr.getBoundingClientRect(),cR=card.getBoundingClientRect();
+  // Show once the real header has scrolled under the forecast bar, while data rows remain
+  if(hR.bottom<tpB&&cR.bottom>tpB+60){
+    const band=document.querySelector('.winds-pair'),bR=band.getBoundingClientRect();
+    const gL=Math.max(bR.left,0);
+    ghost.style.display='block';
+    ghost.style.top=tpB+'px';ghost.style.left=gL+'px';
+    ghost.style.width=(Math.min(bR.right,window.innerWidth)-gL)+'px';
+    ghost.firstChild.style.transform=`translateX(${cR.left-gL}px)`;
+  }else ghost.style.display='none';
 }
 
 // ═══ HOURLY ═══
@@ -2146,6 +2178,11 @@ document.addEventListener('DOMContentLoaded',()=>{
   loadSettings();
   applyCustomStations();
   updateUI();
+  // Frozen winds-aloft station header: ghost element + sync on page scroll, band swipe, resize
+  const vg=document.createElement('div');vg.id='vfGhost';document.body.appendChild(vg);
+  window.addEventListener('scroll',vfGhostSync,{passive:true});
+  window.addEventListener('resize',vfGhostSync);
+  document.querySelector('.winds-pair')?.addEventListener('scroll',vfGhostSync,{passive:true});
   // ═══ EMBED MODE (?embed=1&lat=..&lon=..&name=..) ═══
   // For hosting inside another app (e.g. Flight Maps): embed=1 hides the title chrome, and
   // lat/lon feed the host's GPS position through the full selectLocation pipeline (elevation,
