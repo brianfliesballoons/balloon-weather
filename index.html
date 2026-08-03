@@ -132,7 +132,12 @@ a.badge{cursor:pointer}a.badge:hover{background:rgba(56,189,248,.2);color:#7dd3f
    below the sticky forecast window during page scroll — native sticky can't pin there
    because .winds-pair is a horizontal scroll container (v4.9.4 trade-off, now repaid). */
 #vfGhost{position:fixed;display:none;z-index:80;overflow:hidden;background:var(--card);border-bottom:1px solid var(--bdr2);box-shadow:0 6px 14px rgba(0,0,0,.45);pointer-events:none}
-#vfGhost .vf-hdr{position:static;display:inline-flex;min-width:0;background:transparent;will-change:transform}
+#vfGhost .vf-hdr{position:static;display:inline-flex;min-width:0;background:transparent;will-change:transform;padding:0;border:none}
+/* Slim the pinned copy to ONE line of station codes: hide the long-name + distance rows
+   and collapse the cell padding (inline styles on the real header need !important) */
+#vfGhost .vf-cell{padding:3px 4px!important;height:auto!important}
+#vfGhost .vf-cell>div:nth-child(2){display:none}
+#vfGhost .vf-dist{display:none}
 .vf-arrow-wrap{position:relative;display:flex;align-items:center;justify-content:center}
 .vf-hdr{background:var(--card);margin-bottom:0;padding:4px 0 3px;border-bottom:1px solid var(--bdr);position:sticky;top:-1px;z-index:5;display:inline-flex;min-width:100%}
 .vf-info{width:140px;min-width:140px;flex-shrink:0;padding-left:12px;font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--tx2);white-space:nowrap;display:flex;align-items:center;gap:6px}
@@ -1374,17 +1379,21 @@ function vfGhostSync(){
   const card=document.querySelector('.winds-main'),hdr=card?card.querySelector('.vf-hdr'):null;
   if(window.innerWidth>900||!hdr){ghost.style.display='none';return}
   if(_vfGhostDirty||!ghost.firstChild){ghost.innerHTML='';ghost.appendChild(hdr.cloneNode(true));_vfGhostDirty=false}
+  // body{zoom:var(--fs-scale)}: getBoundingClientRect returns VISUAL px, but CSS px on the
+  // (zoomed) fixed ghost render at zoom× — divide every placement by the zoom factor or the
+  // ghost lands mid-screen at large font scales (the v4.15.2 bug).
+  const z=fontScale||1;
   const tp=document.getElementById('tpWrap');
   const tpB=tp?tp.getBoundingClientRect().bottom:0;
   const hR=hdr.getBoundingClientRect(),cR=card.getBoundingClientRect();
-  // Show once the real header has scrolled under the forecast bar, while data rows remain
-  if(hR.bottom<tpB&&cR.bottom>tpB+60){
-    const band=document.querySelector('.winds-pair'),bR=band.getBoundingClientRect();
-    const gL=Math.max(bR.left,0);
+  // Clip to the winds-aloft card's own columns — never cover the micro card, and vanish
+  // when the aloft columns are swiped off-screen (no empty floating box)
+  const gL=Math.max(cR.left,0),gR=Math.min(cR.right,window.innerWidth);
+  if(hR.bottom<tpB&&cR.bottom>tpB+60&&gR-gL>70){
     ghost.style.display='block';
-    ghost.style.top=tpB+'px';ghost.style.left=gL+'px';
-    ghost.style.width=(Math.min(bR.right,window.innerWidth)-gL)+'px';
-    ghost.firstChild.style.transform=`translateX(${cR.left-gL}px)`;
+    ghost.style.top=(tpB/z)+'px';ghost.style.left=(gL/z)+'px';
+    ghost.style.width=((gR-gL)/z)+'px';
+    ghost.firstChild.style.transform=`translateX(${(cR.left-gL)/z}px)`;
   }else ghost.style.display='none';
 }
 
