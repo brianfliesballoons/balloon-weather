@@ -128,16 +128,13 @@ a.badge{cursor:pointer}a.badge:hover{background:rgba(56,189,248,.2);color:#7dd3f
 .vfs{font-weight:700;font-size:14px}
 .vfd{font-size:10px}
 @media(max-width:900px){.vfs{font-size:15px}.vfd{font-size:11px}}
-/* Frozen station header (mobile band mode, v4.15.2): fixed ghost copy of .vf-hdr shown
-   below the sticky forecast window during page scroll — native sticky can't pin there
-   because .winds-pair is a horizontal scroll container (v4.9.4 trade-off, now repaid). */
-#vfGhost{position:fixed;display:none;z-index:80;overflow:hidden;background:var(--card);border-bottom:1px solid var(--bdr2);box-shadow:0 6px 14px rgba(0,0,0,.45);pointer-events:none}
-#vfGhost .vf-hdr{position:static;display:inline-flex;min-width:0;background:transparent;will-change:transform;padding:0;border:none}
-/* Slim the pinned copy to ONE line of station codes: hide the long-name + distance rows
-   and collapse the cell padding (inline styles on the real header need !important) */
-#vfGhost .vf-cell{padding:3px 4px!important;height:auto!important}
-#vfGhost .vf-cell>div:nth-child(2){display:none}
-#vfGhost .vf-dist{display:none}
+/* Frozen station header (mobile band mode, v4.15.4): a one-line duplicate of the station
+   codes rendered INSIDE .winds-main (absolute) — it shares the card's coordinate space, so
+   it stays perfectly column-aligned during horizontal swipes with ZERO sync JS; script only
+   updates its vertical offset on page scroll. (v4.15.2/.3 used a body-level position:fixed
+   clone — on the zoomed body it drifted out of column alignment during swipes.) */
+.winds-main{position:relative}
+.vf-ghost2{position:absolute;left:4px;top:0;display:none;z-index:8;background:var(--card);border-bottom:1px solid var(--bdr2);box-shadow:0 5px 12px rgba(0,0,0,.45);pointer-events:none;min-width:100%} /* left:4px = mobile .winds-main .body padding-left, so ghost columns overlay the real ones */
 .vf-arrow-wrap{position:relative;display:flex;align-items:center;justify-content:center}
 .vf-hdr{background:var(--card);margin-bottom:0;padding:4px 0 3px;border-bottom:1px solid var(--bdr);position:sticky;top:-1px;z-index:5;display:inline-flex;min-width:100%}
 .vf-info{width:140px;min-width:140px;flex-shrink:0;padding-left:12px;font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--tx2);white-space:nowrap;display:flex;align-items:center;gap:6px}
@@ -1307,7 +1304,16 @@ function rProfile(allData){
     o+=src.dist>0?`<div class="vf-dist">${src.dist} mi</div>`:`<div class="vf-dist" style="color:var(--blue)">Home</div>`;
     o+='</div>';
   });
-  o+='</div><div class="vf-wrap">';
+  o+='</div>';
+  // In-card pinned ghost header (v4.15.4): one line of station codes, absolute inside
+  // .winds-main so it swipes in perfect column alignment with the numbers; vfGhostSync()
+  // only toggles visibility and vertical offset.
+  o+='<div class="vf-row vf-hdr vf-ghost2" id="vfGhost2"><div class="vf-alt"></div>';
+  sources.forEach((src,i)=>{
+    o+=`<div class="vf-cell" style="height:auto;border-bottom:none;justify-content:center;padding:3px 4px${i>0?';border-left:1px solid rgba(30,41,59,.3)':''}"><div style="font-size:12px;font-weight:700;color:${i===0?'var(--blue)':'var(--tx)'};font-family:'JetBrains Mono',monospace">${src.label}</div></div>`;
+  });
+  o+='</div>';
+  o+='<div class="vf-wrap">';
   // Data rows — one per altitude, with shear detection
   let prevHomeW=null;
   // Per-station temp at the level below — temp rising with altitude = inversion
@@ -1364,37 +1370,29 @@ function rProfile(allData){
     });o+='</tr>';});
   o+=`</tbody></table></div></div>`;
   el.innerHTML=o;
-  _vfGhostDirty=true;vfGhostSync();
+  vfGhostSync();
 }
 
-// ═══ FROZEN WINDS-ALOFT STATION HEADER (mobile band mode, v4.15.2) ═══
+// ═══ FROZEN WINDS-ALOFT STATION HEADER (mobile band mode, v4.15.4) ═══
 // On ≤900px the winds-pair band is a horizontal scroll container, which prevents native
 // position:sticky from pinning the station header during PAGE scroll (v4.9.4 trade-off).
-// This restores the pin without re-adding a vertical scroller: a position:fixed ghost
-// copy of .vf-hdr sits just below the sticky forecast window while altitude rows are on
-// screen, and tracks the band's horizontal scroll via transform so columns stay aligned.
-let _vfGhostDirty=true;
+// The pinned header (#vfGhost2) is rendered by rProfile INSIDE .winds-main as an absolute
+// one-line strip of station codes — same coordinate space as the columns, so horizontal
+// alignment is intrinsic (it swipes WITH the numbers). This function only toggles it and
+// sets its vertical offset so it rides just below the sticky forecast window.
 function vfGhostSync(){
-  const ghost=document.getElementById('vfGhost');if(!ghost)return;
+  const g=document.getElementById('vfGhost2');if(!g)return;
   const card=document.querySelector('.winds-main'),hdr=card?card.querySelector('.vf-hdr'):null;
-  if(window.innerWidth>900||!hdr){ghost.style.display='none';return}
-  if(_vfGhostDirty||!ghost.firstChild){ghost.innerHTML='';ghost.appendChild(hdr.cloneNode(true));_vfGhostDirty=false}
-  // body{zoom:var(--fs-scale)}: getBoundingClientRect returns VISUAL px, but CSS px on the
-  // (zoomed) fixed ghost render at zoom× — divide every placement by the zoom factor or the
-  // ghost lands mid-screen at large font scales (the v4.15.2 bug).
+  if(window.innerWidth>900||!hdr){g.style.display='none';return}
+  // body{zoom:var(--fs-scale)}: rects are visual px, CSS px render zoom× — divide by zoom
   const z=fontScale||1;
   const tp=document.getElementById('tpWrap');
   const tpB=tp?tp.getBoundingClientRect().bottom:0;
   const hR=hdr.getBoundingClientRect(),cR=card.getBoundingClientRect();
-  // Clip to the winds-aloft card's own columns — never cover the micro card, and vanish
-  // when the aloft columns are swiped off-screen (no empty floating box)
-  const gL=Math.max(cR.left,0),gR=Math.min(cR.right,window.innerWidth);
-  if(hR.bottom<tpB&&cR.bottom>tpB+60&&gR-gL>70){
-    ghost.style.display='block';
-    ghost.style.top=(tpB/z)+'px';ghost.style.left=(gL/z)+'px';
-    ghost.style.width=((gR-gL)/z)+'px';
-    ghost.firstChild.style.transform=`translateX(${(cR.left-gL)/z}px)`;
-  }else ghost.style.display='none';
+  if(hR.bottom<tpB&&cR.bottom>tpB+60){
+    g.style.display='inline-flex';
+    g.style.top=((tpB-cR.top)/z)+'px';
+  }else g.style.display='none';
 }
 
 // ═══ HOURLY ═══
@@ -2187,11 +2185,10 @@ document.addEventListener('DOMContentLoaded',()=>{
   loadSettings();
   applyCustomStations();
   updateUI();
-  // Frozen winds-aloft station header: ghost element + sync on page scroll, band swipe, resize
-  const vg=document.createElement('div');vg.id='vfGhost';document.body.appendChild(vg);
+  // Frozen winds-aloft station header: vertical offset tracks page scroll (horizontal
+  // alignment is intrinsic — the ghost lives inside the card and swipes with it)
   window.addEventListener('scroll',vfGhostSync,{passive:true});
   window.addEventListener('resize',vfGhostSync);
-  document.querySelector('.winds-pair')?.addEventListener('scroll',vfGhostSync,{passive:true});
   // ═══ EMBED MODE (?embed=1&lat=..&lon=..&name=..) ═══
   // For hosting inside another app (e.g. Flight Maps): embed=1 hides the title chrome, and
   // lat/lon feed the host's GPS position through the full selectLocation pipeline (elevation,
