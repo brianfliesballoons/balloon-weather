@@ -62,7 +62,7 @@ body.embed .hdr-r{width:100%;justify-content:space-between}
 .vf-spd{font-size:14px}
 .vf-info{font-size:12px}
 .vf-dist{font-size:9px}
-.vf-cell{height:48px}
+.vf-cell{height:28px}
 /* Micro winds: bigger fonts */
 .mvf-alt{font-size:11px;width:70px;min-width:70px}
 .mvf-alt .msl{font-size:9px}
@@ -122,7 +122,12 @@ a.badge{cursor:pointer}a.badge:hover{background:rgba(56,189,248,.2);color:#7dd3f
 .vf-row{display:flex;align-items:center;gap:0;margin-bottom:1px}
 .vf-alt{width:70px;min-width:70px;flex-shrink:0;text-align:right;padding-right:10px;font-size:10px;color:var(--tx3);font-family:'JetBrains Mono',monospace;white-space:nowrap;position:sticky;left:0;z-index:3;background:var(--card)}
 .vf-alt .msl{font-size:8px;color:var(--tx4);display:block}
-.vf-cell{width:140px;min-width:140px;max-width:140px;flex-shrink:0;height:46px;position:relative;display:flex;align-items:center;justify-content:center;gap:4px;border-bottom:1px solid rgba(30,41,59,.3);overflow:hidden}
+.vf-cell{width:140px;min-width:140px;max-width:140px;flex-shrink:0;height:26px;position:relative;display:flex;align-items:center;justify-content:flex-start;gap:3px;padding-left:2px;border-bottom:1px solid rgba(30,41,59,.3);overflow:hidden}
+/* Single-line winds-aloft readout (v4.15.1 — match the micro card's tightness, bigger speed font) */
+.vf-txt{display:flex;align-items:baseline;gap:5px;font-family:'JetBrains Mono',monospace;white-space:nowrap;min-width:0}
+.vfs{font-weight:700;font-size:14px}
+.vfd{font-size:10px}
+@media(max-width:900px){.vfs{font-size:15px}.vfd{font-size:11px}}
 .vf-arrow-wrap{position:relative;display:flex;align-items:center;justify-content:center}
 .vf-hdr{background:var(--card);margin-bottom:0;padding:4px 0 3px;border-bottom:1px solid var(--bdr);position:sticky;top:-1px;z-index:5;display:inline-flex;min-width:100%}
 .vf-info{width:140px;min-width:140px;flex-shrink:0;padding-left:12px;font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--tx2);white-space:nowrap;display:flex;align-items:center;gap:6px}
@@ -183,7 +188,7 @@ a.badge{cursor:pointer}a.badge:hover{background:rgba(56,189,248,.2);color:#7dd3f
   .winds-main{flex:0 0 auto;min-width:0;overflow:clip}
   .winds-main .body{padding:6px 4px}
   .winds-main .vf-alt{width:58px;min-width:58px}
-  .winds-main .vf-cell{width:118px;min-width:118px;max-width:118px}
+  .winds-main .vf-cell{width:104px;min-width:104px;max-width:104px}
 }
 
 /* ═══ SURFACE COMPARISON GRID ═══ */
@@ -1232,8 +1237,8 @@ function rMicroProfile(allData){
     o+=`<div class="mvf-cell">`;
     o+=vecArrow(dir,spd,maxSpd,col,cellW);
     o+=`<div style="font-family:'JetBrains Mono',monospace;white-space:nowrap;min-width:0">`;
-    o+=`<span style="color:${spd!=null?wC(spd):'var(--tx3)'};font-weight:700;font-size:12px">${spd!=null?Math.round(spd):'—'}<span style="font-size:8px;font-weight:400;color:var(--tx3)"> mph</span></span>`;
-    o+=`<span style="font-size:8px;color:var(--tx2);margin-left:6px">${dirLbl}</span>`;
+    o+=`<span style="color:${spd!=null?wC(spd):'var(--tx3)'};font-weight:700;font-size:13px">${spd!=null?Math.round(spd):'—'}<span style="font-size:8px;font-weight:400;color:var(--tx3)"> mph</span></span>`;
+    o+=`<span style="font-size:9px;color:var(--tx2);margin-left:6px">${dirLbl}</span>`;
     o+=`</div></div>`;
     o+=`</div>`;
     prevW=r.wind;
@@ -1281,7 +1286,7 @@ function rProfile(allData){
   let maxSpd=15;
   const allLvl=C.levels.filter(l=>agl(l.msl)>=0);
   sources.forEach(src=>{const h=src.data.hourly,si=getIdx(h.time);allLvl.forEach(l=>{const s=h[`wind_speed_${l.hPa}hPa`]?.[si]||0;if(s>maxSpd)maxSpd=s})});
-  const cellW=48;
+  const cellW=26;
   let o='<div class="vf-scroll">';
   // Header row (outside vf-wrap so sticky works)
   o+='<div class="vf-row vf-hdr"><div class="vf-alt"></div>';
@@ -1326,15 +1331,15 @@ function rProfile(allData){
       const dirLabel=dir!=null?`→${pad3(toD(dir))}°`:'—';
       o+=`<div class="vf-cell"${i>0?' style="border-left:1px solid rgba(30,41,59,.3)"':''}>`;
       o+=vecArrow(dir,spd,maxSpd,col,cellW);
-      o+=`<div style="font-family:'JetBrains Mono',monospace;white-space:nowrap;text-align:left;min-width:0">`;
-      o+=`<div style="color:${spd!=null?wC(spd):'var(--tx3)'};font-weight:700;font-size:13px">${spd!=null?Math.round(spd):'—'}<span style="font-size:9px;font-weight:400;color:var(--tx3)"> mph</span></div>`;
-      o+=`<div style="font-size:9px;color:var(--tx2)">${dirLabel}${tmp!=null?` <span style="color:${inv?'var(--strong)':'var(--tx4)'}${inv?';font-weight:700':''}">${Math.round(tmp)}°${inv?'▲':''}</span>`:''}</div>`;
-      o+=`</div></div>`;
+      // Single-line readout (v4.15.1): speed + →dir + temp inline, "mph" moved to the card
+      // footer — matches the micro card's row tightness so far more stations fit per screen
+      o+=`<div class="vf-txt"><span class="vfs" style="color:${spd!=null?wC(spd):'var(--tx3)'}">${spd!=null?Math.round(spd):'—'}</span><span class="vfd" style="color:var(--tx2)">${dirLabel}</span>${tmp!=null?`<span class="vfd" style="color:${inv?'var(--strong)':'var(--tx4)'}${inv?';font-weight:700':''}">${Math.round(tmp)}°${inv?'▲':''}</span>`:''}</div>`;
+      o+=`</div>`;
     });
     o+='</div>';
   });
   o+='</div></div>';
-  o+=`<div style="text-align:center;padding:3px 0"><span style="font-size:9px;color:var(--tx4);font-family:'JetBrains Mono',monospace">temps °F · <span style="color:var(--strong);font-weight:700">▲</span> = inversion (warmer than level below)</span></div>`;
+  o+=`<div style="text-align:center;padding:3px 0"><span style="font-size:9px;color:var(--tx4);font-family:'JetBrains Mono',monospace">winds mph · temps °F · <span style="color:var(--strong);font-weight:700">▲</span> = inversion (warmer than level below)</span></div>`;
   if(sources.length>3){o+=`<div style="text-align:center;padding:4px 0"><span style="font-size:9px;color:var(--tx4);font-family:'JetBrains Mono',monospace">← Scroll for ${sources.length} stations →</span></div>`}
   const homeLbl=C.stations[0].label;
   o+=`<div style="text-align:center;margin-top:8px"><button class="atog" onclick="this.nextElementSibling.classList.toggle('hide');this.textContent=this.nextElementSibling.classList.contains('hide')?'Show ${homeLbl} 6-Hour Data Table':'Hide Data Table'" style="width:auto;display:inline-block;padding:5px 16px">Show ${homeLbl} 6-Hour Data Table</button>`;
