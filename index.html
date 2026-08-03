@@ -448,6 +448,12 @@ a.badge{cursor:pointer}a.badge:hover{background:rgba(56,189,248,.2);color:#7dd3f
 .dawn-table th{text-align:center;padding:4px 6px;font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--tx4);font-weight:600;font-family:'JetBrains Mono',monospace;border-bottom:1px solid var(--bdr)}
 .dawn-table td{text-align:center;padding:5px 4px;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;border-bottom:1px solid rgba(30,41,59,.3)}
 .dawn-table td.dawn-lbl{text-align:left;color:var(--tx3);font-weight:500;font-size:12px;width:60px}
+/* Reality Check card: compact density (Brian, 2026-08-03 — "a lot more compact").
+   #id specificity beats the mobile font-bump block regardless of source order. */
+#rlB .dawn-table{margin-top:2px}
+#rlB .dawn-table th{padding:2px 3px;font-size:8px;letter-spacing:.02em}
+#rlB .dawn-table td{padding:2px 3px;font-size:11px;white-space:nowrap}
+#rlB .sc-title{margin-bottom:3px;font-size:9px}
 .dawn-section{margin-top:4px;padding:10px;background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.15);border-radius:6px}
 .dawn-section-title{font-size:11px;color:var(--mod);text-transform:uppercase;letter-spacing:.05em;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:6px}
 .afternoon-section{margin-top:4px;padding:8px 10px;background:var(--bg);border:1px solid var(--bdr);border-radius:6px}
@@ -1954,11 +1960,11 @@ function rReality(){
       const v=ad<4?{t:'MATCH',c:'var(--calm)',s:`Model and ${n.id} agree on the surface wind`}
         :diff>0?{t:'MODEL OVER',c:'var(--mod)',s:`Model shows ${Math.round(modW)} mph but ${n.id} reports ${Math.round(n.spd)} — surface likely calmer than forecast (decoupling / terrain flow the model can't resolve)`}
         :{t:'MODEL UNDER',c:'var(--danger)',s:`${n.id} reports ${Math.round(n.spd)} mph vs model ${Math.round(modW)} — actual winds STRONGER than forecast`};
-      o+=`<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px;padding:8px 12px;background:var(--card2);border-radius:var(--rs)"><span style="font-weight:800;color:${v.c};font-size:13px">${v.t}</span><span style="font-size:11px;color:var(--tx2)">${v.s}</span></div>`;
+      o+=`<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:6px;padding:5px 10px;background:var(--card2);border-radius:var(--rs)"><span style="font-weight:800;color:${v.c};font-size:12px">${v.t}</span><span style="font-size:10px;color:var(--tx2)">${v.s}</span></div>`;
     }else if(!live){
-      o+=`<div style="font-size:10px;color:var(--tx4);margin-bottom:8px">Observations are live right now — the model comparison applies to current conditions, not the selected ${isHistorical()?'past':'forecast'} time.</div>`;
+      o+=`<div style="font-size:9px;color:var(--tx4);margin-bottom:6px">Observations are live right now — the model comparison applies to current conditions, not the selected ${isHistorical()?'past':'forecast'} time.</div>`;
     }
-    o+=`<div class="sc-title" style="margin-bottom:4px">📡 Live Surface Observations · nearest wind-reporting stations (NWS mesonet)</div>`;
+    o+=`<div class="sc-title" style="margin-bottom:2px">📡 Live Obs · nearest stations</div>`;
     // Station column = ID only (data stays on-screen on mobile); full name rides in a
     // dim Name column at the END of the table — Brian, 2026-08-03
     o+='<div style="overflow-x:auto"><table class="dawn-table" style="width:100%"><thead><tr><th style="text-align:left">Stn</th><th>Wind</th><th>Gust</th><th>Dir</th><th>Dist</th><th>Elev</th><th>Age</th><th style="text-align:left">Name</th></tr></thead><tbody>';
@@ -1974,24 +1980,24 @@ function rReality(){
         const mw=interpAt(h,i,hiStn.elev);
         if(mw&&mw.spd>=5){
           const ok=Math.abs(mw.spd-hiStn.spd)<=Math.max(5,mw.spd*0.4);
-          o+=`<div style="margin-top:6px;font-size:11px;color:var(--tx3)">⛰ ${hiStn.id} (${hiStn.elev.toLocaleString()}′): reports ${Math.round(hiStn.spd)} mph vs model ${Math.round(mw.spd)} mph at that height — model ${ok?'<span style="color:var(--calm)">verifies aloft</span>; any surface disagreement is a shallow-layer effect, not a bad forecast':'<span style="color:var(--mod)">disagrees aloft too</span> — treat the whole profile with caution'}.</div>`;
+          o+=`<div style="margin-top:4px;font-size:10px;color:var(--tx3)">⛰ ${hiStn.id} (${hiStn.elev.toLocaleString()}′): reports ${Math.round(hiStn.spd)} mph vs model ${Math.round(mw.spd)} mph at that height — model ${ok?'<span style="color:var(--calm)">verifies aloft</span>; any surface disagreement is a shallow-layer effect, not a bad forecast':'<span style="color:var(--mod)">disagrees aloft too</span> — treat the whole profile with caution'}.</div>`;
         }
       }
     }
   }else{
     o+='<div style="font-size:11px;color:var(--tx3);margin-bottom:8px">No live wind observations available nearby right now.</div>';
   }
-  if(timing&&obs&&obs.length)o+=`<div style="margin-top:8px;font-size:11px;color:var(--blue)">⏱ Timing offset: recent winds at ${obs[0].id} match the model shifted ${Math.abs(timing.lag)} h — the pattern is running ${timing.lag>0?'ahead of':'behind'} the forecast clock.</div>`;
+  if(timing&&obs&&obs.length)o+=`<div style="margin-top:6px;font-size:10px;color:var(--blue)">⏱ Timing offset: recent winds at ${obs[0].id} match the model shifted ${Math.abs(timing.lag)} h — the pattern is running ${timing.lag>0?'ahead of':'behind'} the forecast clock.</div>`;
   // ── mixed layer / decoupling (NWS forecaster grid) ──
   if(grid){
     const mh=gridAt(grid.mixH,h.time[i]),ts=gridAt(grid.trSpd,h.time[i]),td=gridAt(grid.trDir,h.time[i]);
     if(mh!=null){
       const mhFt=Math.round(mh*3.28084),tsMph=ts!=null?ts*0.621371:null,shallow=mhFt<800;
       const decoupled=shallow&&live&&modW!=null&&obs&&obs.length&&(modW-obs[0].spd)>=4;
-      o+=`<div style="margin-top:12px;padding:10px 12px;background:${shallow?'rgba(56,189,248,.06)':'var(--card2)'};border-radius:var(--rs)">`;
-      o+=`<div class="sc-title" style="margin-bottom:4px">🌀 Mixed Layer · NWS forecaster grid</div>`;
-      o+=`<div style="font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--tx2)">Mixing height <span style="font-weight:700;color:${shallow?'var(--blue)':'var(--tx)'}">${mhFt.toLocaleString()} ft AGL</span>${tsMph!=null?` · Transport wind <span style="font-weight:700;color:${wC(tsMph)}">${Math.round(tsMph)} mph</span>${td!=null?' '+cp(td):''}`:''}</div>`;
-      if(shallow)o+=`<div style="font-size:11px;color:var(--tx3);margin-top:4px">Shallow mixed layer — the surface is decoupled from winds aloft${decoupled?'; live obs confirm the surface is calmer than modeled (drainage / decoupled regime)':'. In valley and terrain locations the real surface wind can differ sharply from the model'}.</div>`;
+      o+=`<div style="margin-top:8px;padding:6px 10px;background:${shallow?'rgba(56,189,248,.06)':'var(--card2)'};border-radius:var(--rs)">`;
+      o+=`<div class="sc-title" style="margin-bottom:2px">🌀 Mixed Layer · NWS forecaster grid</div>`;
+      o+=`<div style="font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--tx2)">Mixing height <span style="font-weight:700;color:${shallow?'var(--blue)':'var(--tx)'}">${mhFt.toLocaleString()} ft AGL</span>${tsMph!=null?` · Transport wind <span style="font-weight:700;color:${wC(tsMph)}">${Math.round(tsMph)} mph</span>${td!=null?' '+cp(td):''}`:''}</div>`;
+      if(shallow)o+=`<div style="font-size:10px;color:var(--tx3);margin-top:2px">Shallow mixed layer — the surface is decoupled from winds aloft${decoupled?'; live obs confirm the surface is calmer than modeled (drainage / decoupled regime)':'. In valley and terrain locations the real surface wind can differ sharply from the model'}.</div>`;
       o+='</div>';
     }
   }
@@ -2000,8 +2006,8 @@ function rReality(){
   if(agr){
     const col=agr.status==='agree'?'var(--calm)':agr.status==='caution'?'var(--mod)':'var(--danger)';
     const lbl=agr.status==='agree'?'MODELS AGREE':agr.status==='caution'?'MODELS DIFFER':'MODELS SPLIT';
-    o+=`<div style="margin-top:12px"><div class="sc-title" style="margin-bottom:4px">⚖️ Model Agreement · HRRR 3 km (NOAA) vs HRDPS 2.5 km (Env. Canada) · 0–2000 ft</div>`;
-    o+=`<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:6px"><span style="font-weight:800;color:${col};font-size:12px">${lbl}</span><span style="font-size:10px;color:var(--tx3)">max Δ${Math.round(agr.worst)} mph${agr.worstDir>=30?' · Δ'+Math.round(agr.worstDir)+'°':''} — ${agr.status==='agree'?'independent models converge: higher confidence':'independent models disagree: real uncertainty — trust the observations and the cautious side'}</span></div>`;
+    o+=`<div style="margin-top:8px"><div class="sc-title" style="margin-bottom:2px">⚖️ Model Agreement · HRRR vs HRDPS · 0–2000 ft</div>`;
+    o+=`<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:3px"><span style="font-weight:800;color:${col};font-size:11px">${lbl}</span><span style="font-size:9px;color:var(--tx3)">max Δ${Math.round(agr.worst)} mph${agr.worstDir>=30?' · Δ'+Math.round(agr.worstDir)+'°':''} — ${agr.status==='agree'?'independent models converge: higher confidence':'independent models disagree: real uncertainty — trust the observations and the cautious side'}</span></div>`;
     o+='<div style="overflow-x:auto"><table class="dawn-table" style="width:100%"><thead><tr><th>Alt AGL</th><th>HRRR</th><th>HRDPS</th><th>Δ</th></tr></thead><tbody>';
     const fw2=w=>w&&w.spd!=null?`<span style="color:${wC(w.spd)};font-weight:700">${Math.round(w.spd)}</span> <span style="font-size:9px;color:var(--tx3)">${w.dir!=null?cp(w.dir):''}</span>`:'—';
     agr.rows.forEach(r=>{
@@ -2015,7 +2021,7 @@ function rReality(){
   if(nbm?.hourly){
     const j=nbm.hourly.time.indexOf(h.time[i]);
     if(j>=0&&nbm.hourly.wind_speed_10m?.[j]!=null){
-      o+=`<div style="margin-top:8px;font-size:11px;color:var(--tx3)">🧮 NBM (NOAA calibrated blend, 2.5 km): surface <span style="color:${wC(nbm.hourly.wind_speed_10m[j])};font-weight:700">${Math.round(nbm.hourly.wind_speed_10m[j])} mph</span>${nbm.hourly.wind_gusts_10m?.[j]!=null?' · gusts '+Math.round(nbm.hourly.wind_gusts_10m[j]):''}${nbm.hourly.wind_direction_10m?.[j]!=null?' · '+cp(nbm.hourly.wind_direction_10m[j]):''} at the selected hour</div>`;
+      o+=`<div style="margin-top:6px;font-size:10px;color:var(--tx3)">🧮 NBM (NOAA calibrated blend, 2.5 km): surface <span style="color:${wC(nbm.hourly.wind_speed_10m[j])};font-weight:700">${Math.round(nbm.hourly.wind_speed_10m[j])} mph</span>${nbm.hourly.wind_gusts_10m?.[j]!=null?' · gusts '+Math.round(nbm.hourly.wind_gusts_10m[j]):''}${nbm.hourly.wind_direction_10m?.[j]!=null?' · '+cp(nbm.hourly.wind_direction_10m[j]):''} at the selected hour</div>`;
     }
   }
   // ── HRRR 15-minute surface wind around the target ──
@@ -2024,8 +2030,8 @@ function rReality(){
     const tgt=new Date(h.time[i]).getTime();
     const idxs=[];mt.forEach((t,k)=>{const dt=new Date(t).getTime();if(dt>=tgt-3600000&&dt<=tgt+3600000&&ms?.[k]!=null)idxs.push(k)});
     if(idxs.length){
-      o+=`<div style="margin-top:12px"><div class="sc-title" style="margin-bottom:4px">⏱ HRRR 15-Minute Surface Wind · target ±1h</div><div style="display:flex;gap:4px;overflow-x:auto;padding-bottom:4px">`;
-      idxs.forEach(k=>{const v=ms[k];o+=`<div style="min-width:46px;text-align:center;padding:4px 2px;background:var(--card2);border-radius:6px;flex:0 0 auto"><div style="font-size:8px;color:var(--tx4);white-space:nowrap">${fT(mt[k])}</div><div style="font-weight:700;font-size:12px;color:${wC(v)}">${Math.round(v)}</div>${mg?.[k]!=null&&mg[k]>=C.gThr?`<div style="font-size:8px;color:var(--gust)">G${Math.round(mg[k])}</div>`:''}</div>`});
+      o+=`<div style="margin-top:8px"><div class="sc-title" style="margin-bottom:2px">⏱ HRRR 15-min Wind · target ±1h</div><div style="display:flex;gap:3px;overflow-x:auto;padding-bottom:2px">`;
+      idxs.forEach(k=>{const v=ms[k];o+=`<div style="min-width:40px;text-align:center;padding:2px;background:var(--card2);border-radius:6px;flex:0 0 auto"><div style="font-size:8px;color:var(--tx4);white-space:nowrap">${fT(mt[k])}</div><div style="font-weight:700;font-size:11px;color:${wC(v)}">${Math.round(v)}</div>${mg?.[k]!=null&&mg[k]>=C.gThr?`<div style="font-size:8px;color:var(--gust)">G${Math.round(mg[k])}</div>`:''}</div>`});
       o+='</div></div>';
     }
   }
