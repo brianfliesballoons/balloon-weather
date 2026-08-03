@@ -492,6 +492,7 @@ a.badge{cursor:pointer}a.badge:hover{background:rgba(56,189,248,.2);color:#7dd3f
 </div>
 <div class="dash">
   <div class="cd full"><div class="ch"><div class="ct">🌡 Surface Conditions</div><a class="badge" id="srcSurf" href="#" target="_blank" rel="noopener">Open-Meteo GFS</a></div><div class="body" id="surfB"><div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
+  <div class="cd full"><div class="ch tg open" onclick="tog(this)"><div class="ct">🛰 Reality Check<span class="sub">Live obs vs model · model agreement · mixed layer</span></div><a class="badge" id="srcRl" href="https://www.weather.gov/" target="_blank" rel="noopener" onclick="event.stopPropagation()">NWS + Open-Meteo</a><span class="chv">▾</span></div><div class="body" id="rlB"><div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
   <div class="cd full"><div class="ch tg open" onclick="tog(this)"><div class="ct">📊 Hourly Forecast<span class="sub">Next 24h</span></div><a class="badge" id="srcHr" href="#" target="_blank" rel="noopener" onclick="event.stopPropagation()">Open-Meteo GFS</a><span class="chv">▾</span></div><div class="body" id="hB"><div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
   <div class="full winds-pair">
     <div class="cd winds-micro"><div class="ch"><div class="ct">🔬 Micro Winds<span class="sub">0–2000'</span></div><div class="badge" id="mvTime">Loading…</div></div><div class="body" id="microProfB"><div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
@@ -523,7 +524,9 @@ const C={
     {label:'LAX',name:'Los Angeles',lat:33.94,lon:-118.41,dist:95}
   ],
   metarStns:[{id:'KCRQ',nm:'Carlsbad',elev:331},{id:'KSAN',nm:'San Diego',elev:17},{id:'KONT',nm:'Ontario',elev:944},{id:'KSNA',nm:'Santa Ana',elev:56}],
-  // Static
+  // Static. NOTE (v4.14.0): the msl values here are STANDARD-ATMOSPHERE FALLBACKS only —
+  // interpolation uses the real per-hour geopotential_height_*hPa from the API (lvlPts()),
+  // which also drops levels that resolve below ground at the station's elevation.
   levels:[{hPa:1000,msl:360},{hPa:975,msl:1050},{hPa:950,msl:1640},{hPa:925,msl:2625},{hPa:900,msl:3280},{hPa:875,msl:3940},{hPa:850,msl:4920},{hPa:825,msl:5580},{hPa:800,msl:6230},{hPa:775,msl:7220},{hPa:750,msl:8200},{hPa:700,msl:9840},{hPa:650,msl:11780},{hPa:600,msl:13800},{hPa:550,msl:15960},{hPa:500,msl:18290}],
   dispAlts:[1000,2000,3000,4000,5000,6000,7000,8000,9000,10000,11000,12000,13000,14000,15000,16000,17000,18000],gThr:10,
   kw:{'santa ana':{c:'ks',h:'hs0',l:'Santa Ana'},'offshore flow':{c:'ks',h:'hs0',l:'Offshore Flow'},'sundowner':{c:'ks',h:'hs0',l:'Sundowner'},'low pressure':{c:'kp',h:'hp0',l:'Low Pressure'},'trough':{c:'kp',h:'hp0',l:'Trough'},'cold front':{c:'kp',h:'hp0',l:'Cold Front'},'warm front':{c:'kp',h:'hp0',l:'Warm Front'},'marine layer':{c:'km',h:'hm0',l:'Marine Layer'},'onshore flow':{c:'km',h:'hm0',l:'Onshore Flow'},'catalina eddy':{c:'km',h:'hm0',l:'Catalina Eddy'},'fog':{c:'kf',h:'hf0',l:'Fog'},'low stratus':{c:'kf',h:'hf0',l:'Low Stratus'},'visibility':{c:'kf',h:'hf0',l:'Visibility'},'wind shear':{c:'kw',h:'hw0',l:'Wind Shear'},'gusty':{c:'kw',h:'hw0',l:'Gusty'},'gusts':{c:'kw',h:'hw0',l:'Gusts'},'breezy':{c:'kw',h:'hw0',l:'Breezy'},'wind advisory':{c:'kw',h:'hw0',l:'Wind Advisory'},'high wind':{c:'kw',h:'hw0',l:'High Wind'},'turbulence':{c:'kt',h:'ht0',l:'Turbulence'},'convection':{c:'kt',h:'ht0',l:'Convection'},'thunderstorm':{c:'kt',h:'ht0',l:'Thunderstorm'}}
@@ -649,6 +652,7 @@ function reRender(){
   const metars=window._tpMetars||{},sunTimes=window._tpSunTimes||null;
   rSurf(homeData,metars,sunTimes);rHourly(homeData);rGoNoGo(homeData);rDailySummary(homeData);
   if(allData){rMicroProfile(allData);rProfile(allData)}
+  rReality();
 }
 
 const agl=msl=>msl-C.elev;
@@ -831,13 +835,14 @@ async function selectLocation(geo){
     // Get elevation if missing (ZIP lookups don't include it)
     let elev=geo.elevation!=null?Math.round(geo.elevation*3.28084):null;
     let tz=geo.timezone;
-    let office='';
+    let office='',gridUrl='';
     // NWS points lookup
     try{
       const pr=await fetchT(`https://api.weather.gov/points/${geo.lat.toFixed(4)},${geo.lon.toFixed(4)}`);
       if(pr.ok){const pd=await pr.json();
         office=(pd.properties?.forecastOffice||'').split('/').pop()||'';
         tz=tz||pd.properties?.timeZone||'America/New_York';
+        gridUrl=pd.properties?.forecastGridData||'';
       }
     }catch(e){console.warn('NWS points:',e)}
     // Get elevation from Open-Meteo if still missing
@@ -886,7 +891,7 @@ async function selectLocation(geo){
     const stations=[{label:homeLabel,name:geo.name,lat:geo.lat,lon:geo.lon,dist:0},...compStns];
     // Apply to config
     C.lat=geo.lat;C.lon=geo.lon;C.elev=elev;C.name=geo.name;C.locName=geo.name;
-    C.timezone=tz||'America/New_York';C.nwsOffice=office;
+    C.timezone=tz||'America/New_York';C.nwsOffice=office;C.gridUrl=gridUrl;
     C.stations=stations;
     C.metarStns=metarStns.length?metarStns:[];
     // Re-merge any user-defined custom stations so a location change doesn't drop them
@@ -894,7 +899,7 @@ async function selectLocation(geo){
     // Update UI
     updateUI();
     // Save to localStorage (only persist auto-discovered ones; customStations are saved separately)
-    try{localStorage.setItem('balloonWeatherLoc',JSON.stringify({cfgVer:CFG_VER,lat:C.lat,lon:C.lon,elev:C.elev,name:C.name,locName:C.locName,timezone:C.timezone,nwsOffice:C.nwsOffice,stations:C.stations.filter(s=>!s._custom),metarStns:C.metarStns.filter(s=>!s._custom)}))}catch(e){}
+    try{localStorage.setItem('balloonWeatherLoc',JSON.stringify({cfgVer:CFG_VER,lat:C.lat,lon:C.lon,elev:C.elev,name:C.name,locName:C.locName,timezone:C.timezone,nwsOffice:C.nwsOffice,gridUrl:C.gridUrl,stations:C.stations.filter(s=>!s._custom),metarStns:C.metarStns.filter(s=>!s._custom)}))}catch(e){}
     closeLoc();
     refreshAll();
   }catch(e){res.innerHTML=`<div class="loc-msg err">Error: ${e.message}</div>`}
@@ -935,10 +940,11 @@ function omUrl(lat,lon){
   const pv=[];C.levels.forEach(l=>{pv.push(`wind_speed_${l.hPa}hPa`,`wind_direction_${l.hPa}hPa`,`temperature_${l.hPa}hPa`,`geopotential_height_${l.hPa}hPa`,`dew_point_${l.hPa}hPa`)});
   // pressure_msl is the sea-level equivalent that METARs and altimeters report (was surface_pressure —
   // that's station pressure at actual elevation, which is ~2 inHg low at Mesquite/Reno/anywhere >1000 ft).
-  const sv=['temperature_2m','dew_point_2m','relative_humidity_2m','wind_speed_10m','wind_direction_10m','wind_gusts_10m','cloud_cover','cloud_cover_low','cloud_cover_mid','cloud_cover_high','visibility','precipitation_probability','pressure_msl','surface_pressure'];
-  // Use best_match model instead of gfs_seamless: Open-Meteo auto-picks HRRR (3 km) for CONUS surface
-  // vars — resolves terrain drainage that GFS (28 km) smooths over — while still using GFS/ICON/ECMWF
-  // for pressure-level winds aloft. Falls back to GFS everywhere HRRR isn't available.
+  const sv=['temperature_2m','dew_point_2m','relative_humidity_2m','wind_speed_10m','wind_direction_10m','wind_gusts_10m','wind_speed_80m','wind_direction_80m','cloud_cover','cloud_cover_low','cloud_cover_mid','cloud_cover_high','visibility','precipitation_probability','pressure_msl','surface_pressure'];
+  // best_match: verified 2026-08-03 (differential test vs each model) that in CONUS this serves
+  // HRRR 3 km for BOTH surface AND pressure-level vars through ~h48-60, then hands off to GFS —
+  // and it degrades gracefully outside CONUS (Hawaii etc.). Keep best_match here: pinning
+  // ncep_hrrr_conus would null out days 3-5 (HRRR's horizon) and break the 5-Day cards.
   let url=`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=${[...sv,...pv].join(',')}&wind_speed_unit=mph&temperature_unit=fahrenheit&timezone=${encodeURIComponent(getTZ())}&models=best_match&daily=sunrise,sunset`;
   if(isHistorical()){const target=getDateForOffset(selectedOffset);const ds=isoDate(target);url+=`&start_date=${ds}&end_date=${ds}`}
   else if(isForecast()){url+=`&forecast_days=${Math.abs(selectedOffset)+1}`}
@@ -1230,8 +1236,33 @@ function rMicroProfile(allData){
   el.innerHTML=o;
 }
 
-// Interpolate wind data at a target MSL altitude between pressure levels
-function interpAt(h,ti,tMSL){const pts=[];C.levels.forEach(l=>{const s=h[`wind_speed_${l.hPa}hPa`]?.[ti],d=h[`wind_direction_${l.hPa}hPa`]?.[ti],t=h[`temperature_${l.hPa}hPa`]?.[ti];if(s!=null&&d!=null)pts.push({msl:l.msl,spd:s,dir:d,tmp:t})});pts.sort((a,b)=>a.msl-b.msl);let lo=null,hi=null;for(let i=0;i<pts.length-1;i++){if(pts[i].msl<=tMSL&&pts[i+1].msl>=tMSL){lo=pts[i];hi=pts[i+1];break}}if(!lo||!hi)return null;const f=(tMSL-lo.msl)/(hi.msl-lo.msl);const spd=lo.spd+f*(hi.spd-lo.spd);const lr=lo.dir*Math.PI/180,hr=hi.dir*Math.PI/180;const u=Math.sin(lr)*(1-f)+Math.sin(hr)*f,v=Math.cos(lr)*(1-f)+Math.cos(hr)*f;const dir=((Math.atan2(u,v)*180/Math.PI)+360)%360;const tmp=(lo.tmp!=null&&hi.tmp!=null)?lo.tmp+f*(hi.tmp-lo.tmp):null;return{spd,dir,tmp}}
+// Build the wind profile points for one hour using REAL per-timestep geopotential heights
+// (ft MSL) instead of the fixed standard-atmosphere table in C.levels — at Enumclaw (745 ft
+// field) the 1000 hPa level is ~117 ft BELOW ground, so its "wind" is below-terrain
+// extrapolation, not air. Levels resolving under ~100 ft AGL are dropped, and the profile is
+// anchored on the model's actual 10 m and 80 m winds so the lowest few hundred feet come from
+// real model output. h._elev (per-station ground elevation from the API response, ft) keeps
+// the above-ground filter honest for comparison stations at different elevations.
+function lvlPts(h,ti){
+  const gElev=h._elev??C.elev;
+  const pts=[];
+  const sS=h.wind_speed_10m?.[ti],sD=h.wind_direction_10m?.[ti];
+  if(sS!=null&&sD!=null)pts.push({msl:gElev+33,spd:sS,dir:sD,tmp:h.temperature_2m?.[ti]});
+  const eS=h.wind_speed_80m?.[ti],eD=h.wind_direction_80m?.[ti];
+  if(eS!=null&&eD!=null)pts.push({msl:gElev+262,spd:eS,dir:eD,tmp:null});
+  C.levels.forEach(l=>{
+    const s=h[`wind_speed_${l.hPa}hPa`]?.[ti],d=h[`wind_direction_${l.hPa}hPa`]?.[ti];
+    if(s==null||d==null)return;
+    const gm=h[`geopotential_height_${l.hPa}hPa`]?.[ti];
+    const msl=gm!=null?gm*3.28084:l.msl; // real height this hour; std-atm fallback if absent
+    if(msl<gElev+295)return; // below-ground or inside the 10m/80m anchor band — skip
+    pts.push({msl,spd:s,dir:d,tmp:h[`temperature_${l.hPa}hPa`]?.[ti]});
+  });
+  pts.sort((a,b)=>a.msl-b.msl);
+  return pts;
+}
+// Interpolate wind data at a target MSL altitude between profile points
+function interpAt(h,ti,tMSL){const pts=lvlPts(h,ti);let lo=null,hi=null;for(let i=0;i<pts.length-1;i++){if(pts[i].msl<=tMSL&&pts[i+1].msl>=tMSL){lo=pts[i];hi=pts[i+1];break}}if(!lo||!hi)return null;const f=(tMSL-lo.msl)/(hi.msl-lo.msl);const spd=lo.spd+f*(hi.spd-lo.spd);const lr=lo.dir*Math.PI/180,hr=hi.dir*Math.PI/180;const u=Math.sin(lr)*(1-f)+Math.sin(hr)*f,v=Math.cos(lr)*(1-f)+Math.cos(hr)*f;const dir=((Math.atan2(u,v)*180/Math.PI)+360)%360;const tmp=(lo.tmp!=null&&hi.tmp!=null)?lo.tmp+f*(hi.tmp-lo.tmp):null;return{spd,dir,tmp}}
 
 // ═══ WIND PROFILE — VECTOR FIELD (MULTI-SOURCE) ═══
 function rProfile(allData){
@@ -1541,6 +1572,7 @@ function renderWindowTable(h, windowIdxs, title){
     {lbl:'Gust',fn:i=>{const v=h.wind_gusts_10m?.[i];return v!=null?`<span style="color:${v>=gngLimits.maxGust?'var(--gust)':'var(--tx2)'}">${Math.round(v)}</span>`:'—'}},
     {lbl:'Dir',fn:i=>{const v=h.wind_direction_10m?.[i];return v!=null?`<span style="color:var(--tx3)">${cp(v)}</span>`:'—'}},
     {lbl:'Shear',fn:i=>{const s=lowLevelShear(h,i);if(!s)return'—';const col=s.status==='nogo'?'var(--gust)':s.status==='caution'?'var(--mod)':'var(--calm)';return`<span style="color:${col}">+${Math.round(s.spdDelta)}${s.dirDelta>=45?'/'+Math.round(s.dirDelta)+'°':''}</span>`}},
+    ...(window._tpNbm?.hourly?[{lbl:'NBM Wind',fn:i=>{const nb=window._tpNbm.hourly,j=nb.time.indexOf(h.time[i]);const v=j>=0?nb.wind_speed_10m?.[j]:null;return v!=null?`<span style="color:${wC(v)}">${Math.round(v)}</span>`:'—'}}]:[]),
     {lbl:'Temp',fn:i=>{const v=h.temperature_2m?.[i];return v!=null?Math.round(v)+'°':'—'}},
     {lbl:'Dew',fn:i=>{const v=h.dew_point_2m?.[i];return v!=null?`<span style="color:var(--tx3)">${Math.round(v)}°</span>`:'—'}},
     {lbl:'Spread',fn:i=>{const t=h.temperature_2m?.[i],d=h.dew_point_2m?.[i];if(t==null||d==null)return'—';const s=t-d;return`<span style="color:${spC(s)}">${s.toFixed(1)}°</span>`}},
@@ -1631,6 +1663,19 @@ function computeGng(h,i){
   ];
   const shr=lowLevelShear(h,i);
   checks.push({name:'Low-Level Shear',icon:'🌀',val:shr?`+${Math.round(shr.spdDelta)} mph${shr.dirDelta>=45?' / '+Math.round(shr.dirDelta)+'°':''} aloft`:'—',status:shr?shr.status:'unknown'});
+  // Live obs check — only when viewing current conditions: the actual reported wind at the
+  // nearest station, graded against the same limits. Obs beat models; disagreement = caution.
+  if(isToday()&&liveMode&&window._tpObs&&window._tpObs.length){
+    const n=window._tpObs[0];
+    const mismatch=wnd!=null&&Math.abs(wnd-n.spd)>=5;
+    const st=n.spd>gngLimits.maxWind*1.5?'nogo':n.spd>gngLimits.maxWind?'caution':mismatch?'caution':'go';
+    checks.push({name:'Live Obs Wind',icon:'📡',val:`${Math.round(n.spd)} mph @ ${n.id}${mismatch?' (model says '+Math.round(wnd)+')':''}`,status:st});
+  }
+  // Independent-model agreement — disagreement between HRRR and HRDPS is real uncertainty
+  if(window._tpHrdps){
+    const agr=modelAgreement(i);
+    if(agr)checks.push({name:'Model Agreement',icon:'⚖️',val:`Δ${Math.round(agr.worst)} mph 0–2000 ft`,status:agr.status==='agree'?'go':'caution'});
+  }
   const nogoCount=checks.filter(c=>c.status==='nogo').length;
   const cautionCount=checks.filter(c=>c.status==='caution').length;
   const verdict=nogoCount>0?'NO-GO':cautionCount>0?'MARGINAL':'FLYABLE';
@@ -1709,6 +1754,17 @@ function buildClaudeBriefing(){
   scan(Array.from({length:20},(_,n)=>(n+1)*100),'micro');
   scan(C.dispAlts,'aloft');
   md+=shearFlags.length?`- Wind shear flags: ${shearFlags.slice(0,8).join(' · ')}\n`:`- Wind shear flags: none detected between adjacent layers\n`;
+  const agrB=window._tpHrdps?modelAgreement(i):null;
+  if(agrB)md+=`- Independent-model agreement (HRRR 3 km vs HRDPS 2.5 km, 0–2000 ft): ${agrB.status.toUpperCase()} — max Δ${Math.round(agrB.worst)} mph${agrB.worstDir>=30?', Δ'+Math.round(agrB.worstDir)+'°':''}. Disagreement = real forecast uncertainty; lean cautious.\n`;
+  if(window._tpGrid){
+    const mh=gridAt(window._tpGrid.mixH,h.time[i]),ts=gridAt(window._tpGrid.trSpd,h.time[i]);
+    if(mh!=null)md+=`- NWS forecaster grid: mixing height ${Math.round(mh*3.28084)} ft AGL${ts!=null?', transport wind '+Math.round(ts*0.621371)+' mph':''} at target. Shallow mixing (<~800 ft) = surface decoupled from winds aloft — model surface winds often overdone in terrain.\n`;
+  }
+  if(isToday()&&liveMode&&window._tpObs?.length){
+    const n=window._tpObs[0];
+    md+=`- LIVE surface observation ${n.id} (${n.d<1?'<1':Math.round(n.d)} mi away, ${n.age} min old): ${Math.round(n.spd)} mph${n.dir!=null?' from '+Math.round(n.dir)+'°':''}${n.gst!=null?', gusts '+Math.round(n.gst)+' mph':''} vs model surface ${r1(h.wind_speed_10m?.[i])} mph. When obs and model disagree, TRUST THE OBSERVATIONS for current conditions.\n`;
+    if(window._tpTiming)md+=`- Timing: recent obs match the model shifted ${Math.abs(window._tpTiming.lag)} h (pattern running ${window._tpTiming.lag>0?'ahead of':'behind'} forecast).\n`;
+  }
   const afdN=window._tpAfd;
   if(afdN&&afdN.text){
     const lo=afdN.text.toLowerCase(),kws=[];
@@ -1748,6 +1804,232 @@ function askClaude(){
   window.open('https://claude.ai/new?q='+encodeURIComponent(md),'_blank','noopener');
 }
 
+// ═══ REALITY CHECK (v4.14.0) ═══
+// Modular multi-source layer that works at ANY location — no hardcoded local rules. Protocol:
+// try each candidate source for the current coordinates, use whatever responds, degrade
+// gracefully. Sources: HRDPS 2.5 km (Env. Canada — independent second-opinion model with winds
+// aloft, covers Canada + northern US), NBM 2.5 km (NOAA calibrated blend, surface, 10 days),
+// HRRR 15-minutely surface wind, the NWS forecaster grid (mixing height + transport wind —
+// the decoupling/drainage signal), and live surface observations from the full NWS mesonet
+// (RAWS/CWOP/METAR/pass sensors), nearest-first. All free, keyless, CORS-open.
+const NWS_HDRS={headers:{'Accept':'application/geo+json','User-Agent':'BalloonWeather/1.0'}};
+async function fetchHrdps(){
+  if(isHistorical())return null;
+  const lv=[1000,950,925,900,850,800,700],pv=[];
+  lv.forEach(p=>pv.push(`wind_speed_${p}hPa`,`wind_direction_${p}hPa`,`geopotential_height_${p}hPa`));
+  const sv=['temperature_2m','wind_speed_10m','wind_direction_10m','wind_gusts_10m','wind_speed_80m','wind_direction_80m'];
+  const r=await fetchT(`https://api.open-meteo.com/v1/gem?latitude=${C.lat}&longitude=${C.lon}&hourly=${[...sv,...pv].join(',')}&models=gem_hrdps_continental&wind_speed_unit=mph&temperature_unit=fahrenheit&timezone=${encodeURIComponent(getTZ())}&forecast_days=3`);
+  if(!r.ok)return null; // outside the HRDPS domain → API errors; that's the coverage protocol
+  const d=await r.json();
+  if(!d.hourly||!d.hourly.time||!(d.hourly.wind_speed_10m||[]).some(v=>v!=null))return null;
+  if(d.elevation!=null)d.hourly._elev=d.elevation*3.28084;
+  return d;
+}
+async function fetchNbm(){
+  if(isHistorical())return null;
+  const days=isForecast()?Math.abs(selectedOffset)+1:5;
+  const r=await fetchT(`https://api.open-meteo.com/v1/gfs?latitude=${C.lat}&longitude=${C.lon}&hourly=wind_speed_10m,wind_direction_10m,wind_gusts_10m&models=ncep_nbm_conus&wind_speed_unit=mph&timezone=${encodeURIComponent(getTZ())}&forecast_days=${days}`);
+  if(!r.ok)return null;
+  const d=await r.json();
+  return(d.hourly&&(d.hourly.wind_speed_10m||[]).some(v=>v!=null))?d:null;
+}
+async function fetchHrrr15(){
+  if(isHistorical())return null;
+  const r=await fetchT(`https://api.open-meteo.com/v1/gfs?latitude=${C.lat}&longitude=${C.lon}&minutely_15=wind_speed_10m,wind_direction_10m,wind_gusts_10m&models=ncep_hrrr_conus&wind_speed_unit=mph&timezone=${encodeURIComponent(getTZ())}&forecast_days=2`);
+  if(!r.ok)return null;
+  const d=await r.json();
+  return(d.minutely_15&&(d.minutely_15.wind_speed_10m||[]).some(v=>v!=null))?d:null;
+}
+// NWS forecast grid (forecaster-adjusted ~2.5 km). Values are run-length encoded as
+// ISO validTime/duration pairs with IRREGULAR durations — each series must be expanded
+// to per-hour values independently before use.
+function parseDurH(d){const m=/P(?:(\d+)D)?(?:T(?:(\d+)H)?)?/.exec(d||'')||[];return((+m[1]||0)*24+(+m[2]||0))||1}
+async function fetchGrid(){
+  try{
+    if(!C.gridUrl){ // saved locations from before gridUrl capture — resolve once and persist
+      const pr=await fetchT(`https://api.weather.gov/points/${C.lat.toFixed(4)},${C.lon.toFixed(4)}`,NWS_HDRS);
+      if(pr.ok){const pd=await pr.json();C.gridUrl=pd.properties?.forecastGridData||'';
+        try{const s=JSON.parse(localStorage.getItem('balloonWeatherLoc')||'{}');if(s.lat){s.gridUrl=C.gridUrl;localStorage.setItem('balloonWeatherLoc',JSON.stringify(s))}}catch(e){}}
+    }
+    if(!C.gridUrl)return null;
+    const r=await fetchT(C.gridUrl,NWS_HDRS,12000);
+    if(!r.ok)return null;
+    const P=(await r.json()).properties||{};
+    const expand=prop=>{const out={};(P[prop]?.values||[]).forEach(e=>{const[st,dur]=e.validTime.split('/');const t0=new Date(st).getTime();const n=parseDurH(dur);for(let k=0;k<n;k++)out[t0+k*3600000]=e.value});return out};
+    return{mixH:expand('mixingHeight'),trSpd:expand('transportWindSpeed'),trDir:expand('transportWindDirection')};
+  }catch(e){console.warn('NWS grid:',e);return null}
+}
+function gridAt(map,iso){if(!map)return null;const t=new Date(iso).getTime();return map[t]??map[t-(t%3600000)]??null}
+// Live observations: ALL nearby NWS stations (mesonet included — RAWS, CWOP, pass sensors,
+// not just K-airports), sorted nearest-first, kept only if they report wind and are fresh.
+let _obsStnCache={key:'',stns:null};
+async function fetchObs(){
+  try{
+    const key=C.lat.toFixed(3)+','+C.lon.toFixed(3);
+    let stns=_obsStnCache.key===key?_obsStnCache.stns:null;
+    if(!stns){
+      const r=await fetchT(`https://api.weather.gov/points/${C.lat.toFixed(4)},${C.lon.toFixed(4)}/stations`,NWS_HDRS);
+      if(!r.ok)return null;
+      const d=await r.json();
+      const R=3959,toRad=x=>x*Math.PI/180;
+      stns=(d.features||[]).filter(f=>f.properties&&f.geometry).map(f=>{const p=f.properties,c=f.geometry.coordinates;
+        const dLat=toRad(c[1]-C.lat),dLon=toRad(c[0]-C.lon);const a=Math.sin(dLat/2)**2+Math.cos(toRad(C.lat))*Math.cos(toRad(c[1]))*Math.sin(dLon/2)**2;
+        return{id:p.stationIdentifier||'',name:(p.name||'').split(',')[0].trim(),elev:p.elevation?.value!=null?Math.round(p.elevation.value*3.28084):null,d:R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a))};
+      }).filter(s=>s.id).sort((a,b)=>a.d-b.d).slice(0,14);
+      _obsStnCache={key,stns};
+    }
+    const obs=await Promise.all(stns.map(async s=>{
+      try{
+        const r=await fetchT(`https://api.weather.gov/stations/${s.id}/observations/latest`,NWS_HDRS);
+        if(!r.ok)return null;
+        const p=(await r.json()).properties||{};
+        if(p.windSpeed?.value==null||!p.timestamp)return null; // many mesonet stations report temp only
+        const age=(Date.now()-new Date(p.timestamp).getTime())/60000;
+        if(!(age>=0&&age<120))return null; // stale obs are worse than none
+        return{...s,spd:p.windSpeed.value*0.621371,dir:p.windDirection?.value??null,gst:p.windGust?.value!=null?p.windGust.value*0.621371:null,age:Math.round(age)};
+      }catch(e){return null}
+    }));
+    const good=obs.filter(Boolean);
+    return good.length?good:null;
+  }catch(e){console.warn('OBS:',e);return null}
+}
+async function fetchObsHistory(id){
+  try{
+    const r=await fetchT(`https://api.weather.gov/stations/${id}/observations?limit=48`,NWS_HDRS,12000);
+    if(!r.ok)return null;
+    const feats=(await r.json()).features||[];
+    const buck={};
+    feats.forEach(f=>{const p=f.properties||{};if(p.windSpeed?.value==null||!p.timestamp)return;const t=new Date(p.timestamp).getTime();const hb=t-(t%3600000);(buck[hb]=buck[hb]||[]).push(p.windSpeed.value*0.621371)});
+    return Object.entries(buck).map(([t,v])=>({t:+t,spd:v.reduce((a,b)=>a+b,0)/v.length})).sort((a,b)=>a.t-b.t);
+  }catch(e){return null}
+}
+// Timing vs magnitude diagnosis: if recent observed winds match the model SHIFTED by N hours
+// much better than unshifted, the pattern is real but the model's clock is off — a different
+// (and recoverable) error than a resolution/terrain miss.
+function timingCheck(hist,h){
+  if(!hist||hist.length<6||!h?.time)return null;
+  const mod={};h.time.forEach((t,k)=>{const v=h.wind_speed_10m?.[k];if(v!=null)mod[new Date(t).getTime()]=v});
+  const mae=lag=>{let s=0,n=0;hist.forEach(ob=>{const m=mod[ob.t+lag*3600000];if(m!=null){s+=Math.abs(m-ob.spd);n++}});return n>=5?s/n:null};
+  const base=mae(0);if(base==null)return null;
+  let best=0,bm=base;
+  for(let L=-3;L<=3;L++){if(!L)continue;const v=mae(L);if(v!=null&&v<bm){bm=v;best=L}}
+  return(best!==0&&bm<base*0.65&&base-bm>1.2)?{lag:best}:null;
+}
+// Independent-model spread through the 0–2000 ft band: when two ~2.5–3 km models built by
+// different agencies disagree, that disagreement IS the forecast uncertainty.
+function modelAgreement(i){
+  const h=window._tpHomeData?.hourly,d2=window._tpHrdps;
+  if(!h||!d2?.hourly)return null;
+  const j=d2.hourly.time.indexOf(h.time[i]);if(j<0)return null;
+  const rows=[];let worst=0,worstDir=0;
+  [['Sfc',0],['500',500],['1000',1000],['1500',1500],['2000',2000]].forEach(([lbl,ag])=>{
+    let a,b;
+    if(ag===0){a={spd:h.wind_speed_10m?.[i],dir:h.wind_direction_10m?.[i]};b={spd:d2.hourly.wind_speed_10m?.[j],dir:d2.hourly.wind_direction_10m?.[j]}}
+    else{a=interpAt(h,i,ag+C.elev);b=interpAt(d2.hourly,j,ag+C.elev)}
+    if(a?.spd==null||b?.spd==null)return;
+    const ds=Math.abs(a.spd-b.spd);
+    const raw=(a.dir!=null&&b.dir!=null)?Math.abs(a.dir-b.dir):0,dd=Math.min(raw,360-raw);
+    if(ds>worst)worst=ds;
+    if(dd>worstDir&&Math.max(a.spd,b.spd)>=8)worstDir=dd; // direction of a drift is noise
+    rows.push({lbl,a,b,ds,dd});
+  });
+  if(!rows.length)return null;
+  const status=(worst>10||worstDir>=90)?'split':(worst>5||worstDir>=45)?'caution':'agree';
+  return{rows,worst,worstDir,status};
+}
+function rReality(){
+  const el=document.getElementById('rlB');if(!el)return;
+  const d=window._tpHomeData;
+  if(!d||!d.hourly){el.innerHTML='<div class="err">No model data to compare against</div>';return}
+  const h=d.hourly,i=getIdx(h.time);
+  const obs=window._tpObs,grid=window._tpGrid,nbm=window._tpNbm,m15=window._tpHrrr15,timing=window._tpTiming;
+  const modW=h.wind_speed_10m?.[i];
+  const live=isToday()&&liveMode;
+  let o='';
+  // ── live obs vs model surface wind ──
+  if(obs&&obs.length){
+    const n=obs[0];
+    if(live&&modW!=null){
+      const diff=modW-n.spd,ad=Math.abs(diff);
+      const v=ad<4?{t:'MATCH',c:'var(--calm)',s:`Model and ${n.id} agree on the surface wind`}
+        :diff>0?{t:'MODEL OVER',c:'var(--mod)',s:`Model shows ${Math.round(modW)} mph but ${n.id} reports ${Math.round(n.spd)} — surface likely calmer than forecast (decoupling / terrain flow the model can't resolve)`}
+        :{t:'MODEL UNDER',c:'var(--danger)',s:`${n.id} reports ${Math.round(n.spd)} mph vs model ${Math.round(modW)} — actual winds STRONGER than forecast`};
+      o+=`<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px;padding:8px 12px;background:var(--card2);border-radius:var(--rs)"><span style="font-weight:800;color:${v.c};font-size:13px">${v.t}</span><span style="font-size:11px;color:var(--tx2)">${v.s}</span></div>`;
+    }else if(!live){
+      o+=`<div style="font-size:10px;color:var(--tx4);margin-bottom:8px">Observations are live right now — the model comparison applies to current conditions, not the selected ${isHistorical()?'past':'forecast'} time.</div>`;
+    }
+    o+=`<div class="sc-title" style="margin-bottom:4px">📡 Live Surface Observations · nearest wind-reporting stations (NWS mesonet)</div>`;
+    o+='<div style="overflow-x:auto"><table class="dawn-table" style="width:100%"><thead><tr><th style="text-align:left">Station</th><th>Wind</th><th>Gust</th><th>Dir</th><th>Dist</th><th>Elev</th><th>Age</th></tr></thead><tbody>';
+    obs.slice(0,6).forEach(s=>{
+      o+=`<tr><td style="text-align:left;white-space:nowrap"><span style="font-weight:700">${s.id}</span> <span style="color:var(--tx4);font-size:9px">${s.name}</span></td><td><span style="color:${wC(s.spd)};font-weight:700">${Math.round(s.spd)}</span></td><td>${s.gst!=null?Math.round(s.gst):'—'}</td><td>${s.dir!=null?cp(s.dir):'—'}</td><td>${s.d<1?'<1':Math.round(s.d)} mi</td><td>${s.elev!=null?s.elev.toLocaleString()+"'":'—'}</td><td style="color:${s.age>75?'var(--mod)':'var(--tx3)'}">${s.age}m</td></tr>`;
+    });
+    o+='</tbody></table></div>';
+    // Elevated stations = a crude observed profile: if a mountain station verifies the model's
+    // winds aloft while the valley floor reads calm, that's the decoupled/drainage signature.
+    if(live){
+      const hiStn=obs.find(s=>s.elev!=null&&s.elev>=C.elev+800);
+      if(hiStn){
+        const mw=interpAt(h,i,hiStn.elev);
+        if(mw&&mw.spd>=5){
+          const ok=Math.abs(mw.spd-hiStn.spd)<=Math.max(5,mw.spd*0.4);
+          o+=`<div style="margin-top:6px;font-size:11px;color:var(--tx3)">⛰ ${hiStn.id} (${hiStn.elev.toLocaleString()}′): reports ${Math.round(hiStn.spd)} mph vs model ${Math.round(mw.spd)} mph at that height — model ${ok?'<span style="color:var(--calm)">verifies aloft</span>; any surface disagreement is a shallow-layer effect, not a bad forecast':'<span style="color:var(--mod)">disagrees aloft too</span> — treat the whole profile with caution'}.</div>`;
+        }
+      }
+    }
+  }else{
+    o+='<div style="font-size:11px;color:var(--tx3);margin-bottom:8px">No live wind observations available nearby right now.</div>';
+  }
+  if(timing&&obs&&obs.length)o+=`<div style="margin-top:8px;font-size:11px;color:var(--blue)">⏱ Timing offset: recent winds at ${obs[0].id} match the model shifted ${Math.abs(timing.lag)} h — the pattern is running ${timing.lag>0?'ahead of':'behind'} the forecast clock.</div>`;
+  // ── mixed layer / decoupling (NWS forecaster grid) ──
+  if(grid){
+    const mh=gridAt(grid.mixH,h.time[i]),ts=gridAt(grid.trSpd,h.time[i]),td=gridAt(grid.trDir,h.time[i]);
+    if(mh!=null){
+      const mhFt=Math.round(mh*3.28084),tsMph=ts!=null?ts*0.621371:null,shallow=mhFt<800;
+      const decoupled=shallow&&live&&modW!=null&&obs&&obs.length&&(modW-obs[0].spd)>=4;
+      o+=`<div style="margin-top:12px;padding:10px 12px;background:${shallow?'rgba(56,189,248,.06)':'var(--card2)'};border-radius:var(--rs)">`;
+      o+=`<div class="sc-title" style="margin-bottom:4px">🌀 Mixed Layer · NWS forecaster grid</div>`;
+      o+=`<div style="font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--tx2)">Mixing height <span style="font-weight:700;color:${shallow?'var(--blue)':'var(--tx)'}">${mhFt.toLocaleString()} ft AGL</span>${tsMph!=null?` · Transport wind <span style="font-weight:700;color:${wC(tsMph)}">${Math.round(tsMph)} mph</span>${td!=null?' '+cp(td):''}`:''}</div>`;
+      if(shallow)o+=`<div style="font-size:11px;color:var(--tx3);margin-top:4px">Shallow mixed layer — the surface is decoupled from winds aloft${decoupled?'; live obs confirm the surface is calmer than modeled (drainage / decoupled regime)':'. In valley and terrain locations the real surface wind can differ sharply from the model'}.</div>`;
+      o+='</div>';
+    }
+  }
+  // ── independent-model agreement ──
+  const agr=modelAgreement(i);
+  if(agr){
+    const col=agr.status==='agree'?'var(--calm)':agr.status==='caution'?'var(--mod)':'var(--danger)';
+    const lbl=agr.status==='agree'?'MODELS AGREE':agr.status==='caution'?'MODELS DIFFER':'MODELS SPLIT';
+    o+=`<div style="margin-top:12px"><div class="sc-title" style="margin-bottom:4px">⚖️ Model Agreement · HRRR 3 km (NOAA) vs HRDPS 2.5 km (Env. Canada) · 0–2000 ft</div>`;
+    o+=`<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:6px"><span style="font-weight:800;color:${col};font-size:12px">${lbl}</span><span style="font-size:10px;color:var(--tx3)">max Δ${Math.round(agr.worst)} mph${agr.worstDir>=30?' · Δ'+Math.round(agr.worstDir)+'°':''} — ${agr.status==='agree'?'independent models converge: higher confidence':'independent models disagree: real uncertainty — trust the observations and the cautious side'}</span></div>`;
+    o+='<div style="overflow-x:auto"><table class="dawn-table" style="width:100%"><thead><tr><th>Alt AGL</th><th>HRRR</th><th>HRDPS</th><th>Δ</th></tr></thead><tbody>';
+    const fw2=w=>w&&w.spd!=null?`<span style="color:${wC(w.spd)};font-weight:700">${Math.round(w.spd)}</span> <span style="font-size:9px;color:var(--tx3)">${w.dir!=null?cp(w.dir):''}</span>`:'—';
+    agr.rows.forEach(r=>{
+      o+=`<tr><td>${r.lbl==='Sfc'?'Surface':r.lbl+'′'}</td><td>${fw2(r.a)}</td><td>${fw2(r.b)}</td><td style="color:${r.ds>10?'var(--danger)':r.ds>5?'var(--mod)':'var(--calm)'}">${Math.round(r.ds)}${r.dd>=30?'/'+Math.round(r.dd)+'°':''}</td></tr>`;
+    });
+    o+='</tbody></table></div></div>';
+  }else if(!isHistorical()){
+    o+=`<div style="margin-top:10px;font-size:10px;color:var(--tx4)">Second-opinion model (HRDPS 2.5 km) has no coverage here — it spans Canada + the northern US. Model agreement activates automatically where available.</div>`;
+  }
+  // ── NBM cross-check ──
+  if(nbm?.hourly){
+    const j=nbm.hourly.time.indexOf(h.time[i]);
+    if(j>=0&&nbm.hourly.wind_speed_10m?.[j]!=null){
+      o+=`<div style="margin-top:8px;font-size:11px;color:var(--tx3)">🧮 NBM (NOAA calibrated blend, 2.5 km): surface <span style="color:${wC(nbm.hourly.wind_speed_10m[j])};font-weight:700">${Math.round(nbm.hourly.wind_speed_10m[j])} mph</span>${nbm.hourly.wind_gusts_10m?.[j]!=null?' · gusts '+Math.round(nbm.hourly.wind_gusts_10m[j]):''}${nbm.hourly.wind_direction_10m?.[j]!=null?' · '+cp(nbm.hourly.wind_direction_10m[j]):''} at the selected hour</div>`;
+    }
+  }
+  // ── HRRR 15-minute surface wind around the target ──
+  if(m15?.minutely_15){
+    const mt=m15.minutely_15.time,ms=m15.minutely_15.wind_speed_10m,mg=m15.minutely_15.wind_gusts_10m;
+    const tgt=new Date(h.time[i]).getTime();
+    const idxs=[];mt.forEach((t,k)=>{const dt=new Date(t).getTime();if(dt>=tgt-3600000&&dt<=tgt+3600000&&ms?.[k]!=null)idxs.push(k)});
+    if(idxs.length){
+      o+=`<div style="margin-top:12px"><div class="sc-title" style="margin-bottom:4px">⏱ HRRR 15-Minute Surface Wind · target ±1h</div><div style="display:flex;gap:4px;overflow-x:auto;padding-bottom:4px">`;
+      idxs.forEach(k=>{const v=ms[k];o+=`<div style="min-width:46px;text-align:center;padding:4px 2px;background:var(--card2);border-radius:6px;flex:0 0 auto"><div style="font-size:8px;color:var(--tx4);white-space:nowrap">${fT(mt[k])}</div><div style="font-weight:700;font-size:12px;color:${wC(v)}">${Math.round(v)}</div>${mg?.[k]!=null&&mg[k]>=C.gThr?`<div style="font-size:8px;color:var(--gust)">G${Math.round(mg[k])}</div>`:''}</div>`});
+      o+='</div></div>';
+    }
+  }
+  el.innerHTML=o||'<div style="font-size:11px;color:var(--tx3)">Reality-check sources unavailable for this location/time.</div>';
+}
+
 // ═══ REFRESH ═══
 let busy=false,_lastRefreshTs=0,_stnCache={ts:0,key:'',data:null};
 async function refreshAll(force){if(busy)return;busy=true;document.getElementById('rbtn').classList.add('ld');
@@ -1763,23 +2045,32 @@ async function refreshAll(force){if(busy)return;busy=true;document.getElementByI
     const fetches=C.stations.map((s,i)=>(i>0&&cacheOK&&_stnCache.data[s.label])
       ?Promise.resolve(_stnCache.data[s.label])
       :fetchOM(s.lat,s.lon).catch(e=>{console.warn('OM',s.label,e);return null}));
-    const [stnData,afd,metars,tafs,airSig,pireps,sunTimes]=await Promise.all([
+    const [stnData,afd,metars,tafs,airSig,pireps,sunTimes,hrdps,nbm,hrrr15,grid,obs]=await Promise.all([
       Promise.all(fetches),
       fetchAFD().catch(e=>{console.warn('AFD:',e);return null}),
       fetchMETARs().catch(e=>{console.warn('METAR:',e);return{}}),
       fetchTAFs().catch(e=>{console.warn('TAF:',e);return{}}),
       fetchAirSigmet().catch(e=>{console.warn('AIRSIGMET:',e);return[]}),
       fetchPIREPs().catch(e=>{console.warn('PIREP:',e);return[]}),
-      fetchSunTimes().catch(e=>{console.warn('SUN:',e);return null})
+      fetchSunTimes().catch(e=>{console.warn('SUN:',e);return null}),
+      fetchHrdps().catch(e=>{console.warn('HRDPS:',e);return null}),
+      fetchNbm().catch(e=>{console.warn('NBM:',e);return null}),
+      fetchHrrr15().catch(e=>{console.warn('HRRR15:',e);return null}),
+      fetchGrid().catch(e=>{console.warn('GRID:',e);return null}),
+      fetchObs().catch(e=>{console.warn('OBS:',e);return null})
     ]);
     // Build keyed data object
     const allData={};C.stations.forEach((s,i)=>{allData[s.label]=stnData[i]});
+    // Attach each station's own ground elevation (from the API response) so the terrain-true
+    // profile interpolation filters below-ground levels per station, not per home field
+    stnData.forEach(sd=>{if(sd&&sd.hourly&&sd.elevation!=null)sd.hourly._elev=sd.elevation*3.28084});
     // Store/refresh the station cache only on a full live fetch that actually got station data
     if(!cacheOK&&selectedOffset===0&&stnData.some((d,i)=>i>0&&d))_stnCache={ts:Date.now(),key:locKey,data:allData};
     // Render
     const homeData=stnData[0]||stnData.find(d=>d!=null);
     _allStnData=allData;
     window._tpHomeData=homeData;window._tpAllData=allData;window._tpMetars=metars;window._tpSunTimes=sunTimes;window._tpAfd=afd;
+    window._tpHrdps=hrdps;window._tpNbm=nbm;window._tpHrrr15=hrrr15;window._tpGrid=grid;window._tpObs=obs;window._tpTiming=null;
     if(liveMode&&homeData)buildTimePicker(homeData);
     if(homeData){rSurf(homeData,metars,sunTimes);rHourly(homeData);rGoNoGo(homeData);rDailySummary(homeData)}
     else{
@@ -1792,8 +2083,17 @@ async function refreshAll(force){if(busy)return;busy=true;document.getElementByI
     }
     rMicroProfile(allData);
     rProfile(allData);
+    rReality();
     if(afd)rAFD(afd);else document.getElementById('afdB').innerHTML='<div class="err">AFD unavailable</div>';
     rAvBriefing(tafs,airSig,pireps);
+    // Timing diagnosis needs the nearest station's recent history — one extra call, after
+    // the page has already rendered; re-renders the Reality card (and Go/No-Go) if it finds a lag
+    if(obs&&obs.length&&homeData&&isToday()){
+      fetchObsHistory(obs[0].id).then(hist=>{
+        const t=timingCheck(hist,homeData.hourly);
+        if(t){window._tpTiming=t;rReality()}
+      }).catch(()=>{});
+    }
     const updLabel=isToday()?'Updated '+new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',second:'2-digit',hour12:true,timeZone:getTZ()}):'Loaded '+fmtDate(getDateForOffset(selectedOffset));
     document.getElementById('upd').textContent=updLabel;
     // Update hist banner after successful load
@@ -1816,7 +2116,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     if(saved){const s=JSON.parse(saved);
       if(s.lat&&s.lon){
         C.lat=s.lat;C.lon=s.lon;C.elev=s.elev||0;C.name=s.name||'Unknown';C.locName=s.locName||s.name||'Unknown';
-        C.timezone=s.timezone||'America/New_York';C.nwsOffice=s.nwsOffice||'';
+        C.timezone=s.timezone||'America/New_York';C.nwsOffice=s.nwsOffice||'';C.gridUrl=s.gridUrl||'';
         C.metarStns=s.metarStns||C.metarStns;
         locSource='localStorage ('+C.name+')';
         // Only load saved stations if config version matches — otherwise use fresh defaults
