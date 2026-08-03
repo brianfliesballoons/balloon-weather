@@ -1959,9 +1959,11 @@ function rReality(){
       o+=`<div style="font-size:10px;color:var(--tx4);margin-bottom:8px">Observations are live right now — the model comparison applies to current conditions, not the selected ${isHistorical()?'past':'forecast'} time.</div>`;
     }
     o+=`<div class="sc-title" style="margin-bottom:4px">📡 Live Surface Observations · nearest wind-reporting stations (NWS mesonet)</div>`;
-    o+='<div style="overflow-x:auto"><table class="dawn-table" style="width:100%"><thead><tr><th style="text-align:left">Station</th><th>Wind</th><th>Gust</th><th>Dir</th><th>Dist</th><th>Elev</th><th>Age</th></tr></thead><tbody>';
+    // Station column = ID only (data stays on-screen on mobile); full name rides in a
+    // dim Name column at the END of the table — Brian, 2026-08-03
+    o+='<div style="overflow-x:auto"><table class="dawn-table" style="width:100%"><thead><tr><th style="text-align:left">Stn</th><th>Wind</th><th>Gust</th><th>Dir</th><th>Dist</th><th>Elev</th><th>Age</th><th style="text-align:left">Name</th></tr></thead><tbody>';
     obs.slice(0,6).forEach(s=>{
-      o+=`<tr><td style="text-align:left;white-space:nowrap"><span style="font-weight:700">${s.id}</span> <span style="color:var(--tx4);font-size:9px">${s.name}</span></td><td><span style="color:${wC(s.spd)};font-weight:700">${Math.round(s.spd)}</span></td><td>${s.gst!=null?Math.round(s.gst):'—'}</td><td>${s.dir!=null?cp(s.dir):'—'}</td><td>${s.d<1?'<1':Math.round(s.d)} mi</td><td>${s.elev!=null?s.elev.toLocaleString()+"'":'—'}</td><td style="color:${s.age>75?'var(--mod)':'var(--tx3)'}">${s.age}m</td></tr>`;
+      o+=`<tr><td style="text-align:left;white-space:nowrap;font-weight:700">${s.id}</td><td><span style="color:${wC(s.spd)};font-weight:700">${Math.round(s.spd)}</span></td><td>${s.gst!=null?Math.round(s.gst):'—'}</td><td>${s.dir!=null?cp(s.dir):'—'}</td><td style="white-space:nowrap">${s.d<1?'<1':Math.round(s.d)} mi</td><td>${s.elev!=null?s.elev.toLocaleString()+"'":'—'}</td><td style="color:${s.age>75?'var(--mod)':'var(--tx3)'}">${s.age}m</td><td style="text-align:left;white-space:nowrap;color:var(--tx4);font-size:9px">${s.name}</td></tr>`;
     });
     o+='</tbody></table></div>';
     // Elevated stations = a crude observed profile: if a mountain station verifies the model's
