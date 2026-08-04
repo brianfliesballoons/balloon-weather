@@ -420,7 +420,17 @@ a.badge{cursor:pointer}a.badge:hover{background:rgba(56,189,248,.2);color:#7dd3f
 .tpwrap.stuck .tp-hr{flex-basis:42px;padding:4px 3px;font-size:12px}
 .tpwrap.stuck .tp-sel{display:none}
 .tpwrap.stuck .hist-banner{padding:4px 10px;font-size:11px}
-@media(max-width:900px){.tpwrap{padding:12px 14px 8px}}
+@media(max-width:900px){
+  .tpwrap{padding:12px 14px 8px}
+  /* Keep all header chips (LIVE · Ask Claude · ↻) inside the bar at large font scales:
+     shorter title (" Window" hidden), tighter chip padding, title truncates as the
+     safety valve instead of pushing the refresh chip off the rounded corner. */
+  .tp-tw{display:none}
+  .tp-hdr{padding:8px 10px}
+  .tp-title{min-width:0;flex-shrink:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+  .tp-now{padding:4px 8px;flex-shrink:0}
+  .tp-ask{padding:4px 8px;margin-left:5px;flex-shrink:0}
+}
 
 /* ═══ GO/NO-GO SCORECARD ═══ */
 .gng-grid{display:flex;flex-direction:column;gap:5px}
@@ -499,7 +509,7 @@ a.badge{cursor:pointer}a.badge:hover{background:rgba(56,189,248,.2);color:#7dd3f
 <div class="ga" id="ga"><span>⚠</span><span id="gaTxt"></span></div>
 <div id="tpSentinel" style="height:1px"></div>
 <div class="tpwrap" id="tpWrap">
-  <div class="tp"><div class="tp-hdr"><div class="tp-title">🕐 Forecast Window</div><div class="tp-mini" id="tpSelMini"></div><button class="tp-now active" id="tpNow" onclick="setNow()">● LIVE</button><button class="tp-ask" id="askBtn" onclick="askClaude()" title="Open Claude with the full raw briefing for the selected flight time (±2h) — works with a free Claude account">✨ Ask Claude</button><button class="tp-ask rbtn" id="rbtn" onclick="refreshAll(true)" title="Refresh all data" style="margin-left:6px"><span class="ri">↻</span></button></div>
+  <div class="tp"><div class="tp-hdr"><div class="tp-title">🕐 Forecast<span class="tp-tw"> Window</span></div><div class="tp-mini" id="tpSelMini"></div><button class="tp-now active" id="tpNow" onclick="setNow()">● LIVE</button><button class="tp-ask" id="askBtn" onclick="askClaude()" title="Open Claude with the full raw briefing for the selected flight time (±2h) — works with a free Claude account">✨ Ask Claude</button><button class="tp-ask rbtn" id="rbtn" onclick="refreshAll(true)" title="Refresh all data"><span class="ri">↻</span></button></div>
     <div class="tp-body">
       <div class="tp-days" id="tpDays"></div>
       <div class="tp-hours" id="tpHours"></div>
