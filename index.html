@@ -473,7 +473,7 @@ a.badge{cursor:pointer}a.badge:hover{background:rgba(56,189,248,.2);color:#7dd3f
 </style>
 </head>
 <body>
-<header class="hdr"><div class="hdr-l"><div class="logo">🎈</div><div><div class="hdr-title" id="hdrTitle">Balloon Weather</div><div class="hdr-sub" id="hdrSub">Loading...</div></div></div><div class="hdr-r"><div class="upd" id="upd">—</div><button class="rbtn" onclick="openLoc()">📍 Location</button><button class="rbtn" onclick="openSet()">⚙ Settings</button><button class="rbtn" id="rbtn" onclick="refreshAll(true)"><span class="ri">↻</span> Refresh</button></div></header>
+<header class="hdr"><div class="hdr-l"><div class="logo">🎈</div><div><div class="hdr-title" id="hdrTitle">Balloon Weather</div><div class="hdr-sub" id="hdrSub">Loading...</div></div></div><div class="hdr-r"><div class="upd" id="upd">—</div><button class="rbtn" onclick="openLoc()">📍 Location</button><button class="rbtn" onclick="openSet()">⚙ Settings</button></div></header>
 <div class="loc-ov" id="locOv" onclick="if(event.target===this)closeLoc()"><div class="loc-panel"><div class="loc-hd"><span class="loc-hd-t">Set Location</span><button class="loc-close" onclick="closeLoc()">✕</button></div><div class="loc-body"><div class="loc-cur" id="locCur"></div><div class="loc-row"><input class="loc-input" id="locIn" placeholder="City, State or ZIP code" autocomplete="off"><button class="loc-go" onclick="doSearch()">Search</button></div><div class="loc-results" id="locRes"></div></div></div></div>
 <div class="loc-ov" id="setOv" onclick="if(event.target===this)closeSet()"><div class="loc-panel set-panel"><div class="loc-hd"><span class="loc-hd-t">⚙ Settings</span><button class="loc-close" onclick="closeSet()">✕</button></div><div class="loc-body">
   <div class="set-sec"><div class="set-st">🔠 Text Size</div><div class="set-desc">Make all text bigger or smaller — applies everywhere on the dashboard.</div>
@@ -499,7 +499,7 @@ a.badge{cursor:pointer}a.badge:hover{background:rgba(56,189,248,.2);color:#7dd3f
 <div class="ga" id="ga"><span>⚠</span><span id="gaTxt"></span></div>
 <div id="tpSentinel" style="height:1px"></div>
 <div class="tpwrap" id="tpWrap">
-  <div class="tp"><div class="tp-hdr"><div class="tp-title">🕐 Forecast Window</div><div class="tp-mini" id="tpSelMini"></div><button class="tp-now active" id="tpNow" onclick="setNow()">● LIVE</button><button class="tp-ask" id="askBtn" onclick="askClaude()" title="Open Claude with the full raw briefing for the selected flight time (±2h) — works with a free Claude account">✨ Ask Claude</button></div>
+  <div class="tp"><div class="tp-hdr"><div class="tp-title">🕐 Forecast Window</div><div class="tp-mini" id="tpSelMini"></div><button class="tp-now active" id="tpNow" onclick="setNow()">● LIVE</button><button class="tp-ask" id="askBtn" onclick="askClaude()" title="Open Claude with the full raw briefing for the selected flight time (±2h) — works with a free Claude account">✨ Ask Claude</button><button class="tp-ask rbtn" id="rbtn" onclick="refreshAll(true)" title="Refresh all data" style="margin-left:6px"><span class="ri">↻</span></button></div>
     <div class="tp-body">
       <div class="tp-days" id="tpDays"></div>
       <div class="tp-hours" id="tpHours"></div>
