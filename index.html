@@ -12,7 +12,7 @@
   --calm:#34d399;--mod:#fbbf24;--strong:#fb923c;--danger:#f87171;
   --blue:#38bdf8;--cyan:#22d3ee;--violet:#a78bfa;
   --gust:#ff6b35;--gust-bg:rgba(255,107,53,.08);--gust-bdr:rgba(255,107,53,.25);
-  --ks:#ef4444;--kp:#3b82f6;--km:#06b6d4;--kf:#a855f7;--kw:#f59e0b;--kt:#ec4899;
+  --ks:#ef4444;--kp:#3b82f6;--km:#06b6d4;--kf:#a855f7;--kw:#f59e0b;--kt:#ec4899;--ka:#cbd5e1;
   --r:12px;--rs:8px;--sh:0 2px 12px rgba(0,0,0,.25);
 }
 *{margin:0;padding:0;box-sizing:border-box}
@@ -260,11 +260,13 @@ a.badge{cursor:pointer}a.badge:hover{background:rgba(56,189,248,.2);color:#7dd3f
 .akw.ks{background:rgba(239,68,68,.12);color:var(--ks)}.akw.kp{background:rgba(59,130,246,.12);color:var(--kp)}
 .akw.km{background:rgba(6,182,212,.12);color:var(--km)}.akw.kf{background:rgba(168,85,247,.12);color:var(--kf)}
 .akw.kw{background:rgba(245,158,11,.12);color:var(--kw)}.akw.kt{background:rgba(236,72,153,.12);color:var(--kt)}
+.akw.ka{background:rgba(148,163,184,.14);color:var(--ka)}
 .apts{list-style:none;display:flex;flex-direction:column;gap:6px}
 .apt{font-size:11px;color:var(--tx);line-height:1.45;padding:6px 8px;border-radius:var(--rs);border-left:3px solid var(--tx3);background:var(--card2)}
 .apt.ks{border-left-color:var(--ks);background:rgba(239,68,68,.04)}.apt.kp{border-left-color:var(--kp);background:rgba(59,130,246,.04)}
 .apt.km{border-left-color:var(--km);background:rgba(6,182,212,.04)}.apt.kf{border-left-color:var(--kf);background:rgba(168,85,247,.04)}
 .apt.kw{border-left-color:var(--kw);background:rgba(245,158,11,.04)}.apt.kt{border-left-color:var(--kt);background:rgba(236,72,153,.04)}
+.apt.ka{border-left-color:var(--ka);background:rgba(148,163,184,.05)}
 .atog{display:none}
 .afull{padding:14px;background:var(--card2);border-radius:var(--rs);font-family:'JetBrains Mono',monospace;font-size:11px;line-height:1.65;color:var(--tx2);white-space:pre-wrap;word-wrap:break-word;overflow-wrap:break-word;max-height:500px;overflow-y:auto;flex:1}
 .afull .hs0{color:var(--ks);font-weight:600;background:rgba(239,68,68,.1);padding:0 2px;border-radius:2px}
@@ -273,6 +275,7 @@ a.badge{cursor:pointer}a.badge:hover{background:rgba(56,189,248,.2);color:#7dd3f
 .afull .hf0{color:var(--kf);font-weight:600;background:rgba(168,85,247,.1);padding:0 2px;border-radius:2px}
 .afull .hw0{color:var(--kw);font-weight:600;background:rgba(245,158,11,.1);padding:0 2px;border-radius:2px}
 .afull .ht0{color:var(--kt);font-weight:600;background:rgba(236,72,153,.1);padding:0 2px;border-radius:2px}
+.afull .ha0{color:var(--ka);font-weight:600;background:rgba(148,163,184,.12);padding:0 2px;border-radius:2px}
 .aext{display:inline-block;margin-top:6px;font-size:9px;color:var(--blue);text-decoration:none;font-family:'JetBrains Mono',monospace}.aext:hover{text-decoration:underline}
 @media(max-width:900px){
 .afd-split{min-height:250px;gap:8px}
@@ -281,6 +284,18 @@ a.badge{cursor:pointer}a.badge:hover{background:rgba(56,189,248,.2);color:#7dd3f
 .akw{font-size:10px}
 .afull{max-height:500px;font-size:10px;line-height:1.6}
 }
+
+/* ═══ SMOKE & AIR QUALITY ═══ */
+.aq-hero{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:8px 12px;background:var(--card2);border-radius:var(--rs);margin-bottom:8px}
+.aq-num{font-family:'JetBrains Mono',monospace;font-size:34px;font-weight:700;line-height:1}
+.aq-cat{font-size:13px;font-weight:600}
+.aq-sub{font-size:10px;color:var(--tx3);font-family:'JetBrains Mono',monospace;margin-top:2px}
+.al-item{padding:8px 10px;border-radius:var(--rs);border-left:3px solid var(--tx3);background:var(--card2);margin-bottom:6px;font-size:11px;line-height:1.45}
+.al-ev{font-weight:700;font-size:12px}
+.al-tm{font-size:9px;color:var(--tx3);font-family:'JetBrains Mono',monospace;margin-left:6px}
+.al-item details{margin-top:4px}
+.al-item summary{cursor:pointer;font-size:10px;color:var(--blue)}
+.al-desc{white-space:pre-wrap;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--tx2);margin-top:4px;line-height:1.5}
 
 .efr{width:100%;height:420px;border:none;border-radius:var(--rs);background:var(--card2)}
 .ldg{display:flex;align-items:center;justify-content:center;padding:16px;gap:6px}
@@ -520,6 +535,7 @@ a.badge{cursor:pointer}a.badge:hover{background:rgba(56,189,248,.2);color:#7dd3f
 </div>
 <div class="dash">
   <div class="cd full"><div class="ch"><div class="ct">🌡 Surface Conditions</div><a class="badge" id="srcSurf" href="#" target="_blank" rel="noopener">Open-Meteo GFS</a></div><div class="body" id="surfB"><div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
+  <div class="cd full"><div class="ch tg open" onclick="tog(this)"><div class="ct">🔥 Smoke & Air Quality<span class="sub">US AQI · PM2.5 · NWS alerts</span></div><a class="badge" id="srcAq" href="https://fire.airnow.gov/" target="_blank" rel="noopener" onclick="event.stopPropagation()">AirNow Fire & Smoke ↗</a><span class="chv">▾</span></div><div class="body" id="aqB"><div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
   <div class="cd full"><div class="ch tg open" onclick="tog(this)"><div class="ct">🛰 Reality Check<span class="sub">Live obs vs model · model agreement · mixed layer</span></div><a class="badge" id="srcRl" href="https://www.weather.gov/" target="_blank" rel="noopener" onclick="event.stopPropagation()">NWS + Open-Meteo</a><span class="chv">▾</span></div><div class="body" id="rlB"><div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
   <div class="cd full"><div class="ch tg open" onclick="tog(this)"><div class="ct">📊 Hourly Forecast<span class="sub">Next 24h</span></div><a class="badge" id="srcHr" href="#" target="_blank" rel="noopener" onclick="event.stopPropagation()">Open-Meteo GFS</a><span class="chv">▾</span></div><div class="body" id="hB"><div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
   <div class="full winds-pair">
@@ -557,7 +573,7 @@ const C={
   // which also drops levels that resolve below ground at the station's elevation.
   levels:[{hPa:1000,msl:360},{hPa:975,msl:1050},{hPa:950,msl:1640},{hPa:925,msl:2625},{hPa:900,msl:3280},{hPa:875,msl:3940},{hPa:850,msl:4920},{hPa:825,msl:5580},{hPa:800,msl:6230},{hPa:775,msl:7220},{hPa:750,msl:8200},{hPa:700,msl:9840},{hPa:650,msl:11780},{hPa:600,msl:13800},{hPa:550,msl:15960},{hPa:500,msl:18290}],
   dispAlts:[1000,2000,3000,4000,5000,6000,7000,8000,9000,10000,11000,12000,13000,14000,15000,16000,17000,18000],gThr:10,
-  kw:{'santa ana':{c:'ks',h:'hs0',l:'Santa Ana'},'offshore flow':{c:'ks',h:'hs0',l:'Offshore Flow'},'sundowner':{c:'ks',h:'hs0',l:'Sundowner'},'low pressure':{c:'kp',h:'hp0',l:'Low Pressure'},'trough':{c:'kp',h:'hp0',l:'Trough'},'cold front':{c:'kp',h:'hp0',l:'Cold Front'},'warm front':{c:'kp',h:'hp0',l:'Warm Front'},'marine layer':{c:'km',h:'hm0',l:'Marine Layer'},'onshore flow':{c:'km',h:'hm0',l:'Onshore Flow'},'catalina eddy':{c:'km',h:'hm0',l:'Catalina Eddy'},'fog':{c:'kf',h:'hf0',l:'Fog'},'low stratus':{c:'kf',h:'hf0',l:'Low Stratus'},'visibility':{c:'kf',h:'hf0',l:'Visibility'},'wind shear':{c:'kw',h:'hw0',l:'Wind Shear'},'gusty':{c:'kw',h:'hw0',l:'Gusty'},'gusts':{c:'kw',h:'hw0',l:'Gusts'},'breezy':{c:'kw',h:'hw0',l:'Breezy'},'wind advisory':{c:'kw',h:'hw0',l:'Wind Advisory'},'high wind':{c:'kw',h:'hw0',l:'High Wind'},'turbulence':{c:'kt',h:'ht0',l:'Turbulence'},'convection':{c:'kt',h:'ht0',l:'Convection'},'thunderstorm':{c:'kt',h:'ht0',l:'Thunderstorm'}}
+  kw:{'santa ana':{c:'ks',h:'hs0',l:'Santa Ana'},'offshore flow':{c:'ks',h:'hs0',l:'Offshore Flow'},'sundowner':{c:'ks',h:'hs0',l:'Sundowner'},'low pressure':{c:'kp',h:'hp0',l:'Low Pressure'},'trough':{c:'kp',h:'hp0',l:'Trough'},'cold front':{c:'kp',h:'hp0',l:'Cold Front'},'warm front':{c:'kp',h:'hp0',l:'Warm Front'},'marine layer':{c:'km',h:'hm0',l:'Marine Layer'},'onshore flow':{c:'km',h:'hm0',l:'Onshore Flow'},'catalina eddy':{c:'km',h:'hm0',l:'Catalina Eddy'},'fog':{c:'kf',h:'hf0',l:'Fog'},'low stratus':{c:'kf',h:'hf0',l:'Low Stratus'},'visibility':{c:'kf',h:'hf0',l:'Visibility'},'wind shear':{c:'kw',h:'hw0',l:'Wind Shear'},'gusty':{c:'kw',h:'hw0',l:'Gusty'},'gusts':{c:'kw',h:'hw0',l:'Gusts'},'breezy':{c:'kw',h:'hw0',l:'Breezy'},'wind advisory':{c:'kw',h:'hw0',l:'Wind Advisory'},'high wind':{c:'kw',h:'hw0',l:'High Wind'},'turbulence':{c:'kt',h:'ht0',l:'Turbulence'},'convection':{c:'kt',h:'ht0',l:'Convection'},'thunderstorm':{c:'kt',h:'ht0',l:'Thunderstorm'},'smoke':{c:'ka',h:'ha0',l:'Smoke'},'smoky':{c:'ka',h:'ha0',l:'Smoke'},'haze':{c:'ka',h:'ha0',l:'Haze'},'hazy':{c:'ka',h:'ha0',l:'Haze'},'wildfire':{c:'ka',h:'ha0',l:'Wildfire'},'air quality':{c:'ka',h:'ha0',l:'Air Quality'},'red flag':{c:'ka',h:'ha0',l:'Red Flag'}}
 };
 
 // ═══ DATE STATE ═══
@@ -575,6 +591,13 @@ const cp=d=>{if(d==null||isNaN(d))return'—';return['N','NNE','NE','ENE','E','E
 const wC=s=>s<5?'var(--calm)':s<10?'var(--mod)':s<15?'var(--strong)':'var(--danger)';
 const wH=s=>s<5?'#34d399':s<10?'#fbbf24':s<15?'#fb923c':'#f87171';
 const spC=s=>s<=3?'var(--danger)':s<=5?'var(--mod)':'var(--calm)';
+// US AQI bands (EPA): 0–50 Good · 51–100 Moderate · 101–150 Unhealthy for Sensitive Groups ·
+// 151–200 Unhealthy · 201–300 Very Unhealthy · 301+ Hazardous
+const aqiC=v=>v==null?'var(--tx3)':v<=50?'var(--calm)':v<=100?'var(--mod)':v<=150?'var(--strong)':v<=200?'var(--danger)':'#a855f7';
+const aqiLbl=v=>v==null?'—':v<=50?'Good':v<=100?'Moderate':v<=150?'Unhealthy (Sensitive)':v<=200?'Unhealthy':v<=300?'Very Unhealthy':'Hazardous';
+// Air-quality lookup for an hourly timestamp — both APIs are fetched with the same timezone
+// param, so the local ISO strings match exactly (same pattern as the NBM row lookup)
+function aqAt(iso){const a=window._tpAq?.hourly;if(!a?.time)return null;const j=a.time.indexOf(iso);if(j<0)return null;const aqi=a.us_aqi?.[j];if(aqi==null)return null;return{aqi,pm25:a.pm2_5?.[j],pm10:a.pm10?.[j],j}}
 const fT=iso=>new Date(iso).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',hour12:true,timeZone:getTZ()});
 const fH=iso=>new Date(iso).toLocaleTimeString('en-US',{hour:'numeric',hour12:true,timeZone:getTZ()});
 function nI(times){
@@ -641,7 +664,7 @@ function pickPastDay(offset){
   document.getElementById('tpSel').innerHTML='Showing: <span class="tp-sel-time" style="color:var(--violet)">'+fmtDate(getDateForOffset(offset))+' · 6:00 AM</span>';
   syncTpMini();
   // Show loading spinners and re-fetch with historical data
-  ['surfB','profB','hB','microProfB','gngB','dayB'].forEach(id=>{const e=document.getElementById(id);if(e)e.innerHTML='<div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>'});
+  ['surfB','profB','hB','microProfB','gngB','dayB','aqB'].forEach(id=>{const e=document.getElementById(id);if(e)e.innerHTML='<div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>'});
   refreshAll();
 }
 function pickDay(key){
@@ -681,6 +704,7 @@ function reRender(){
   rSurf(homeData,metars,sunTimes);rHourly(homeData);rGoNoGo(homeData);rDailySummary(homeData);
   if(allData){rMicroProfile(allData);rProfile(allData)}
   rReality();
+  rAlertsAq();
 }
 
 const agl=msl=>msl-C.elev;
@@ -815,12 +839,13 @@ function renderSetGngLimits(){
     {k:'minCeiling',lbl:'Min Ceiling',unit:'ft'},
     {k:'minSpread',lbl:'Min Spread',unit:'°F'},
     {k:'maxPrecip',lbl:'Max Precip',unit:'%'},
-    {k:'maxShear',lbl:'Max Low-Level Shear',unit:'mph'}
+    {k:'maxShear',lbl:'Max Low-Level Shear',unit:'mph'},
+    {k:'maxAqi',lbl:'Max AQI (Smoke)',unit:'AQI'}
   ];
   el.innerHTML=fields.map(f=>`<div class="gng-set-row"><div class="gng-limit-lbl">${f.lbl}</div><input class="gng-limit-input" id="setgng_${f.k}" type="number" value="${gngLimits[f.k]}"><div class="gng-limit-unit">${f.unit}</div></div>`).join('');
 }
 function saveGngLimitsFromSet(){
-  ['maxWind','maxGust','minVis','minCeiling','minSpread','maxPrecip','maxShear'].forEach(f=>{
+  ['maxWind','maxGust','minVis','minCeiling','minSpread','maxPrecip','maxShear','maxAqi'].forEach(f=>{
     const el=document.getElementById('setgng_'+f);if(el){const v=parseFloat(el.value);if(!isNaN(v))gngLimits[f]=v}
   });
   try{localStorage.setItem('gngLimits',JSON.stringify(gngLimits))}catch(e){}
@@ -945,6 +970,7 @@ function updateUI(){
   document.getElementById('srcWA').href=omUrl;
   document.getElementById('srcHr').href=omUrl;
   document.getElementById('srcWindy').href=`https://www.windy.com/?${C.lat},${C.lon},9,wind`;
+  document.getElementById('srcAq').href=`https://fire.airnow.gov/#9/${C.lat.toFixed(3)}/${C.lon.toFixed(3)}`;
   document.getElementById('srcRadar').href=`https://www.windy.com/?radar,${C.lat},${C.lon},8`;
   const metarIds=C.metarStns.map(s=>s.id).join(',');
   document.getElementById('srcAv').href=`https://aviationweather.gov/data/taf/?id=${metarIds}`;
@@ -1002,6 +1028,35 @@ async function fetchAFD(){
   const ld=await lr.json();const id=ld['@graph']?.[0]?.id;if(!id)throw new Error('No AFD');
   const pr=await fetchT(`https://api.weather.gov/products/${id}`);if(!pr.ok)throw new Error('AFD '+pr.status);
   const pd=await pr.json();return{text:pd.productText,time:pd.issuanceTime};
+}
+// ═══ SMOKE & AIR QUALITY FETCHES (v4.16.0) ═══
+// Active NWS alerts for this exact point — catches Air Quality Alerts, Dense Smoke
+// Advisories, Red Flag Warnings, Wind Advisories, everything the office has in effect.
+// Keyless, location-agnostic, and alerts are inherently current (no historical mode).
+async function fetchAlerts(){
+  try{
+    const r=await fetchT(`https://api.weather.gov/alerts/active?point=${C.lat.toFixed(4)},${C.lon.toFixed(4)}`,{headers:{'Accept':'application/geo+json','User-Agent':'BalloonWeather/1.0'}});
+    if(!r.ok)return null;
+    const d=await r.json();
+    return(d.features||[]).map(f=>f.properties).filter(Boolean).map(p=>({
+      event:p.event||'Alert',severity:p.severity||'',headline:p.headline||'',
+      desc:p.description||'',onset:p.onset||p.effective||'',ends:p.ends||p.expires||'',sender:p.senderName||''
+    }));
+  }catch(e){console.warn('ALERTS:',e);return null}
+}
+const alertIsSmoke=a=>/smoke|air quality|red flag|fire weather|ozone|dust/i.test(a.event||'');
+// Open-Meteo Air Quality API (separate keyless endpoint, CAMS-based): hourly PM2.5/PM10 +
+// US AQI, forecast several days out — so it plugs into the time picker, the 5-Day windows,
+// and the Go/No-Go the same way the wind data does. Mirrors omUrl's date logic.
+async function fetchAQ(){
+  let url=`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${C.lat}&longitude=${C.lon}&hourly=pm2_5,pm10,us_aqi&timezone=${encodeURIComponent(getTZ())}`;
+  if(isHistorical()){const ds=isoDate(getDateForOffset(selectedOffset));url+=`&start_date=${ds}&end_date=${ds}`}
+  else if(isForecast())url+=`&forecast_days=${Math.abs(selectedOffset)+1}`;
+  else url+=`&forecast_days=5`;
+  const r=await fetchT(url);
+  if(!r.ok)return null;
+  const d=await r.json();
+  return(d.hourly&&(d.hourly.us_aqi||[]).some(v=>v!=null))?d:null;
 }
 async function fetchMETARs(){const results={};if(!C.metarStns.length)return results;await Promise.all(C.metarStns.map(async stn=>{try{const r=await fetchT(`https://api.weather.gov/stations/${stn.id}/observations/latest`,{headers:{'Accept':'application/geo+json','User-Agent':'BalloonWeather/1.0'}});if(!r.ok)return;const d=await r.json();results[stn.id]={name:stn.nm,elev:stn.elev,layers:d.properties?.cloudLayers||[],raw:d.properties?.rawMessage||'',time:d.properties?.timestamp}}catch(e){console.warn('METAR',stn.id,e)}}));return results}
 
@@ -1097,6 +1152,7 @@ function rSurf(d,metars,sunTimes){
     <div class="stat"><div><div class="stat-lbl">Est. Cloud Tops</div>${cThkStr?`<div class="stat-sub" style="color:${cTopCol}">↕ ${cThkStr} thick</div>`:''}</div><div class="stat-val">${cTStr}</div></div>
     <div class="stat"><div style="flex:1"><div style="display:flex;justify-content:space-between"><div class="stat-lbl">Cloud Cover</div><div class="stat-val">${cld!=null?Math.round(cld):'—'}%</div></div><div class="gauge"><div class="gauge-fill" style="width:${cld??0}%;background:var(--tx3)"></div></div></div></div>
     <div class="stat"><div class="stat-lbl">Visibility</div><div class="stat-val">${viMi??'—'} mi</div></div>
+    ${(()=>{const q=aqAt(h.time[i]);if(!q)return'';return`<div class="stat"><div><div class="stat-lbl">Air Quality (US AQI)</div><div class="stat-sub" style="color:${aqiC(q.aqi)}">${aqiLbl(q.aqi)}${q.pm25!=null?' · PM2.5 '+Math.round(q.pm25):''}</div></div><div class="stat-val" style="color:${aqiC(q.aqi)}">${Math.round(q.aqi)}</div></div>`})()}
     <div class="stat"><div class="stat-lbl">Precip Chance</div><div class="stat-val">${prc!=null?Math.round(prc):'—'}%</div></div>
     <div class="stat"><div class="stat-lbl">Pressure</div><div class="stat-val">${inhg??'—'} inHg</div></div>
     ${(()=>{if(!sunTimes)return'';const fmt=iso=>{if(!iso)return'—';return new Date(iso).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',hour12:true,timeZone:getTZ()})};return`<div class="stat" style="margin-top:6px;border-top:1px solid var(--bdr);padding-top:10px"><div class="stat-lbl" style="color:var(--tx2);font-weight:600">☀ Sun & Twilight</div><div class="stat-val" style="font-size:11px;color:var(--tx3)">Today</div></div><div class="stat"><div class="stat-lbl">Nautical Dawn</div><div class="stat-val" style="color:var(--violet)">${fmt(sunTimes.nautical_twilight_begin)}</div></div><div class="stat"><div class="stat-lbl">Civil Dawn</div><div class="stat-val" style="color:var(--blue)">${fmt(sunTimes.civil_twilight_begin)}</div></div><div class="stat"><div class="stat-lbl">☀ Sunrise</div><div class="stat-val" style="color:var(--mod)">${fmt(sunTimes.sunrise)}</div></div><div class="stat"><div class="stat-lbl">🌅 Sunset</div><div class="stat-val" style="color:var(--strong)">${fmt(sunTimes.sunset)}</div></div><div class="stat"><div class="stat-lbl">Civil Dusk</div><div class="stat-val" style="color:var(--blue)">${fmt(sunTimes.civil_twilight_end)}</div></div><div class="stat"><div class="stat-lbl">Nautical Dusk</div><div class="stat-val" style="color:var(--violet)">${fmt(sunTimes.nautical_twilight_end)}</div></div>`})()}
@@ -1117,6 +1173,10 @@ function rSurf(d,metars,sunTimes){
         o+=`<span class="ceil-layer ${cls}">${l.amount} ${bS}</span>`;
         if((l.amount==='BKN'||l.amount==='OVC')&&bFt!=null){if(!loCeil||bFt<loCeil){loCeil=bFt;loStn=id}}
       })}
+      // Present-weather smoke/haze codes in the raw METAR (FU = smoke, HZ = haze) — a live
+      // report of smoke at a nearby airport, independent of the model's visibility number
+      if(/\bFU\b/.test(m.raw||''))o+=`<span class="ceil-layer" style="background:rgba(148,163,184,.14);color:var(--ka)">🔥 FU Smoke</span>`;
+      else if(/\bHZ\b/.test(m.raw||''))o+=`<span class="ceil-layer" style="background:rgba(148,163,184,.14);color:var(--ka)">HZ Haze</span>`;
       o+=`</div></div>`;
     }
     if(loCeil!=null){
@@ -1454,6 +1514,7 @@ function showHourDet(colEl,i){
     <div class="hdet-item"><div class="hdet-lbl">Est. Cloud Base</div><div class="hdet-val">${cBStr}</div></div>
     <div class="hdet-item"><div class="hdet-lbl">Precip Chance</div><div class="hdet-val" style="color:${prc>30?'var(--blue)':'inherit'}">${prc!=null?Math.round(prc):'—'}%</div></div>
     <div class="hdet-item"><div class="hdet-lbl">Visibility</div><div class="hdet-val">${viMi??'—'} mi</div></div>
+    ${(()=>{const q=aqAt(h.time[i]);if(!q)return'';return`<div class="hdet-item"><div class="hdet-lbl">Air Quality</div><div class="hdet-val" style="color:${aqiC(q.aqi)}">${Math.round(q.aqi)}</div><div class="hdet-sub">${aqiLbl(q.aqi)}</div></div>`})()}
     <div class="hdet-item"><div class="hdet-lbl">Pressure</div><div class="hdet-val">${inhg??'—'} inHg</div></div>
   </div>`;
   det.classList.add('v');
@@ -1619,6 +1680,8 @@ function windowVerdict(h, idxs){
     if(spr!=null&&spr<gngLimits.minSpread*0.6)nogo++;else if(spr!=null&&spr<gngLimits.minSpread)caution++;
     const s=lowLevelShear(h,i);
     if(s){if(s.status==='nogo')nogo++;else if(s.status==='caution')caution++}
+    const q=aqAt(h.time[i]);
+    if(q){if(q.aqi>gngLimits.maxAqi*1.5)nogo++;else if(q.aqi>gngLimits.maxAqi)caution++}
   });
   return nogo>0?'NO-GO':caution>0?'MARGINAL':'FLYABLE';
 }
@@ -1639,6 +1702,7 @@ function renderWindowTable(h, windowIdxs, title){
     {lbl:'Cloud',fn:i=>{const v=h.cloud_cover?.[i];return v!=null?Math.round(v)+'%':'—'}},
     {lbl:'Ceiling',fn:i=>{const t=h.temperature_2m?.[i],d=h.dew_point_2m?.[i];if(t==null||d==null)return'—';const c=Math.round(((t-d)/4.4)*1000);return c>=1000?(c/1000).toFixed(1)+'k':c+"'"}},
     {lbl:'Precip',fn:i=>{const v=h.precipitation_probability?.[i];return v!=null?`<span style="color:${v>20?'var(--blue)':'var(--tx3)'}">${Math.round(v)}%</span>`:'—'}},
+    ...(window._tpAq?.hourly?[{lbl:'AQI',fn:i=>{const q=aqAt(h.time[i]);return q?`<span style="color:${aqiC(q.aqi)}">${Math.round(q.aqi)}</span>`:'—'}}]:[]),
   ];
   rows.forEach(r=>{
     o+=`<tr><td class="dawn-lbl">${r.lbl}</td>`;
@@ -1698,11 +1762,11 @@ function rDailySummary(d){
 }
 
 // ═══ GO/NO-GO SCORECARD ═══
-const gngLimits={maxWind:8,maxGust:12,minVis:3,minCeiling:1500,minSpread:3,maxPrecip:20,maxShear:10};
+const gngLimits={maxWind:8,maxGust:12,minVis:3,minCeiling:1500,minSpread:3,maxPrecip:20,maxShear:10,maxAqi:100};
 function loadGngLimits(){try{const s=localStorage.getItem('gngLimits');if(s){const p=JSON.parse(s);Object.assign(gngLimits,p)}}catch(e){}}
 loadGngLimits();
 function saveGngLimits(){
-  const fields=['maxWind','maxGust','minVis','minCeiling','minSpread','maxPrecip','maxShear'];
+  const fields=['maxWind','maxGust','minVis','minCeiling','minSpread','maxPrecip','maxShear','maxAqi'];
   fields.forEach(f=>{const el=document.getElementById('gng_'+f);if(el)gngLimits[f]=parseFloat(el.value)||gngLimits[f]});
   try{localStorage.setItem('gngLimits',JSON.stringify(gngLimits))}catch(e){}
   if(window._tpHomeData)rGoNoGo(window._tpHomeData);
@@ -1721,6 +1785,18 @@ function computeGng(h,i){
     {name:'Temp/Dew Spread',icon:'🌡',val:spr!=null?spr.toFixed(1)+'°F':'—',status:spr==null?'unknown':spr>=gngLimits.minSpread?'go':spr>=gngLimits.minSpread*0.6?'caution':'nogo'},
     {name:'Precipitation',icon:'🌧',val:prc!=null?Math.round(prc)+'%':'—',status:prc==null?'unknown':prc<=gngLimits.maxPrecip?'go':prc<=gngLimits.maxPrecip*1.5?'caution':'nogo'},
   ];
+  // Air quality / smoke — AQI forecast graded against the pilot's max; an active NWS
+  // smoke/air-quality alert for this point bumps a passing check to caution (and stands in
+  // for the check entirely if the AQ API has no coverage here)
+  const q=aqAt(h.time[i]);
+  const smokeAlert=isToday()&&liveMode&&(window._tpAlerts||[]).some(alertIsSmoke);
+  if(q){
+    let aqSt=q.aqi<=gngLimits.maxAqi?'go':q.aqi<=gngLimits.maxAqi*1.5?'caution':'nogo';
+    if(smokeAlert&&aqSt==='go')aqSt='caution';
+    checks.push({name:'Air Quality (Smoke)',icon:'🔥',val:`AQI ${Math.round(q.aqi)} · ${aqiLbl(q.aqi)}${q.pm25!=null?' · PM2.5 '+Math.round(q.pm25)+' µg/m³':''}${smokeAlert?' · active alert':''}`,status:aqSt});
+  }else if(smokeAlert){
+    checks.push({name:'Air Quality (Smoke)',icon:'🔥',val:(window._tpAlerts.find(alertIsSmoke)||{}).event||'Active alert',status:'caution'});
+  }
   const shr=lowLevelShear(h,i);
   checks.push({name:'Low-Level Shear',icon:'🌀',val:shr?`+${Math.round(shr.spdDelta)} mph${shr.dirDelta>=45?' / '+Math.round(shr.dirDelta)+'°':''} aloft`:'—',status:shr?shr.status:'unknown'});
   // Live obs check — only when viewing current conditions: the actual reported wind at the
@@ -1761,6 +1837,7 @@ function rGoNoGo(d){
   o+=`<div class="gng-limit-row"><div class="gng-limit-lbl">Min Spread</div><input class="gng-limit-input" id="gng_minSpread" type="number" value="${gngLimits.minSpread}"><div class="gng-limit-unit">°F</div></div>`;
   o+=`<div class="gng-limit-row"><div class="gng-limit-lbl">Max Precip</div><input class="gng-limit-input" id="gng_maxPrecip" type="number" value="${gngLimits.maxPrecip}"><div class="gng-limit-unit">%</div></div>`;
   o+=`<div class="gng-limit-row"><div class="gng-limit-lbl">Max Shear</div><input class="gng-limit-input" id="gng_maxShear" type="number" value="${gngLimits.maxShear}"><div class="gng-limit-unit">mph</div></div>`;
+  o+=`<div class="gng-limit-row"><div class="gng-limit-lbl">Max AQI (Smoke)</div><input class="gng-limit-input" id="gng_maxAqi" type="number" value="${gngLimits.maxAqi}"><div class="gng-limit-unit">AQI</div></div>`;
   o+=`<button class="gng-save" onclick="saveGngLimits()">Save Limits</button></div></div>`;
   el.innerHTML=o;
 }
@@ -1777,8 +1854,8 @@ function buildClaudeBriefing(){
   const r1=v=>v==null?'—':Math.round(v);
   const iM=Math.max(0,i-2),iP=Math.min(h.time.length-1,i+2);
   let md=`# Balloon flight briefing request\n\n`;
-  md+=`You're briefing a hot air balloon pilot. Using ONLY the raw data below, assess flyability at the target time and across the ±2 h window: surface wind/gusts vs the pilot's limits, wind shear (speed or direction changes between altitude layers), inversion layers (temperature rising with altitude), fog risk (temp−dew spread), and whether conditions are improving or deteriorating. Weigh the NWS forecaster's Area Forecast Discussion (bottom) alongside the model numbers — the AFD is the human read on timing and pattern (onshore push, marine layer, gust timing) that raw model output can miss. The "Widget's automated read" section gives pre-computed go/no-go, shear, and AFD-keyword signals — anchor on those first, then verify and refine them against the raw tables. Respond like a concise preflight brief: 1) verdict — FLYABLE / MARGINAL / NO-GO, 2) best launch time within the window and why, 3) key risks to watch, 4) what the wind does with altitude (steerage options for the pilot). Wind directions are degrees FROM which the wind blows.\n\n`;
-  md+=`## Context\n- Location: ${C.locName} (${C.name}) — ${C.lat.toFixed(2)}°N ${Math.abs(C.lon).toFixed(2)}°W, field elevation ${Math.round(C.elev)} ft MSL (altitudes below are ft AGL)\n- Target flight time: ${fmtFull(h.time[i])} local\n- Pilot's personal limits: max wind ${gngLimits.maxWind} mph · max gust ${gngLimits.maxGust} mph · min visibility ${gngLimits.minVis} mi · min ceiling ${gngLimits.minCeiling} ft · min temp/dew spread ${gngLimits.minSpread}°F · max precip ${gngLimits.maxPrecip}% · max low-level shear ${gngLimits.maxShear} mph over surface\n`;
+  md+=`You're briefing a hot air balloon pilot. Using ONLY the raw data below, assess flyability at the target time and across the ±2 h window: surface wind/gusts vs the pilot's limits, wind shear (speed or direction changes between altitude layers), inversion layers (temperature rising with altitude), fog risk (temp−dew spread), smoke/air quality (US AQI vs the pilot's limit — wildfire smoke degrades slant-range visual reference and is a health call beyond the raw visibility number), and whether conditions are improving or deteriorating. Weigh the NWS forecaster's Area Forecast Discussion (bottom) alongside the model numbers — the AFD is the human read on timing and pattern (onshore push, marine layer, gust timing) that raw model output can miss. The "Widget's automated read" section gives pre-computed go/no-go, shear, and AFD-keyword signals — anchor on those first, then verify and refine them against the raw tables. Respond like a concise preflight brief: 1) verdict — FLYABLE / MARGINAL / NO-GO, 2) best launch time within the window and why, 3) key risks to watch, 4) what the wind does with altitude (steerage options for the pilot). Wind directions are degrees FROM which the wind blows.\n\n`;
+  md+=`## Context\n- Location: ${C.locName} (${C.name}) — ${C.lat.toFixed(2)}°N ${Math.abs(C.lon).toFixed(2)}°W, field elevation ${Math.round(C.elev)} ft MSL (altitudes below are ft AGL)\n- Target flight time: ${fmtFull(h.time[i])} local\n- Pilot's personal limits: max wind ${gngLimits.maxWind} mph · max gust ${gngLimits.maxGust} mph · min visibility ${gngLimits.minVis} mi · min ceiling ${gngLimits.minCeiling} ft · min temp/dew spread ${gngLimits.minSpread}°F · max precip ${gngLimits.maxPrecip}% · max low-level shear ${gngLimits.maxShear} mph over surface · max US AQI ${gngLimits.maxAqi}\n`;
   if(d.daily&&d.daily.sunrise&&d.daily.time){
     const di=d.daily.time.indexOf(h.time[i].slice(0,10));
     // daily.sunrise/sunset are location-local naive ISO strings — format the raw string;
@@ -1820,6 +1897,9 @@ function buildClaudeBriefing(){
     const mh=gridAt(window._tpGrid.mixH,h.time[i]),ts=gridAt(window._tpGrid.trSpd,h.time[i]);
     if(mh!=null)md+=`- NWS forecaster grid: mixing height ${Math.round(mh*3.28084)} ft AGL${ts!=null?', transport wind '+Math.round(ts*0.621371)+' mph':''} at target. Shallow mixing (<~800 ft) = surface decoupled from winds aloft — model surface winds often overdone in terrain.\n`;
   }
+  const qB=aqAt(h.time[i]);
+  if(qB)md+=`- Air quality at target: US AQI ${Math.round(qB.aqi)} (${aqiLbl(qB.aqi)})${qB.pm25!=null?', PM2.5 '+Math.round(qB.pm25)+' µg/m³':''} vs pilot's max AQI ${gngLimits.maxAqi}.\n`;
+  if(window._tpAlerts&&window._tpAlerts.length)md+=`- ACTIVE NWS ALERTS for this point right now: ${window._tpAlerts.map(a=>a.event+(a.ends?' (until '+fT(a.ends)+')':'')).join(' · ')}. Weigh any smoke/air-quality or wind product heavily.\n`;
   if(isToday()&&liveMode&&window._tpObs?.length){
     const n=window._tpObs[0];
     md+=`- LIVE surface observation ${n.id} (${n.d<1?'<1':Math.round(n.d)} mi away, ${n.age} min old): ${Math.round(n.spd)} mph${n.dir!=null?' from '+Math.round(n.dir)+'°':''}${n.gst!=null?', gusts '+Math.round(n.gst)+' mph':''} vs model surface ${r1(h.wind_speed_10m?.[i])} mph. When obs and model disagree, TRUST THE OBSERVATIONS for current conditions.\n`;
@@ -2092,6 +2172,50 @@ function rReality(){
   el.innerHTML=o||'<div style="font-size:11px;color:var(--tx3)">Reality-check sources unavailable for this location/time.</div>';
 }
 
+// ═══ SMOKE & AIR QUALITY CARD (v4.16.0) ═══
+// Built after two smoke cancellations (2026-08-03/04) that the widget read right past:
+// model visibility stays legal in smoke, and nothing surfaced the AFD's smoke talk or the
+// office's air-quality products. AQI is the predictive piece (hourly forecast, days out);
+// the alerts are the official in-effect piece. Location-agnostic like everything else.
+function rAlertsAq(){
+  const el=document.getElementById('aqB');if(!el)return;
+  const aq=window._tpAq,alerts=window._tpAlerts,d=window._tpHomeData;
+  let o='';
+  // ── AQI at the selected hour + next-24h strip ──
+  const h=d?.hourly,i=h?getIdx(h.time):null;
+  const q=h?aqAt(h.time[i]):null;
+  if(q){
+    o+=`<div class="aq-hero"><div><div class="aq-num" style="color:${aqiC(q.aqi)}">${Math.round(q.aqi)}</div><div class="aq-sub">US AQI</div></div><div><div class="aq-cat" style="color:${aqiC(q.aqi)}">${aqiLbl(q.aqi)}</div><div class="aq-sub">PM2.5 ${q.pm25!=null?Math.round(q.pm25):'—'} µg/m³ · PM10 ${q.pm10!=null?Math.round(q.pm10):'—'} µg/m³ · ${isToday()&&liveMode?'now':fT(h.time[i])}</div></div></div>`;
+    const at=aq.hourly.time,av=aq.hourly.us_aqi;
+    o+=`<div class="sc-title" style="margin-bottom:2px">Next 24 h · US AQI</div><div style="display:flex;gap:3px;overflow-x:auto;padding-bottom:2px">`;
+    for(let k=q.j;k<Math.min(q.j+24,at.length);k++){
+      const v=av?.[k];if(v==null)continue;
+      o+=`<div style="min-width:40px;text-align:center;padding:2px;background:var(--card2);border-radius:6px;flex:0 0 auto"><div style="font-size:8px;color:var(--tx4);white-space:nowrap">${fH(at[k])}</div><div style="font-weight:700;font-size:11px;color:${aqiC(v)}">${Math.round(v)}</div></div>`;
+    }
+    o+='</div>';
+  }else{
+    o+='<div style="font-size:11px;color:var(--tx3);margin-bottom:4px">Air-quality forecast unavailable for this location/time.</div>';
+  }
+  // ── active NWS alerts for this exact point ──
+  o+=`<div class="sc-title" style="margin:8px 0 4px">⚠ Active NWS Alerts · this point</div>`;
+  if(!alerts)o+='<div style="font-size:11px;color:var(--tx3)">Alerts feed unavailable right now.</div>';
+  else if(!alerts.length)o+='<div style="font-size:11px;color:var(--calm)">✓ No active alerts for this location.</div>';
+  else{
+    if(!isToday())o+=`<div style="font-size:9px;color:var(--tx4);margin-bottom:4px">Alerts are what's in effect RIGHT NOW — they don't apply to the selected ${isHistorical()?'past':'future'} time.</div>`;
+    alerts.forEach(a=>{
+      const smoke=alertIsSmoke(a);
+      const col=smoke?'var(--ka)':(a.severity==='Extreme'||a.severity==='Severe')?'var(--danger)':a.severity==='Moderate'?'var(--mod)':'var(--tx2)';
+      o+=`<div class="al-item" style="border-left-color:${col}${smoke?';background:rgba(148,163,184,.06)':''}">`;
+      o+=`<span class="al-ev" style="color:${col}">${smoke?'🔥 ':''}${a.event}</span>`;
+      if(a.ends)o+=`<span class="al-tm">until ${new Date(a.ends).toLocaleString('en-US',{timeZone:getTZ(),weekday:'short',hour:'numeric',minute:'2-digit',hour12:true})}</span>`;
+      if(a.headline)o+=`<div style="font-size:10px;color:var(--tx3);margin-top:2px">${a.headline.replace(/</g,'&lt;')}</div>`;
+      if(a.desc)o+=`<details><summary>Details</summary><div class="al-desc">${a.desc.replace(/</g,'&lt;').substring(0,1500)}</div></details>`;
+      o+='</div>';
+    });
+  }
+  el.innerHTML=o;
+}
+
 // ═══ REFRESH ═══
 let busy=false,_lastRefreshTs=0,_stnCache={ts:0,key:'',data:null};
 async function refreshAll(force){if(busy)return;busy=true;document.getElementById('rbtn').classList.add('ld');
@@ -2107,7 +2231,7 @@ async function refreshAll(force){if(busy)return;busy=true;document.getElementByI
     const fetches=C.stations.map((s,i)=>(i>0&&cacheOK&&_stnCache.data[s.label])
       ?Promise.resolve(_stnCache.data[s.label])
       :fetchOM(s.lat,s.lon).catch(e=>{console.warn('OM',s.label,e);return null}));
-    const [stnData,afd,metars,tafs,airSig,pireps,sunTimes,hrdps,nbm,hrrr15,grid,obs]=await Promise.all([
+    const [stnData,afd,metars,tafs,airSig,pireps,sunTimes,hrdps,nbm,hrrr15,grid,obs,alerts,aq]=await Promise.all([
       Promise.all(fetches),
       fetchAFD().catch(e=>{console.warn('AFD:',e);return null}),
       fetchMETARs().catch(e=>{console.warn('METAR:',e);return{}}),
@@ -2119,7 +2243,9 @@ async function refreshAll(force){if(busy)return;busy=true;document.getElementByI
       fetchNbm().catch(e=>{console.warn('NBM:',e);return null}),
       fetchHrrr15().catch(e=>{console.warn('HRRR15:',e);return null}),
       fetchGrid().catch(e=>{console.warn('GRID:',e);return null}),
-      fetchObs().catch(e=>{console.warn('OBS:',e);return null})
+      fetchObs().catch(e=>{console.warn('OBS:',e);return null}),
+      fetchAlerts().catch(e=>{console.warn('ALERTS:',e);return null}),
+      fetchAQ().catch(e=>{console.warn('AQ:',e);return null})
     ]);
     // Build keyed data object
     const allData={};C.stations.forEach((s,i)=>{allData[s.label]=stnData[i]});
@@ -2133,6 +2259,7 @@ async function refreshAll(force){if(busy)return;busy=true;document.getElementByI
     _allStnData=allData;
     window._tpHomeData=homeData;window._tpAllData=allData;window._tpMetars=metars;window._tpSunTimes=sunTimes;window._tpAfd=afd;
     window._tpHrdps=hrdps;window._tpNbm=nbm;window._tpHrrr15=hrrr15;window._tpGrid=grid;window._tpObs=obs;window._tpTiming=null;
+    window._tpAlerts=alerts;window._tpAq=aq;
     if(liveMode&&homeData)buildTimePicker(homeData);
     if(homeData){rSurf(homeData,metars,sunTimes);rHourly(homeData);rGoNoGo(homeData);rDailySummary(homeData)}
     else{
@@ -2146,6 +2273,7 @@ async function refreshAll(force){if(busy)return;busy=true;document.getElementByI
     rMicroProfile(allData);
     rProfile(allData);
     rReality();
+    rAlertsAq();
     if(afd)rAFD(afd);else document.getElementById('afdB').innerHTML='<div class="err">AFD unavailable</div>';
     rAvBriefing(tafs,airSig,pireps);
     // Timing diagnosis needs the nearest station's recent history — one extra call, after
