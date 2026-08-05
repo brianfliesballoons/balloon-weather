@@ -286,14 +286,24 @@ a.badge{cursor:pointer}a.badge:hover{background:rgba(56,189,248,.2);color:#7dd3f
 }
 
 /* ═══ SMOKE & AIR QUALITY ═══ */
-.aq-hero{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:8px 12px;background:var(--card2);border-radius:var(--rs);margin-bottom:8px}
-.aq-num{font-family:'JetBrains Mono',monospace;font-size:34px;font-weight:700;line-height:1}
+/* Compact per the density rule (Brian 2026-08-04): tighten spacing, single-line hero */
+.aq-hero{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;padding:4px 10px;background:var(--card2);border-radius:var(--rs);margin-bottom:6px}
+.aq-num{font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:700;line-height:1}
 .aq-cat{font-size:13px;font-weight:600}
-.aq-sub{font-size:10px;color:var(--tx3);font-family:'JetBrains Mono',monospace;margin-top:2px}
-.al-item{padding:8px 10px;border-radius:var(--rs);border-left:3px solid var(--tx3);background:var(--card2);margin-bottom:6px;font-size:11px;line-height:1.45}
+.aq-sub{font-size:10px;color:var(--tx3);font-family:'JetBrains Mono',monospace}
+/* EPA scale bar: six equal band segments, ▼ marker = selected hour, │ tick = pilot's limit */
+.aq-scale{position:relative;margin:14px 2px 2px}
+.aq-bar{display:flex;height:13px;border-radius:7px;overflow:hidden}
+.aq-seg{flex:1;display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:700;color:rgba(0,0,0,.62);font-family:'JetBrains Mono',monospace;white-space:nowrap;overflow:hidden}
+.aq-mark{position:absolute;top:-11px;transform:translateX(-50%);font-size:9px;font-weight:700;font-family:'JetBrains Mono',monospace;line-height:1;white-space:nowrap}
+.aq-tick{position:absolute;top:-2px;width:2px;height:17px;background:var(--tx);border-radius:1px;transform:translateX(-50%);box-shadow:0 0 3px rgba(0,0,0,.6)}
+.aq-nums{position:relative;height:9px;margin-top:1px}
+.aq-nums span{position:absolute;transform:translateX(-50%);font-size:7px;color:var(--tx4);font-family:'JetBrains Mono',monospace}
+.aq-key{font-size:9px;color:var(--tx3);font-family:'JetBrains Mono',monospace;margin-top:2px}
+.al-item{padding:5px 8px;border-radius:var(--rs);border-left:3px solid var(--tx3);background:var(--card2);margin-bottom:4px;font-size:11px;line-height:1.35}
 .al-ev{font-weight:700;font-size:12px}
 .al-tm{font-size:9px;color:var(--tx3);font-family:'JetBrains Mono',monospace;margin-left:6px}
-.al-item details{margin-top:4px}
+.al-item details{margin-top:2px}
 .al-item summary{cursor:pointer;font-size:10px;color:var(--blue)}
 .al-desc{white-space:pre-wrap;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--tx2);margin-top:4px;line-height:1.5}
 
@@ -595,6 +605,8 @@ const spC=s=>s<=3?'var(--danger)':s<=5?'var(--mod)':'var(--calm)';
 // 151–200 Unhealthy · 201–300 Very Unhealthy · 301+ Hazardous
 const aqiC=v=>v==null?'var(--tx3)':v<=50?'var(--calm)':v<=100?'var(--mod)':v<=150?'var(--strong)':v<=200?'var(--danger)':'#a855f7';
 const aqiLbl=v=>v==null?'—':v<=50?'Good':v<=100?'Moderate':v<=150?'Unhealthy (Sensitive)':v<=200?'Unhealthy':v<=300?'Very Unhealthy':'Hazardous';
+// Position (%) of an AQI value on the six-equal-segment EPA scale bar (bands 0-50-100-150-200-300-500)
+const aqPos=v=>{const b=[0,50,100,150,200,300,500];let s=5;for(let k=0;k<5;k++)if(v<=b[k+1]){s=k;break}return Math.min(98.5,Math.max(1,(s+Math.min(1,(v-b[s])/(b[s+1]-b[s])))/6*100))};
 // Air-quality lookup for an hourly timestamp — both APIs are fetched with the same timezone
 // param, so the local ISO strings match exactly (same pattern as the NBM row lookup)
 function aqAt(iso){const a=window._tpAq?.hourly;if(!a?.time)return null;const j=a.time.indexOf(iso);if(j<0)return null;const aqi=a.us_aqi?.[j];if(aqi==null)return null;return{aqi,pm25:a.pm2_5?.[j],pm10:a.pm10?.[j],j}}
@@ -2185,19 +2197,26 @@ function rAlertsAq(){
   const h=d?.hourly,i=h?getIdx(h.time):null;
   const q=h?aqAt(h.time[i]):null;
   if(q){
-    o+=`<div class="aq-hero"><div><div class="aq-num" style="color:${aqiC(q.aqi)}">${Math.round(q.aqi)}</div><div class="aq-sub">US AQI</div></div><div><div class="aq-cat" style="color:${aqiC(q.aqi)}">${aqiLbl(q.aqi)}</div><div class="aq-sub">PM2.5 ${q.pm25!=null?Math.round(q.pm25):'—'} µg/m³ · PM10 ${q.pm10!=null?Math.round(q.pm10):'—'} µg/m³ · ${isToday()&&liveMode?'now':fT(h.time[i])}</div></div></div>`;
+    o+=`<div class="aq-hero"><span class="aq-num" style="color:${aqiC(q.aqi)}">${Math.round(q.aqi)}</span><span class="aq-cat" style="color:${aqiC(q.aqi)}">${aqiLbl(q.aqi)}</span><span class="aq-sub">US AQI · PM2.5 ${q.pm25!=null?Math.round(q.pm25):'—'} · PM10 ${q.pm10!=null?Math.round(q.pm10):'—'} µg/m³ · ${isToday()&&liveMode?'now':fT(h.time[i])}</span></div>`;
+    // EPA scale reference: colored bands with the selected hour marked (▼), the pilot's
+    // Go/No-Go limit ticked (│), and the worst hour of the next 24 called out
     const at=aq.hourly.time,av=aq.hourly.us_aqi;
-    o+=`<div class="sc-title" style="margin-bottom:2px">Next 24 h · US AQI</div><div style="display:flex;gap:3px;overflow-x:auto;padding-bottom:2px">`;
+    let peak=null,peakT=null;
+    for(let k=q.j;k<Math.min(q.j+24,at.length);k++){const v=av?.[k];if(v!=null&&(peak==null||v>peak)){peak=v;peakT=at[k]}}
+    const SEGS=[['Good','#34d399'],['Moderate','#fbbf24'],['Sensitive','#fb923c'],['Unhealthy','#f87171'],['V.Unhealthy','#a855f7'],['Hazardous','#9f1239']];
+    o+=`<div class="aq-scale"><div class="aq-mark" style="left:${aqPos(q.aqi)}%;color:${aqiC(q.aqi)}">${Math.round(q.aqi)}▼</div><div class="aq-bar">${SEGS.map(s=>`<div class="aq-seg" style="background:${s[1]}">${s[0]}</div>`).join('')}</div><div class="aq-tick" style="left:${aqPos(gngLimits.maxAqi)}%"></div><div class="aq-nums">${[0,50,100,150,200,300].map((n,k)=>`<span style="left:${k/6*100}%">${n}</span>`).join('')}</div></div>`;
+    o+=`<div class="aq-key">▼ selected hour · │ your limit ${gngLimits.maxAqi}${peak!=null?` · 24h peak <span style="color:${aqiC(peak)};font-weight:700">${Math.round(peak)}</span> ${aqiLbl(peak)}${peakT?' @ '+fH(peakT):''}`:''}</div>`;
+    o+=`<div class="sc-title" style="margin:6px 0 2px">Next 24 h · US AQI</div><div style="display:flex;gap:3px;overflow-x:auto;padding-bottom:2px">`;
     for(let k=q.j;k<Math.min(q.j+24,at.length);k++){
       const v=av?.[k];if(v==null)continue;
-      o+=`<div style="min-width:40px;text-align:center;padding:2px;background:var(--card2);border-radius:6px;flex:0 0 auto"><div style="font-size:8px;color:var(--tx4);white-space:nowrap">${fH(at[k])}</div><div style="font-weight:700;font-size:11px;color:${aqiC(v)}">${Math.round(v)}</div></div>`;
+      o+=`<div style="min-width:34px;text-align:center;padding:2px;background:var(--card2);border-radius:6px;flex:0 0 auto"><div style="font-size:8px;color:var(--tx4);white-space:nowrap">${fH(at[k])}</div><div style="font-weight:700;font-size:11px;color:${aqiC(v)}">${Math.round(v)}</div></div>`;
     }
     o+='</div>';
   }else{
     o+='<div style="font-size:11px;color:var(--tx3);margin-bottom:4px">Air-quality forecast unavailable for this location/time.</div>';
   }
   // ── active NWS alerts for this exact point ──
-  o+=`<div class="sc-title" style="margin:8px 0 4px">⚠ Active NWS Alerts · this point</div>`;
+  o+=`<div class="sc-title" style="margin:6px 0 3px">⚠ NWS Alerts · this point</div>`;
   if(!alerts)o+='<div style="font-size:11px;color:var(--tx3)">Alerts feed unavailable right now.</div>';
   else if(!alerts.length)o+='<div style="font-size:11px;color:var(--calm)">✓ No active alerts for this location.</div>';
   else{
