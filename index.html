@@ -1027,7 +1027,10 @@ async function fetchT(url, opts={}, ms=8000){
   finally{ clearTimeout(to) }
 }
 let _om429=false; // set when Open-Meteo returns 429 (free daily quota exhausted — shared per IP)
-async function fetchOM(a,b){const r=await fetchT(omUrl(a,b));if(!r.ok){if(r.status===429)_om429=true;throw new Error('Open-Meteo '+r.status)}return r.json()}
+// 20 s timeout (not the 8 s default): each station fetch is ~64 KB and 12 run in parallel —
+// on a slow cellular/weak-WiFi link the 8 s cutoff was killing most of them (2026-08-06,
+// 3 AM field report: 3 of 11 stations loaded, home among the dead → blank Micro Winds)
+async function fetchOM(a,b){const r=await fetchT(omUrl(a,b),{},20000);if(!r.ok){if(r.status===429)_om429=true;throw new Error('Open-Meteo '+r.status)}return r.json()}
 async function fetchSunTimes(){
   const r=await fetchT(`https://api.sunrise-sunset.org/json?lat=${C.lat}&lng=${C.lon}&formatted=0`);
   if(!r.ok)throw new Error('Sun API '+r.status);
@@ -1120,7 +1123,7 @@ function rSurf(d,metars,sunTimes){
   const prc=h.precipitation_probability?.[i],prs=h.pressure_msl?.[i]??h.surface_pressure?.[i],inhg=prs!=null?(prs*0.02953).toFixed(2):null;
   if(isToday())chkG(h,i);else document.getElementById('ga').classList.remove('v');
   const wndCol=wnd!=null?wH(wnd):'#5a6680';
-  const timeLabel=!isToday()?`<div style="font-size:11px;color:${isHistorical()?'var(--violet)':'var(--blue)'};margin-bottom:6px">${isHistorical()?'Past':'Forecast'} conditions at 6:00 AM · ${fmtDate(getDateForOffset(selectedOffset))}</div>`:'';
+  const timeLabel=(window._homeFellBack?`<div class="err" style="margin-bottom:8px">⚠ Home station data didn't load — showing ${window._homeFellBack} instead. Hit ↻ Refresh to retry.</div>`:'')+(!isToday()?`<div style="font-size:11px;color:${isHistorical()?'var(--violet)':'var(--blue)'};margin-bottom:6px">${isHistorical()?'Past':'Forecast'} conditions at 6:00 AM · ${fmtDate(getDateForOffset(selectedOffset))}</div>`:'');
   let ticks='';for(let a=0;a<360;a+=30){ticks+=`<div class="ctick" style="transform:rotate(${a}deg) translateX(-0.5px)"></div>`}
   let o=timeLabel+`<div class="cw"><div style="text-align:center">
     <div class="cbox"><div class="cring">${ticks}
@@ -1280,7 +1283,7 @@ function lowLevelShear(h,i){
 function rMicroProfile(allData){
   const el=document.getElementById('microProfB'),tl=document.getElementById('mvTime');
   const homeKey=C.stations[0].label,homeD=allData[homeKey];
-  if(!homeD||!homeD.hourly){el.innerHTML='<div class="err">No micro wind data</div>';return}
+  if(!homeD||!homeD.hourly){el.innerHTML=`<div class="err">Home station (${homeKey}) fetch didn't load — ${_om429?'Open-Meteo daily quota hit (resets 5 PM Pacific)':'usually a slow connection'}. Hit ↻ Refresh to retry.</div>`;return}
   const h=homeD.hourly,ci=getIdx(h.time);
   tl.textContent=isToday()?fT(h.time[ci]):fmtDate(getDateForOffset(selectedOffset))+' 6AM';
   // Build wind data for 0-2000 AGL
@@ -1376,7 +1379,10 @@ function rProfile(allData){
   const allLvl=C.levels.filter(l=>agl(l.msl)>=0);
   sources.forEach(src=>{const h=src.data.hourly,si=getIdx(h.time);allLvl.forEach(l=>{const s=h[`wind_speed_${l.hPa}hPa`]?.[si]||0;if(s>maxSpd)maxSpd=s})});
   const cellW=26;
-  let o='<div class="vf-scroll">';
+  let o='';
+  const missing=C.stations.length-sources.length;
+  if(missing>0)o+=`<div class="err" style="margin-bottom:6px">⚠ ${missing} of ${C.stations.length} stations didn't load${_om429?' — Open-Meteo daily quota hit (resets 5 PM Pacific)':' — usually a slow connection'}. Hit ↻ Refresh to retry.</div>`;
+  o+='<div class="vf-scroll">';
   // Header row (outside vf-wrap so sticky works)
   o+='<div class="vf-row vf-hdr"><div class="vf-alt"></div>';
   sources.forEach((src,i)=>{
@@ -2266,6 +2272,13 @@ async function refreshAll(force){if(busy)return;busy=true;document.getElementByI
       fetchAlerts().catch(e=>{console.warn('ALERTS:',e);return null}),
       fetchAQ().catch(e=>{console.warn('AQ:',e);return null})
     ]);
+    // Second chance for stations that failed the first pass — a slow link can kill several
+    // parallel fetches at once while the API itself is fine. Retry only the failures, once,
+    // and never when the failure was the daily quota (retries would just burn more of it).
+    if(!_om429&&stnData.some(d=>!d)){
+      const retry=await Promise.all(C.stations.map((s,i)=>stnData[i]?Promise.resolve(null):fetchOM(s.lat,s.lon).catch(()=>null)));
+      retry.forEach((d,i)=>{if(d)stnData[i]=d});
+    }
     // Build keyed data object
     const allData={};C.stations.forEach((s,i)=>{allData[s.label]=stnData[i]});
     // Attach each station's own ground elevation (from the API response) so the terrain-true
@@ -2275,6 +2288,9 @@ async function refreshAll(force){if(busy)return;busy=true;document.getElementByI
     if(!cacheOK&&selectedOffset===0&&stnData.some((d,i)=>i>0&&d))_stnCache={ts:Date.now(),key:locKey,data:allData};
     // Render
     const homeData=stnData[0]||stnData.find(d=>d!=null);
+    // When the home fetch died but a neighbor's survived, the surface cards render the
+    // neighbor's numbers — flag it VISIBLY (silent substitution looked like working data)
+    window._homeFellBack=(!stnData[0]&&homeData)?(C.stations[stnData.indexOf(homeData)]?.label||'a nearby station'):null;
     _allStnData=allData;
     window._tpHomeData=homeData;window._tpAllData=allData;window._tpMetars=metars;window._tpSunTimes=sunTimes;window._tpAfd=afd;
     window._tpHrdps=hrdps;window._tpNbm=nbm;window._tpHrrr15=hrrr15;window._tpGrid=grid;window._tpObs=obs;window._tpTiming=null;
