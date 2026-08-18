@@ -1076,40 +1076,70 @@ async function fetchAQ(){
 async function fetchMETARs(){const results={};if(!C.metarStns.length)return results;await Promise.all(C.metarStns.map(async stn=>{try{const r=await fetchT(`https://api.weather.gov/stations/${stn.id}/observations/latest`,{headers:{'Accept':'application/geo+json','User-Agent':'BalloonWeather/1.0'}});if(!r.ok)return;const d=await r.json();results[stn.id]={name:stn.nm,elev:stn.elev,layers:d.properties?.cloudLayers||[],raw:d.properties?.rawMessage||'',time:d.properties?.timestamp}}catch(e){console.warn('METAR',stn.id,e)}}));return results}
 
 // ═══ AVIATION BRIEFING FETCHES ═══
+// ⚠ These go through OUR Cloudflare Worker, never straight to aviationweather.gov.
+// That host sends NO Access-Control-Allow-Origin header at all, so every direct
+// browser call is blocked by the same-origin policy — which is exactly why this
+// whole card silently showed "no TAFs / no SIGMETs" from the day it shipped until
+// 2026-08-18. Do NOT "simplify" these back to the upstream URL. Proxy source:
+// aviation-proxy/ in this project.
+const AVPROXY='https://aviation-proxy.brianfliesballoons.workers.dev';
+
+// Every fetcher returns {ok, data, err} — NEVER a bare empty list on failure.
+// A dead feed must not be able to render as "no advisories in your area"; on a
+// flight tool that reads as clear skies. The renderer shows the difference.
 async function fetchTAFs(){
-  const results={};if(!C.metarStns.length)return results;
+  if(!C.metarStns.length)return{ok:true,data:{},err:''};
   try{
     const ids=C.metarStns.map(s=>s.id).join(',');
-    const r=await fetchT(`https://aviationweather.gov/api/data/taf?ids=${ids}&format=json`);
-    if(!r.ok)throw new Error('TAF '+r.status);
+    const r=await fetchT(`${AVPROXY}/taf?ids=${encodeURIComponent(ids)}`,{},20000);
+    if(!r.ok)throw new Error('HTTP '+r.status);
     const d=await r.json();
-    // Handle both array and wrapped formats
-    const arr=Array.isArray(d)?d:(d.TAFs||d.data||d.taf||[]);
-    arr.forEach(t=>{
+    if(!Array.isArray(d))throw new Error(d&&d.error?d.error:'unexpected response');
+    const results={};
+    d.forEach(t=>{
       const id=t.icaoId||t.stationId||t.station||'';
       if(id)results[id]={raw:t.rawTAF||t.rawText||t.raw||'',issueTime:t.issueTime||t.bulletinTime||'',validFrom:t.validTimeFrom||t.validFrom||'',validTo:t.validTimeTo||t.validTo||''};
     });
-  }catch(e){console.warn('TAF:',e)}
-  return results;
+    return{ok:true,data:results,err:''};
+  }catch(e){console.warn('TAF:',e);return{ok:false,data:{},err:String(e.message||e)}}
 }
 
 async function fetchAirSigmet(){
   try{
-    const r=await fetchT('https://aviationweather.gov/api/data/airsigmet?format=json');
-    if(!r.ok)throw new Error('AIRSIGMET '+r.status);
+    const r=await fetchT(`${AVPROXY}/airsigmet`,{},20000);
+    if(!r.ok)throw new Error('HTTP '+r.status);
     const d=await r.json();
-    const arr=Array.isArray(d)?d:(d.data||[]);
-    return arr;
-  }catch(e){console.warn('AIRSIGMET:',e);return[]}
+    if(!Array.isArray(d))throw new Error(d&&d.error?d.error:'unexpected response');
+    return{ok:true,data:d,err:''};
+  }catch(e){console.warn('AIRSIGMET:',e);return{ok:false,data:[],err:String(e.message||e)}}
 }
 
-async function fetchPIREPs(){
+// G-AIRMETs are a SEPARATE endpoint. /airsigmet returns SIGMETs only — the old
+// code filtered it for "airmet" and could never have found one (verified
+// 2026-08-18: 9 of 9 records were SIGMETs). Different schema too, see rAvBriefing.
+async function fetchGAirmets(){
   try{
-    const r=await fetchT(`https://aviationweather.gov/api/data/pirep?lat=${C.lat}&lon=${C.lon}&dist=100&format=json`);
-    if(!r.ok)throw new Error('PIREP '+r.status);
+    const r=await fetchT(`${AVPROXY}/gairmet`,{},20000);
+    if(!r.ok)throw new Error('HTTP '+r.status);
     const d=await r.json();
-    return Array.isArray(d)?d:(d.data||d.PIREPs||[]);
-  }catch(e){console.warn('PIREP:',e);return[]}
+    if(!Array.isArray(d))throw new Error(d&&d.error?d.error:'unexpected response');
+    return{ok:true,data:d,err:''};
+  }catch(e){console.warn('GAIRMET:',e);return{ok:false,data:[],err:String(e.message||e)}}
+}
+
+// Upstream requires a station ID + radial distance; the old lat/lon/dist form
+// returned HTTP 400 every time ("Must specify bounding box or stations ID and
+// radial distance"). Use the nearest METAR station we already discovered.
+async function fetchPIREPs(){
+  const stn=(C.metarStns[0]||{}).id;
+  if(!stn)return{ok:true,data:[],err:''};
+  try{
+    const r=await fetchT(`${AVPROXY}/pirep?id=${encodeURIComponent(stn)}&distance=100`,{},20000);
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const d=await r.json();
+    if(!Array.isArray(d))throw new Error(d&&d.error?d.error:'unexpected response');
+    return{ok:true,data:d,err:''};
+  }catch(e){console.warn('PIREP:',e);return{ok:false,data:[],err:String(e.message||e)}}
 }
 
 // ═══ SURFACE ═══
@@ -1572,23 +1602,97 @@ function togAFD(){const e=document.getElementById('aFull'),b=e.previousElementSi
 // ═══ AVIATION BRIEFING ═══
 function haverNm(lat1,lon1,lat2,lon2){const R=3440.065;const toR=d=>d*Math.PI/180;const dLat=toR(lat2-lat1),dLon=toR(lon2-lon1);const a=Math.sin(dLat/2)**2+Math.cos(toR(lat1))*Math.cos(toR(lat2))*Math.sin(dLon/2)**2;return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a))}
 
-function rAvBriefing(tafs,airSig,pireps){
+// Distance from a point to an advisory AREA. SIGMET/G-AIRMET `coords` is a
+// POLYGON — an array of {lat,lon} — and G-AIRMET gives them as STRINGS while
+// SIGMET gives numbers, so parse both. The old code read coords[0]/coords[1] as
+// a scalar lon/lat pair, so haverNm got objects, returned NaN, and `NaN<=150`
+// quietly discarded every advisory. Returns 0 inside the polygon, else the
+// distance to the nearest vertex; null when there's nothing usable.
+function polyDistNm(lat,lon,coords){
+  if(!Array.isArray(coords)||!coords.length)return null;
+  const pts=coords.map(p=>[parseFloat(p&&p.lat),parseFloat(p&&p.lon)])
+                  .filter(p=>isFinite(p[0])&&isFinite(p[1]));
+  if(!pts.length)return null;
+  let inside=false;
+  for(let i=0,j=pts.length-1;i<pts.length;j=i++){
+    const yi=pts[i][0],xi=pts[i][1],yj=pts[j][0],xj=pts[j][1];
+    if(((yi>lat)!==(yj>lat))&&(lon<(xj-xi)*(lat-yi)/(yj-yi)+xi))inside=!inside;
+  }
+  if(inside)return 0;
+  return Math.min(...pts.map(p=>haverNm(lat,lon,p[0],p[1])));
+}
+
+// The aviation feeds MIX time formats: ISO strings (issueTime, validTime) and
+// raw epoch SECONDS (validTimeFrom/To, obsTime, expireTime). fT() does
+// new Date(v), which reads a bare number as MILLISECONDS — so epoch seconds
+// rendered as January 1970 ("Valid 8:24 AM — 8:26 AM"). Invisible until the
+// card started returning data at all. Anything under 1e11 is seconds.
+function fTav(v){
+  if(v===null||v===undefined||v==='')return'';
+  const n=(typeof v==='number')?v:(/^\d+$/.test(String(v).trim())?parseInt(v,10):NaN);
+  return isFinite(n)?fT(n<1e11?n*1000:n):fT(v);
+}
+
+// A TAF's validity is usually 24h+, so time-only formatting renders it as the
+// nonsense "11:00 AM — 11:00 AM". Add the weekday whenever the range crosses a day.
+function fRange(from,to){
+  const ms=v=>{
+    const n=(typeof v==='number')?v:(/^\d+$/.test(String(v).trim())?parseInt(v,10):NaN);
+    return isFinite(n)?(n<1e11?n*1000:n):Date.parse(v);
+  };
+  const a=ms(from),b=ms(to);
+  if(!isFinite(a)||!isFinite(b))return[from?fTav(from):'',to?fTav(to):''].filter(Boolean).join(' — ');
+  const day=t=>new Date(t).toLocaleDateString('en-US',{weekday:'short',timeZone:getTZ()});
+  return day(a)===day(b)?`${fTav(from)} — ${fTav(to)}`
+                        :`${day(a)} ${fTav(from)} — ${day(b)} ${fTav(to)}`;
+}
+
+// Distance chip. 0 nm means the field is INSIDE the advisory polygon.
+function abDist(d){
+  if(d===null||d===undefined)return'';
+  const txt=d<1?'overhead':`${Math.round(d)} nm`;
+  return `<span style="font-size:9px;color:var(--tx3);margin-left:6px">${txt}</span>`;
+}
+
+// A fetch that FAILED must never render as "nothing active" — on a flight tool
+// that reads as clear skies. Every section calls this for its failure state.
+function abFail(title,what,err){
+  return `<div class="ab-sec"><div class="ab-st">${title}</div>`+
+    `<div class="ab-none" style="color:var(--amber,#e0a030)">⚠ Couldn't load ${what} — `+
+    `this is a data fault, NOT an all-clear.${err?' ('+String(err).replace(/</g,'&lt;').slice(0,80)+')':''}</div></div>`;
+}
+
+// G-AIRMET hazard codes → plain labels. Ordered by relevance to a balloon:
+// low-level obscuration/IFR/turbulence matter, high-altitude turb and the
+// freezing-level contour do not.
+const GA_HAZ={IFR:'IFR Conditions',MT_OBSC:'Mountain Obscuration','TURB-LO':'Turbulence (low)',
+  'TURB-HI':'Turbulence (high)',ICE:'Icing',SFC_WND:'Surface Winds',LLWS:'Low-Level Wind Shear',FZLVL:'Freezing Level'};
+const GA_RELEVANT=['SFC_WND','LLWS','IFR','MT_OBSC','TURB-LO','ICE'];
+
+function rAvBriefing(tafR,airSigR,gairR,pirepR){
   const el=document.getElementById('avB');
   let o='';
+  // Unwrap the {ok,data,err} envelopes the fetchers return. Tolerate a bare
+  // value in case a caller is ever wired up the old way.
+  const env=(r,fallback)=>(r&&typeof r==='object'&&'ok'in r)?r:{ok:true,data:(r===undefined?fallback:r),err:''};
+  const tafE=env(tafR,{}),sigE=env(airSigR,[]),gaE=env(gairR,[]),pirE=env(pirepR,[]);
+  const tafs=tafE.data||{},airSig=sigE.data||[],gair=gaE.data||[],pireps=pirE.data||[];
 
   // ── TAFs ──
   const tafKeys=Object.keys(tafs);
-  if(tafKeys.length){
+  if(!tafE.ok){
+    o+=abFail('🎯 Terminal Aerodrome Forecasts (TAF)','TAFs',tafE.err);
+  }else if(tafKeys.length){
     o+='<div class="ab-sec"><div class="ab-st">🎯 Terminal Aerodrome Forecasts (TAF)</div>';
     tafKeys.forEach(id=>{
       const t=tafs[id];
-      const iss=t.issueTime?fT(t.issueTime):'';
-      const vf=t.validFrom?fT(t.validFrom):'';
-      const vt=t.validTo?fT(t.validTo):'';
+      const iss=t.issueTime?fTav(t.issueTime):'';
+      const vf=t.validFrom?fTav(t.validFrom):'';
+      const vt=t.validTo?fTav(t.validTo):'';
       o+=`<div class="ab-item"><div><span class="ab-stn">${id}</span>`;
       if(iss)o+=`<span class="ab-tm">Issued ${iss}</span>`;
       o+=`</div>`;
-      if(vf||vt)o+=`<div style="margin-top:3px;font-size:9px;color:var(--tx4)">Valid ${vf}${vt?' — '+vt:''}</div>`;
+      if(vf||vt)o+=`<div style="margin-top:3px;font-size:9px;color:var(--tx4)">Valid ${fRange(t.validFrom,t.validTo)}</div>`;
       if(t.raw)o+=`<div class="ab-raw">${t.raw.replace(/</g,'&lt;')}</div>`;
       o+='</div>';
     });
@@ -1597,65 +1701,96 @@ function rAvBriefing(tafs,airSig,pireps){
     o+='<div class="ab-sec"><div class="ab-st">🎯 Terminal Aerodrome Forecasts (TAF)</div><div class="ab-none">No TAFs available for nearby stations</div></div>';
   }
 
-  // ── SIGMETs & AIRMETs ──
-  // Filter by proximity — items may have lat/lon or coords array
-  const nearby=airSig.filter(item=>{
-    const lat=item.lat||item.latitude||(item.coords?.[1]);
-    const lon=item.lon||item.longitude||(item.coords?.[0]);
-    if(lat!=null&&lon!=null)return haverNm(C.lat,C.lon,lat,lon)<=150;
-    // If no coords, include if it mentions our state/region or is CONUS-wide
-    return true;
-  });
-  const sigmets=nearby.filter(i=>(i.airsigmetType||i.type||'').toLowerCase().includes('sigmet'));
-  const airmets=nearby.filter(i=>{const t=(i.airsigmetType||i.type||'').toLowerCase();return t.includes('airmet')||t.includes('g-airmet')});
-  const other=nearby.filter(i=>{const t=(i.airsigmetType||i.type||'').toLowerCase();return!t.includes('sigmet')&&!t.includes('airmet')});
+  // ── SIGMETs ──
+  // Proximity by POLYGON (see polyDistNm). Items with no usable geometry are
+  // kept rather than dropped — better a spurious advisory than a missed one.
+  const RADIUS_NM=150;
+  const withDist=arr=>arr.map(item=>{
+    const d=polyDistNm(C.lat,C.lon,item.coords);
+    return{item,d};
+  }).filter(x=>x.d===null||x.d<=RADIUS_NM).sort((a,b)=>(a.d??1e9)-(b.d??1e9));
 
-  if(sigmets.length){
+  // ⚠ The upstream field is `airSigmetType` (capital S). The old code read
+  // `airsigmetType`, which is permanently undefined in JS — so nothing ever
+  // classified as a SIGMET and this section could only ever print "none".
+  const sigType=i=>(i.airSigmetType||i.airsigmetType||i.type||'').toLowerCase();
+  const sigmets=withDist(airSig.filter(i=>sigType(i).includes('sigmet')));
+
+  if(!sigE.ok){
+    o+=abFail('⚠️ SIGMETs','SIGMETs',sigE.err);
+  }else if(sigmets.length){
     o+='<div class="ab-sec"><div class="ab-st">⚠️ SIGMETs</div>';
-    sigmets.slice(0,5).forEach(s=>{
+    sigmets.slice(0,5).forEach(({item:s,d})=>{
       const haz=s.hazard||s.hazardType||s.rawAirSigmet?.substring(0,40)||'Active';
       const sev=s.severity||'';
-      const vf=s.validTimeFrom?fT(s.validTimeFrom):'';
-      const vt=s.validTimeTo?fT(s.validTimeTo):'';
+      const vf=s.validTimeFrom?fTav(s.validTimeFrom):'';
+      const vt=s.validTimeTo?fTav(s.validTimeTo):'';
       const raw=s.rawAirSigmet||s.rawText||s.raw||'';
       o+=`<div class="ab-item"><span class="ab-haz sig">SIGMET${sev?' · '+sev:''}</span>`;
       if(haz&&haz!=='Active')o+=`<span style="font-size:10px;color:var(--tx2);font-weight:600">${haz}</span>`;
-      if(vf||vt)o+=`<div style="font-size:9px;color:var(--tx4);margin-top:3px">Valid ${vf}${vt?' — '+vt:''}</div>`;
+      o+=abDist(d);
+      if(vf||vt)o+=`<div style="font-size:9px;color:var(--tx4);margin-top:3px">Valid ${fRange(s.validTimeFrom,s.validTimeTo)}</div>`;
       if(raw)o+=`<div class="ab-raw">${raw.replace(/</g,'&lt;').substring(0,300)}</div>`;
       o+='</div>';
     });
     if(sigmets.length>5)o+=`<div style="font-size:10px;color:var(--tx3);padding:6px 0">+${sigmets.length-5} more SIGMETs</div>`;
     o+='</div>';
+  }else{
+    o+='<div class="ab-sec"><div class="ab-st">✅ SIGMETs</div><div class="ab-none">No active SIGMETs within '+RADIUS_NM+' nm</div></div>';
   }
 
-  if(airmets.length){
-    o+='<div class="ab-sec"><div class="ab-st">⚡ AIRMETs / G-AIRMETs</div>';
-    airmets.slice(0,5).forEach(a=>{
-      const haz=a.hazard||a.hazardType||'Active';
-      const vf=a.validTimeFrom?fT(a.validTimeFrom):'';
-      const vt=a.validTimeTo?fT(a.validTimeTo):'';
-      const raw=a.rawAirSigmet||a.rawText||a.raw||'';
-      o+=`<div class="ab-item"><span class="ab-haz air">AIRMET</span>`;
-      if(haz&&haz!=='Active')o+=`<span style="font-size:10px;color:var(--tx2);font-weight:600">${haz}</span>`;
-      if(vf||vt)o+=`<div style="font-size:9px;color:var(--tx4);margin-top:3px">Valid ${vf}${vt?' — '+vt:''}</div>`;
-      if(raw)o+=`<div class="ab-raw">${raw.replace(/</g,'&lt;').substring(0,300)}</div>`;
+  // ── G-AIRMETs ──
+  // These come from a DIFFERENT endpoint (/gairmet) with a different schema:
+  // hazard codes, base/top in hundreds of feet, one validTime, coords as
+  // STRINGS. The old code looked for them in the SIGMET feed, which never
+  // contains any (verified 2026-08-18) — that's why AIRMETs never appeared.
+  const gaAll=withDist(gair);
+  // Freezing-level contours are issued blanket-wide and dominate the feed
+  // (12 of 25 records on a quiet day); they're a contour, not a hazard area,
+  // so they get a one-line summary instead of flooding the list.
+  const gaHaz=gaAll.filter(x=>x.item.hazard!=='FZLVL');
+  const gaFzl=gaAll.filter(x=>x.item.hazard==='FZLVL');
+  const gaRank=h=>{const i=GA_RELEVANT.indexOf(h);return i<0?99:i};
+  gaHaz.sort((a,b)=>gaRank(a.item.hazard)-gaRank(b.item.hazard)||(a.d??1e9)-(b.d??1e9));
+
+  if(!gaE.ok){
+    o+=abFail('⚡ AIRMETs (G-AIRMET)','AIRMETs',gaE.err);
+  }else if(gaHaz.length||gaFzl.length){
+    o+='<div class="ab-sec"><div class="ab-st">⚡ AIRMETs (G-AIRMET)</div>';
+    gaHaz.slice(0,6).forEach(({item:a,d})=>{
+      const label=GA_HAZ[a.hazard]||a.hazard||'Advisory';
+      const sev=a.severity&&a.severity!=='null'?a.severity:'';
+      // base/top are hundreds of feet MSL, e.g. "340" = FL340 / 34,000 ft.
+      const ft=v=>{const n=parseFloat(v);return isFinite(n)?(n*100).toLocaleString()+' ft':''};
+      const bs=ft(a.base),tp=ft(a.top);
+      const vt=a.validTime?fTav(a.validTime):'';
+      o+=`<div class="ab-item"><span class="ab-haz air">AIRMET${sev?' · '+sev:''}</span>`;
+      o+=`<span style="font-size:10px;color:var(--tx2);font-weight:600">${label}</span>`;
+      o+=abDist(d);
+      const alt=(bs||tp)?`${bs||'SFC'} — ${tp||'—'}`:'';
+      if(alt||vt)o+=`<div style="font-size:9px;color:var(--tx4);margin-top:3px">${alt}${alt&&vt?' · ':''}${vt?'Valid '+vt:''}</div>`;
+      if(a.due_to)o+=`<div style="font-size:9px;color:var(--tx3);margin-top:2px">Due to ${String(a.due_to).replace(/</g,'&lt;')}</div>`;
       o+='</div>';
     });
-    if(airmets.length>5)o+=`<div style="font-size:10px;color:var(--tx3);padding:6px 0">+${airmets.length-5} more AIRMETs</div>`;
+    if(gaHaz.length>6)o+=`<div style="font-size:10px;color:var(--tx3);padding:6px 0">+${gaHaz.length-6} more AIRMETs</div>`;
+    if(gaFzl.length){
+      const lo=Math.min(...gaFzl.map(x=>parseFloat(x.item.fzlbase||x.item.base)).filter(isFinite));
+      o+=`<div style="font-size:10px;color:var(--tx3);padding:6px 0">+ ${gaFzl.length} freezing-level contour${gaFzl.length>1?'s':''} nearby${isFinite(lo)?' (lowest ~'+(lo*100).toLocaleString()+' ft)':''}</div>`;
+    }
     o+='</div>';
-  }
-
-  if(!sigmets.length&&!airmets.length){
-    o+='<div class="ab-sec"><div class="ab-st">✅ SIGMETs / AIRMETs</div><div class="ab-none">No active SIGMETs or AIRMETs in your area</div></div>';
+  }else{
+    o+='<div class="ab-sec"><div class="ab-st">✅ AIRMETs</div><div class="ab-none">No active AIRMETs within '+RADIUS_NM+' nm</div></div>';
   }
 
   // ── PIREPs ──
-  if(pireps.length){
+  if(!pirE.ok){
+    o+=abFail('✈️ Pilot Reports (PIREPs)','PIREPs',pirE.err);
+  }else if(pireps.length){
     o+='<div class="ab-sec"><div class="ab-st">✈️ Pilot Reports (PIREPs)</div>';
     pireps.slice(0,6).forEach(p=>{
       const tp=p.reportType||p.pirepType||(p.rawOb?.startsWith('UUA')?'UUA':'UA');
       const tm=p.obsTime||p.receiptTime||'';
-      const tmS=tm?fT(tm):'';
+      const tmS=tm?fTav(tm):'';
       const alt=p.fltlvl||p.altitudeFt||p.altitude||'';
       const altS=alt?(typeof alt==='number'?'FL'+String(Math.round(alt/100)).padStart(3,'0'):alt):'';
       const raw=p.rawOb||p.rawText||p.raw||'';
@@ -1667,6 +1802,8 @@ function rAvBriefing(tafs,airSig,pireps){
     });
     if(pireps.length>6)o+=`<div style="font-size:10px;color:var(--tx3);padding:6px 0">+${pireps.length-6} more PIREPs nearby</div>`;
     o+='</div>';
+  }else{
+    o+='<div class="ab-sec"><div class="ab-st">✈️ Pilot Reports (PIREPs)</div><div class="ab-none">No recent PIREPs nearby</div></div>';
   }
 
   // ── TFRs (link only) ──
@@ -2256,13 +2393,17 @@ async function refreshAll(force){if(busy)return;busy=true;document.getElementByI
     const fetches=C.stations.map((s,i)=>(i>0&&cacheOK&&_stnCache.data[s.label])
       ?Promise.resolve(_stnCache.data[s.label])
       :fetchOM(s.lat,s.lon).catch(e=>{console.warn('OM',s.label,e);return null}));
-    const [stnData,afd,metars,tafs,airSig,pireps,sunTimes,hrdps,nbm,hrrr15,grid,obs,alerts,aq]=await Promise.all([
+    // ⚠ The aviation fetchers return {ok,data,err} envelopes — do NOT add a
+    // `.catch(()=>[])` here. Swallowing the failure into an empty list is what
+    // made a dead feed render as "no SIGMETs in your area" for months.
+    const [stnData,afd,metars,tafs,airSig,gair,pireps,sunTimes,hrdps,nbm,hrrr15,grid,obs,alerts,aq]=await Promise.all([
       Promise.all(fetches),
       fetchAFD().catch(e=>{console.warn('AFD:',e);return null}),
       fetchMETARs().catch(e=>{console.warn('METAR:',e);return{}}),
-      fetchTAFs().catch(e=>{console.warn('TAF:',e);return{}}),
-      fetchAirSigmet().catch(e=>{console.warn('AIRSIGMET:',e);return[]}),
-      fetchPIREPs().catch(e=>{console.warn('PIREP:',e);return[]}),
+      fetchTAFs(),
+      fetchAirSigmet(),
+      fetchGAirmets(),
+      fetchPIREPs(),
       fetchSunTimes().catch(e=>{console.warn('SUN:',e);return null}),
       fetchHrdps().catch(e=>{console.warn('HRDPS:',e);return null}),
       fetchNbm().catch(e=>{console.warn('NBM:',e);return null}),
@@ -2310,7 +2451,7 @@ async function refreshAll(force){if(busy)return;busy=true;document.getElementByI
     rReality();
     rAlertsAq();
     if(afd)rAFD(afd);else document.getElementById('afdB').innerHTML='<div class="err">AFD unavailable</div>';
-    rAvBriefing(tafs,airSig,pireps);
+    rAvBriefing(tafs,airSig,gair,pireps);
     // Timing diagnosis needs the nearest station's recent history — one extra call, after
     // the page has already rendered; re-renders the Reality card (and Go/No-Go) if it finds a lag
     if(obs&&obs.length&&homeData&&isToday()){
