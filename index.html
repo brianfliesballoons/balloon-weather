@@ -383,6 +383,13 @@ a.badge{cursor:pointer}a.badge:hover{background:rgba(56,189,248,.2);color:#7dd3f
 .ab-stn{font-family:'JetBrains Mono',monospace;color:var(--blue);font-weight:700;font-size:11px}
 .ab-tm{font-size:9px;color:var(--tx3);font-family:'JetBrains Mono',monospace;margin-left:6px}
 .ab-raw{background:var(--card);padding:8px 10px;border-radius:var(--rs);margin-top:6px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--tx2);white-space:pre-wrap;word-wrap:break-word;line-height:1.6}
+/* Plain-English TAF/PIREP decode (v4.18.0). Density rule: tighten with spacing,
+   never font size — Brian runs a large font scale and needs both readable AND dense. */
+.taf-dec{margin-top:6px;display:flex;flex-direction:column;gap:4px}
+.taf-per{display:grid;grid-template-columns:minmax(118px,auto) 1fr;gap:4px 10px;align-items:baseline}
+.taf-when{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--blue);white-space:nowrap}
+.taf-what{font-size:11px;color:var(--tx2);line-height:1.45}
+@media(max-width:560px){.taf-per{grid-template-columns:1fr;gap:1px}}
 .ab-haz{display:inline-block;padding:2px 9px;border-radius:12px;font-size:9px;font-weight:600;margin-right:6px;font-family:'JetBrains Mono',monospace}
 .ab-haz.sig{background:rgba(248,113,113,.12);color:var(--danger)}
 .ab-haz.air{background:rgba(251,146,60,.12);color:var(--strong)}
@@ -1627,20 +1634,236 @@ function polyDistNm(lat,lon,coords){
 // new Date(v), which reads a bare number as MILLISECONDS — so epoch seconds
 // rendered as January 1970 ("Valid 8:24 AM — 8:26 AM"). Invisible until the
 // card started returning data at all. Anything under 1e11 is seconds.
-function fTav(v){
-  if(v===null||v===undefined||v==='')return'';
+// Single place that knows the units. Anything under 1e11 is epoch SECONDS.
+function toMs(v){
+  if(v===null||v===undefined||v==='')return NaN;
   const n=(typeof v==='number')?v:(/^\d+$/.test(String(v).trim())?parseInt(v,10):NaN);
-  return isFinite(n)?fT(n<1e11?n*1000:n):fT(v);
+  return isFinite(n)?(n<1e11?n*1000:n):Date.parse(v);
+}
+function fTav(v){
+  const ms=toMs(v);
+  return isFinite(ms)?fT(ms):'';
+}
+
+// ═══ TAF / PIREP PLAIN-LANGUAGE DECODE (v4.18.0) ═══
+// LITERAL translation only (Brian, 2026-08-18: "literal translation is better.
+// We will assess the data"). Decode the codes into English and stop — no
+// verdicts, no limit-flagging, no "marginal for your window". The pilot reads
+// the facts and makes the call.
+//
+// Deterministic parsing, never a model: TAF/PIREP are strict published formats,
+// and a paraphrase of a weather code on a flight tool is not acceptable.
+// The raw text stays on screen underneath every decode so it can be checked.
+
+const WX_INT={'-':'light','+':'heavy','VC':'in the vicinity'};
+const WX_DESC={MI:'shallow',PR:'partial',BC:'patches of',DR:'low drifting',BL:'blowing',
+  SH:'showers of',TS:'thunderstorm with',FZ:'freezing'};
+const WX_PHEN={DZ:'drizzle',RA:'rain',SN:'snow',SG:'snow grains',IC:'ice crystals',
+  PL:'ice pellets',GR:'hail',GS:'small hail',UP:'unknown precipitation',
+  BR:'mist',FG:'fog',FU:'smoke',VA:'volcanic ash',DU:'widespread dust',SA:'sand',
+  HZ:'haze',PY:'spray',PO:'dust whirls',SQ:'squalls',FC:'funnel cloud',
+  SS:'sandstorm',DS:'duststorm'};
+const SKY={FEW:'Few clouds',SCT:'Scattered clouds',BKN:'Broken clouds',OVC:'Overcast',
+  SKC:'Sky clear',CLR:'Clear below 12,000 ft',NSC:'No significant cloud',NCD:'No cloud detected',
+  VV:'Sky obscured, vertical visibility'};
+
+// Wording for a descriptor used with NO phenomenon after it — "VCSH" is
+// "showers in the vicinity", not "showers of in the vicinity".
+const WX_DESC_ALONE={MI:'shallow',PR:'partial',BC:'patches',DR:'drifting',BL:'blowing',
+  SH:'showers',TS:'thunderstorm',FZ:'freezing'};
+
+// "-TSRA" -> "light thunderstorm with rain"; "VCSH" -> "showers in the vicinity".
+// A group is an optional intensity, then 2-letter chunks that are each either a
+// descriptor or a phenomenon.
+function decodeWxTok(t){
+  const m=t.match(/^([-+]|VC)?((?:[A-Z]{2})+)$/);
+  if(!m)return'';
+  const desc=[],phen=[];
+  (m[2].match(/../g)||[]).forEach(c=>{
+    if(WX_DESC[c]&&!phen.length)desc.push(c);
+    else if(WX_PHEN[c])phen.push(c);
+  });
+  if(!desc.length&&!phen.length)return'';
+  const parts=[];
+  if(m[1]&&m[1]!=='VC'&&WX_INT[m[1]])parts.push(WX_INT[m[1]]);
+  if(desc.length)parts.push(desc.map(d=>phen.length?WX_DESC[d]:(WX_DESC_ALONE[d]||WX_DESC[d])).join(' '));
+  if(phen.length)parts.push(phen.map(p=>WX_PHEN[p]).join(' and '));
+  if(m[1]==='VC')parts.push('in the vicinity');
+  return parts.filter(Boolean).join(' ');
+}
+
+const ftTxt=n=>n==null?'':Math.round(n).toLocaleString()+' ft';
+
+// TAF times are DDHH(MM) in UTC with no month. Anchor them to the TAF's own
+// valid-from so a day number rolling past the end of the month still resolves.
+// Date.UTC handles hour 24 as the next day, which TAFs use for end-of-period.
+function tafT(dd,hh,mm,anchorMs){
+  const a=new Date(anchorMs||Date.now());
+  let t=Date.UTC(a.getUTCFullYear(),a.getUTCMonth(),dd,hh,mm||0);
+  const DAY=86400000, base=anchorMs||Date.now();
+  if(t<base-20*DAY)t=Date.UTC(a.getUTCFullYear(),a.getUTCMonth()+1,dd,hh,mm||0);
+  else if(t>base+20*DAY)t=Date.UTC(a.getUTCFullYear(),a.getUTCMonth()-1,dd,hh,mm||0);
+  return t;
+}
+
+function parseTafGroup(toks){
+  const g={dir:null,spd:null,gust:null,vrb:false,calm:false,vis:null,visP:false,visM:false,
+           wx:[],clouds:[],shear:null,cavok:false,nsw:false};
+  toks.forEach(t=>{
+    let m;
+    if(t==='CAVOK'){g.cavok=true;return}
+    if(t==='NSW'){g.nsw=true;return}
+    if(m=t.match(/^(\d{3}|VRB)(\d{2,3})(?:G(\d{2,3}))?(KT|MPS)$/)){
+      let s=+m[2],gu=m[3]?+m[3]:null;
+      if(m[4]==='MPS'){s=Math.round(s*1.94384);if(gu)gu=Math.round(gu*1.94384)}
+      if(m[1]==='VRB')g.vrb=true; else g.dir=+m[1];
+      if(g.dir===0&&s===0)g.calm=true;
+      g.spd=s;g.gust=gu;return;
+    }
+    if(m=t.match(/^WS(\d{3})\/(\d{3})(\d{2,3})KT$/)){
+      g.shear={ft:+m[1]*100,dir:+m[2],spd:+m[3]};return;
+    }
+    // P6SM / 6SM / 1/2SM / 1+1/2SM (pre-joined below) / M1/4SM
+    if(m=t.match(/^(P|M)?(?:(\d+)\+)?(?:(\d+)\/(\d+)|(\d+))SM$/)){
+      let v=0;
+      if(m[2])v+=+m[2];
+      if(m[3])v+=(+m[3])/(+m[4]); else if(m[5])v+=+m[5];
+      g.vis=v;g.visP=m[1]==='P';g.visM=m[1]==='M';return;
+    }
+    if(m=t.match(/^(FEW|SCT|BKN|OVC)(\d{3})(CB|TCU)?$/)){
+      g.clouds.push({cover:m[1],ft:+m[2]*100,cb:m[3]||''});return;
+    }
+    if(m=t.match(/^VV(\d{3})$/)){g.clouds.push({cover:'VV',ft:+m[1]*100,cb:''});return}
+    if(/^(SKC|CLR|NSC|NCD)$/.test(t)){g.clouds.push({cover:t,ft:null,cb:''});return}
+    const w=decodeWxTok(t);
+    if(w)g.wx.push(w);
+  });
+  return g;
+}
+
+// One group -> a list of plain-English phrases.
+function tafGroupPhrases(g){
+  const out=[];
+  if(g.calm)out.push('Wind calm');
+  else if(g.spd!=null){
+    let w=g.vrb?`Wind variable ${g.spd} kt`
+               :`Wind from ${cp(g.dir)} (${pad3(g.dir)}°) ${g.spd} kt`;
+    if(g.gust)w+=`, gusting ${g.gust} kt`;
+    out.push(w);
+  }
+  if(g.cavok)out.push('Ceiling and visibility OK');
+  if(g.vis!=null){
+    const n=g.vis%1?g.vis.toFixed(2).replace(/0$/,''):g.vis;
+    out.push(g.visP?`Visibility more than ${n} SM`
+            :g.visM?`Visibility less than ${n} SM`
+            :`Visibility ${n} SM`);
+  }
+  if(g.nsw)out.push('No significant weather');
+  g.wx.forEach(w=>out.push(w.charAt(0).toUpperCase()+w.slice(1)));
+  g.clouds.forEach(c=>{
+    const lbl=SKY[c.cover]||c.cover;
+    if(c.ft==null)out.push(lbl);
+    else out.push(`${lbl} at ${ftTxt(c.ft)}${c.cb==='CB'?' (cumulonimbus)':c.cb==='TCU'?' (towering cumulus)':''}`);
+  });
+  if(g.shear)out.push(`Low-level wind shear at ${ftTxt(g.shear.ft)}: from ${cp(g.shear.dir)} (${pad3(g.shear.dir)}°) ${g.shear.spd} kt`);
+  return out;
+}
+
+// Full TAF -> ordered periods. Base periods (the initial group and each FM)
+// run until the next base period; TEMPO/BECMG/PROB carry their own window and
+// are overlays on whatever base period they fall inside.
+function decodeTaf(raw,anchorRaw){
+  if(!raw)return null;
+  // ⚠ callers pass validFrom/issueTime, which are epoch SECONDS — normalise or
+  // every period anchors to January 1970 and the weekdays come out random.
+  const anchorMs=isFinite(toMs(anchorRaw))?toMs(anchorRaw):Date.now();
+  // "1 1/2SM" arrives as two tokens — join so the vis regex sees one.
+  const txt=raw.replace(/\s+/g,' ').trim().replace(/\b(\d) (\d\/\d)SM\b/g,'$1+$2SM');
+  const toks=txt.split(' ');
+  let i=0;
+  if(toks[i]==='TAF')i++;
+  const amd=/^(AMD|COR|RTD)$/.test(toks[i])?toks[i++]:'';
+  const station=/^[A-Z]{4}$/.test(toks[i])?toks[i++]:'';
+  if(/^\d{6}Z$/.test(toks[i]))i++;
+  let vFrom=null,vTo=null,m;
+  if(m=(toks[i]||'').match(/^(\d{2})(\d{2})\/(\d{2})(\d{2})$/)){
+    i++;
+    vFrom=tafT(+m[1],+m[2],0,anchorMs);
+    vTo=tafT(+m[3],+m[4],0,vFrom);
+  }
+  const anchor=vFrom||anchorMs||Date.now();
+  const groups=[];
+  let cur={kind:'BASE',label:'',from:vFrom,to:null,toks:[]};
+  for(;i<toks.length;i++){
+    const t=toks[i];
+    let mm;
+    if(mm=t.match(/^FM(\d{2})(\d{2})(\d{2})$/)){
+      groups.push(cur);
+      cur={kind:'BASE',label:'',from:tafT(+mm[1],+mm[2],+mm[3],anchor),to:null,toks:[]};
+    }else if(/^(TEMPO|BECMG)$/.test(t)||/^PROB\d{2}$/.test(t)){
+      const rng=(toks[i+1]||'').match(/^(\d{2})(\d{2})\/(\d{2})(\d{2})$/);
+      groups.push(cur);
+      const lbl=t==='TEMPO'?'Temporarily':t==='BECMG'?'Becoming':`${t.slice(4)}% chance`;
+      cur={kind:'OVERLAY',label:lbl,
+           from:rng?tafT(+rng[1],+rng[2],0,anchor):null,
+           to:rng?tafT(+rng[3],+rng[4],0,anchor):null,toks:[]};
+      if(rng)i++;
+    }else cur.toks.push(t);
+  }
+  groups.push(cur);
+  // Close each base period at the start of the next one.
+  const bases=groups.filter(g=>g.kind==='BASE');
+  bases.forEach((g,n)=>{g.to=bases[n+1]?bases[n+1].from:vTo});
+  return{station,amd,vFrom,vTo,
+    periods:groups.filter(g=>g.toks.length).map(g=>({...g,phrases:tafGroupPhrases(parseTafGroup(g.toks))}))};
+}
+
+// PIREPs come back as structured fields, so decode those rather than re-parsing
+// the raw string. Units verified against rawOb 2026-08-18: fltLvl is HUNDREDS
+// of feet (FL017 -> 17), cloud base/top are already FEET, visib is statute miles,
+// and a 0 top means "not reported", not "sea level".
+const PIR_INT={LGT:'light','LGT-MOD':'light to moderate',MOD:'moderate','MOD-SEV':'moderate to severe',
+  SEV:'severe',EXTM:'extreme',NEG:'none',SMTH:'smooth',TRACE:'trace','TRACE-LGT':'trace to light'};
+const PIR_TB={CHOP:'chop',CAT:'clear-air turbulence',LLWS:'low-level wind shear'};
+const PIR_ICE={RIME:'rime',CLR:'clear',MX:'mixed'};
+
+function decodePirep(p){
+  const out=[];
+  const alt=(p.fltLvl!=null&&p.fltLvl!=='')?parseFloat(p.fltLvl)*100:null;
+  if(isFinite(alt)&&alt)out.push(`At ${ftTxt(alt)}`);
+  (p.clouds||[]).forEach(c=>{
+    const lbl=SKY[c.cover]||c.cover;
+    if(!lbl)return;
+    const b=parseFloat(c.base),t=parseFloat(c.top);
+    let s=lbl;
+    if(isFinite(b)&&b)s+=` base ${ftTxt(b)}`;
+    if(isFinite(t)&&t)s+=`, tops ${ftTxt(t)}`;
+    out.push(s);
+  });
+  if(p.visib!=null&&p.visib!=='')out.push(`Visibility ${p.visib} SM`);
+  if(p.wxString)String(p.wxString).split(/\s+/).forEach(w=>{const d=decodeWxTok(w);if(d)out.push(d.charAt(0).toUpperCase()+d.slice(1))});
+  if(p.tbInt1){
+    let s=`Turbulence ${PIR_INT[p.tbInt1]||String(p.tbInt1).toLowerCase()}`;
+    if(p.tbType1)s+=` (${PIR_TB[p.tbType1]||String(p.tbType1).toLowerCase()})`;
+    const b=parseFloat(p.tbBas1),t=parseFloat(p.tbTop1);
+    if(isFinite(b)&&b)s+=` from ${ftTxt(b*100)}`;
+    if(isFinite(t)&&t)s+=` to ${ftTxt(t*100)}`;
+    out.push(s);
+  }
+  if(p.icgInt1){
+    let s=`Icing ${PIR_INT[p.icgInt1]||String(p.icgInt1).toLowerCase()}`;
+    if(p.icgType1)s+=` (${PIR_ICE[p.icgType1]||String(p.icgType1).toLowerCase()})`;
+    out.push(s);
+  }
+  if(p.wdir!=null&&p.wspd!=null&&p.wspd!=='')out.push(`Wind from ${cp(+p.wdir)} (${pad3(+p.wdir)}°) ${p.wspd} kt`);
+  if(p.temp!=null&&p.temp!=='')out.push(`Temp ${p.temp}°C`);
+  return out;
 }
 
 // A TAF's validity is usually 24h+, so time-only formatting renders it as the
 // nonsense "11:00 AM — 11:00 AM". Add the weekday whenever the range crosses a day.
 function fRange(from,to){
-  const ms=v=>{
-    const n=(typeof v==='number')?v:(/^\d+$/.test(String(v).trim())?parseInt(v,10):NaN);
-    return isFinite(n)?(n<1e11?n*1000:n):Date.parse(v);
-  };
-  const a=ms(from),b=ms(to);
+  const a=toMs(from),b=toMs(to);
   if(!isFinite(a)||!isFinite(b))return[from?fTav(from):'',to?fTav(to):''].filter(Boolean).join(' — ');
   const day=t=>new Date(t).toLocaleDateString('en-US',{weekday:'short',timeZone:getTZ()});
   return day(a)===day(b)?`${fTav(from)} — ${fTav(to)}`
@@ -1693,6 +1916,19 @@ function rAvBriefing(tafR,airSigR,gairR,pirepR){
       if(iss)o+=`<span class="ab-tm">Issued ${iss}</span>`;
       o+=`</div>`;
       if(vf||vt)o+=`<div style="margin-top:3px;font-size:9px;color:var(--tx4)">Valid ${fRange(t.validFrom,t.validTo)}</div>`;
+      // Plain-English decode above the raw. Raw stays so it can be checked.
+      const dec=decodeTaf(t.raw,t.validFrom||t.issueTime);
+      if(dec&&dec.periods.length){
+        o+='<div class="taf-dec">';
+        dec.periods.forEach(pr=>{
+          const when=pr.kind==='OVERLAY'
+            ?`${pr.label}${pr.from?' '+fRange(pr.from,pr.to):''}`
+            :(pr.from?fRange(pr.from,pr.to):'');
+          o+=`<div class="taf-per"><div class="taf-when">${when||'—'}</div>`;
+          o+=`<div class="taf-what">${pr.phrases.map(x=>x.replace(/</g,'&lt;')).join(' · ')||'—'}</div></div>`;
+        });
+        o+='</div>';
+      }
       if(t.raw)o+=`<div class="ab-raw">${t.raw.replace(/</g,'&lt;')}</div>`;
       o+='</div>';
     });
@@ -1794,9 +2030,11 @@ function rAvBriefing(tafR,airSigR,gairR,pirepR){
       const alt=p.fltlvl||p.altitudeFt||p.altitude||'';
       const altS=alt?(typeof alt==='number'?'FL'+String(Math.round(alt/100)).padStart(3,'0'):alt):'';
       const raw=p.rawOb||p.rawText||p.raw||'';
-      o+=`<div class="ab-item"><span class="ab-haz pir">${tp}</span>`;
+      o+=`<div class="ab-item"><span class="ab-haz pir">${tp==='UUA'?'URGENT':'ROUTINE'}</span>`;
       if(tmS)o+=`<span class="ab-tm">${tmS}</span>`;
-      if(altS)o+=`<span class="ab-tm">${altS}</span>`;
+      if(p.acType)o+=`<span class="ab-tm">${String(p.acType).replace(/</g,'&lt;')}</span>`;
+      const pd=decodePirep(p);
+      if(pd.length)o+=`<div class="taf-what" style="margin-top:4px">${pd.map(x=>x.replace(/</g,'&lt;')).join(' · ')}</div>`;
       if(raw)o+=`<div style="margin-top:4px;font-size:10px;color:var(--tx2);font-family:'JetBrains Mono',monospace;word-break:break-all">${raw.replace(/</g,'&lt;').substring(0,200)}</div>`;
       o+='</div>';
     });
