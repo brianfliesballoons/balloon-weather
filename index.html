@@ -563,10 +563,7 @@ a.badge{cursor:pointer}a.badge:hover{background:rgba(56,189,248,.2);color:#7dd3f
   <div class="cd"><div class="ch tg open" onclick="tog(this)"><div class="ct">🗺 Wind Map</div><a class="badge" id="srcWindy" href="#" target="_blank" rel="noopener" onclick="event.stopPropagation()">Windy</a><span class="chv">▾</span></div><div class="body" style="padding:0"><iframe class="efr" id="windyFrame" loading="lazy"></iframe></div></div>
   <div class="cd"><div class="ch"><div class="ct">✈️ Aviation Briefing<span class="sub">TAFs · SIGMETs · AIRMETs · PIREPs</span></div><a class="badge" id="srcAv" href="#" target="_blank" rel="noopener">aviationweather.gov</a></div><div class="body" id="avB"><div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
   <div class="cd full"><div class="ch tg open" onclick="tog(this)"><div class="ct">📡 Radar<span class="sub">Precipitation · animated</span></div><a class="badge" id="srcRadar" href="#" target="_blank" rel="noopener" onclick="event.stopPropagation()">Windy Radar</a><span class="chv">▾</span></div><div class="body" style="padding:0"><iframe class="efr" id="radarFrame" loading="lazy"></iframe></div></div>
-  <!-- TFR map (v4.18.1). tfr.faa.gov sends no X-Frame-Options, so it frames.
-       Collapsed by default: it's a heavy government page and Brian only needs
-       it occasionally — the header click lazy-loads it via setEmbed(). -->
-  <div class="cd full"><div class="ch tg" onclick="tog(this)"><div class="ct">🚁 TFR Map<span class="sub">FAA temporary flight restrictions</span></div><a class="badge" href="https://tfr.faa.gov/tfr3/" target="_blank" rel="noopener" onclick="event.stopPropagation()">tfr.faa.gov ↗</a><span class="chv">▾</span></div><div class="body hide" style="padding:0"><iframe class="efr" id="tfrFrame" loading="lazy"></iframe></div></div>
+
   <div class="cd full"><div class="ch tg open" onclick="tog(this)"><div class="ct">📅 5-Day Overview</div><span class="chv">▾</span></div><div class="body" id="dayB"><div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
   <div class="cd full"><div class="ch tg open" onclick="tog(this)"><div class="ct">✅ Go / No-Go<span class="sub">Flight Decision</span></div><span class="chv">▾</span></div><div class="body" id="gngB"><div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
 </div>
@@ -1013,9 +1010,6 @@ function updateUI(){
   }
   setEmbed('windyFrame',`https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=default&metricTemp=%C2%B0F&metricWind=mph&zoom=9&overlay=wind&product=ecmwf&level=surface&lat=${C.lat}&lon=${C.lon}`);
   setEmbed('radarFrame',`https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=default&metricTemp=%C2%B0F&metricWind=mph&zoom=8&overlay=radar&product=radar&level=surface&lat=${C.lat}&lon=${C.lon}`);
-  // The FAA map takes no coordinate params — it opens on its own CONUS view and
-  // is panned by hand. Card stays collapsed until asked for.
-  setEmbed('tfrFrame','https://tfr.faa.gov/tfr3/');
 }
 
 // ═══ DATA FETCH ═══
