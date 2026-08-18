@@ -575,7 +575,7 @@ a.badge{cursor:pointer}a.badge:hover{background:rgba(56,189,248,.2);color:#7dd3f
 const C={
   // Dynamic — updated by setLocation()
   lat:33.57,lon:-117.13,elev:1349,name:'Temecula',locName:'French Valley',
-  timezone:'America/Los_Angeles',nwsOffice:'SGX',
+  timezone:'America/Los_Angeles',nwsOffice:'SGX',state:'CA',
   stations:[
     {label:'F70',name:'French Valley',lat:33.57,lon:-117.13,dist:0},
     {label:'BNG',name:'Banning',lat:33.92,lon:-116.85,dist:30},
@@ -911,7 +911,7 @@ async function selectLocation(geo){
     // Get elevation if missing (ZIP lookups don't include it)
     let elev=geo.elevation!=null?Math.round(geo.elevation*3.28084):null;
     let tz=geo.timezone;
-    let office='',gridUrl='';
+    let office='',gridUrl='',stateAbbr='';
     // NWS points lookup
     try{
       const pr=await fetchT(`https://api.weather.gov/points/${geo.lat.toFixed(4)},${geo.lon.toFixed(4)}`);
@@ -919,6 +919,9 @@ async function selectLocation(geo){
         office=(pd.properties?.forecastOffice||'').split('/').pop()||'';
         tz=tz||pd.properties?.timeZone||'America/New_York';
         gridUrl=pd.properties?.forecastGridData||'';
+        // Free ride: the TFR list can only be filtered by state (the FAA feed
+        // carries no coordinates), and this response already knows ours.
+        stateAbbr=pd.properties?.relativeLocation?.properties?.state||'';
       }
     }catch(e){console.warn('NWS points:',e)}
     // Get elevation from Open-Meteo if still missing
@@ -967,7 +970,7 @@ async function selectLocation(geo){
     const stations=[{label:homeLabel,name:geo.name,lat:geo.lat,lon:geo.lon,dist:0},...compStns];
     // Apply to config
     C.lat=geo.lat;C.lon=geo.lon;C.elev=elev;C.name=geo.name;C.locName=geo.name;
-    C.timezone=tz||'America/New_York';C.nwsOffice=office;C.gridUrl=gridUrl;
+    C.timezone=tz||'America/New_York';C.nwsOffice=office;C.gridUrl=gridUrl;C.state=stateAbbr;
     C.stations=stations;
     C.metarStns=metarStns.length?metarStns:[];
     // Re-merge any user-defined custom stations so a location change doesn't drop them
@@ -975,7 +978,7 @@ async function selectLocation(geo){
     // Update UI
     updateUI();
     // Save to localStorage (only persist auto-discovered ones; customStations are saved separately)
-    try{localStorage.setItem('balloonWeatherLoc',JSON.stringify({cfgVer:CFG_VER,lat:C.lat,lon:C.lon,elev:C.elev,name:C.name,locName:C.locName,timezone:C.timezone,nwsOffice:C.nwsOffice,gridUrl:C.gridUrl,stations:C.stations.filter(s=>!s._custom),metarStns:C.metarStns.filter(s=>!s._custom)}))}catch(e){}
+    try{localStorage.setItem('balloonWeatherLoc',JSON.stringify({cfgVer:CFG_VER,lat:C.lat,lon:C.lon,elev:C.elev,name:C.name,locName:C.locName,timezone:C.timezone,nwsOffice:C.nwsOffice,gridUrl:C.gridUrl,state:C.state,stations:C.stations.filter(s=>!s._custom),metarStns:C.metarStns.filter(s=>!s._custom)}))}catch(e){}
     closeLoc();
     refreshAll();
   }catch(e){res.innerHTML=`<div class="loc-msg err">Error: ${e.message}</div>`}
@@ -1165,6 +1168,60 @@ async function fetchGAirmets(){
     if(!Array.isArray(d))throw new Error(d&&d.error?d.error:'unexpected response');
     return{ok:true,data:d,err:''};
   }catch(e){console.warn('GAIRMET:',e);return{ok:false,data:[],err:avErr(e)}}
+}
+
+// ═══ TFRs (v4.19.0) ═══
+// Two-step by necessity: the FAA's active-TFR list carries NO coordinates —
+// only state / type / description — so it can't be distance-filtered directly.
+// We cut it to our state (plus nationwide entries), then pull the detail for
+// just those, which DOES carry the polygon. The proxy parses each 26 KB XNOTAM
+// into ~1.8 KB of JSON, because this runs on a phone on cellular.
+const TFR_RADIUS_NM=250;   // TFRs matter further out than SIGMETs do
+// ⚠ The list has no coordinates, so it CANNOT be distance-sorted before we
+// fetch details — a cap here risks skipping a close TFR that happens to sit
+// late in the list. So the cap is set above the busiest state's real count
+// (CA ran 24 on 2026-08-18) rather than tuned for looks. Details are ~1.8 KB
+// each and the proxy caches 120s, so the cost is small; they go out in small
+// batches rather than one burst, because a burst is what killed TAFs on 5G.
+const TFR_DETAIL_CAP=30;
+const TFR_BATCH=6;
+
+async function fetchTfrs(){
+  try{
+    const r=await fetchAv(`${AVPROXY}/tfr`);
+    const list=await r.json();
+    if(!Array.isArray(list))throw new Error(list&&list.error?list.error:'unexpected response');
+    const st=(C.state||'').toUpperCase();
+    // Nationwide entries (state "USA") apply everywhere — always keep them.
+    const mine=list.filter(t=>{
+      const s=(t.state||'').toUpperCase();
+      return s==='USA'||(st&&s===st);
+    });
+    const detailed=mine.slice(0,TFR_DETAIL_CAP);
+    const one=async t=>{
+      // "6/6067" -> "6_6067"
+      const id=String(t.notam_id||'').replace(/\//g,'_');
+      if(!id)return{...t,dist:null};
+      try{
+        const dr=await fetchAv(`${AVPROXY}/tfrdetail?id=${encodeURIComponent(id)}`,20000);
+        const d=await dr.json();
+        const dist=(d&&Array.isArray(d.coords)&&d.coords.length)
+          ?polyDistNm(C.lat,C.lon,d.coords):null;
+        return{...t,dist,lower:d&&d.lower,upper:d&&d.upper,upperCode:d&&d.upperCode,radiusNm:d&&d.radiusNm};
+      }catch(e){console.warn('TFR detail',id,e);return{...t,dist:null}}
+    };
+    const results=[];
+    for(let i=0;i<detailed.length;i+=TFR_BATCH){
+      results.push(...await Promise.all(detailed.slice(i,i+TFR_BATCH).map(one)));
+    }
+    // Anything we resolved a distance for is filtered by it; anything we
+    // couldn't is KEPT rather than dropped — a TFR is not something to hide
+    // because its detail fetch failed.
+    const near=results.filter(t=>t.dist===null||t.dist<=TFR_RADIUS_NM)
+                      .sort((a,b)=>(a.dist??1e9)-(b.dist??1e9));
+    return{ok:true,data:{near,total:list.length,inState:mine.length,state:st,
+                         truncated:mine.length>TFR_DETAIL_CAP},err:''};
+  }catch(e){console.warn('TFR:',e);return{ok:false,data:null,err:avErr(e)}}
 }
 
 // Upstream requires a station ID + radial distance; the old lat/lon/dist form
@@ -1924,13 +1981,14 @@ const GA_HAZ={IFR:'IFR Conditions',MT_OBSC:'Mountain Obscuration','TURB-LO':'Tur
   'TURB-HI':'Turbulence (high)',ICE:'Icing',SFC_WND:'Surface Winds',LLWS:'Low-Level Wind Shear',FZLVL:'Freezing Level'};
 const GA_RELEVANT=['SFC_WND','LLWS','IFR','MT_OBSC','TURB-LO','ICE'];
 
-function rAvBriefing(tafR,airSigR,gairR,pirepR){
+function rAvBriefing(tafR,airSigR,gairR,pirepR,tfrR){
   const el=document.getElementById('avB');
   let o='';
   // Unwrap the {ok,data,err} envelopes the fetchers return. Tolerate a bare
   // value in case a caller is ever wired up the old way.
   const env=(r,fallback)=>(r&&typeof r==='object'&&'ok'in r)?r:{ok:true,data:(r===undefined?fallback:r),err:''};
-  const tafE=env(tafR,{}),sigE=env(airSigR,[]),gaE=env(gairR,[]),pirE=env(pirepR,[]);
+  const tafE=env(tafR,{}),sigE=env(airSigR,[]),gaE=env(gairR,[]),pirE=env(pirepR,[]),tfrE=env(tfrR,null);
+  const tfrData=tfrE.data||null;
   const tafs=tafE.data||{},airSig=sigE.data||[],gair=gaE.data||[],pireps=pirE.data||[];
 
   // ── TAFs ──
@@ -2078,8 +2136,38 @@ function rAvBriefing(tafR,airSigR,gairR,pirepR){
 
   // ── TFRs (link only) ──
   o+='<div class="ab-sec"><div class="ab-st">🚁 Temporary Flight Restrictions (TFR)</div>';
-  o+=`<div style="font-size:11px;color:var(--tx3);margin-bottom:8px">Check FAA for current TFRs in your area</div>`;
-  o+=`<a class="ab-tfr" href="https://tfr.faa.gov/tfr3/" target="_blank" rel="noopener">View FAA TFR Map ↗</a>`;
+  if(!tfrE.ok){
+    o+=`<div class="ab-none" style="color:var(--amber,#e0a030)">⚠ Couldn't load TFRs — this is a data fault, NOT an all-clear.${tfrE.err?' ('+String(tfrE.err).replace(/</g,'&lt;')+')':''}</div>`;
+  }else if(tfrData&&tfrData.near.length){
+    // Standing nationwide security TFRs (state "USA" — stadiums, VIP movement,
+    // the DC SFRA) have no location to measure and mostly never expire. They
+    // outnumbered the genuinely-nearby ones 10 to 6 on 2026-08-18, so they get
+    // a one-line roll-up instead of burying the local picture. Same treatment
+    // as the freezing-level contours in the AIRMET section.
+    const local=tfrData.near.filter(t=>(t.state||'').toUpperCase()!=='USA');
+    const national=tfrData.near.filter(t=>(t.state||'').toUpperCase()==='USA');
+    local.forEach(t=>{
+      const typ=(t.type||'TFR').replace(/</g,'&lt;');
+      o+=`<div class="ab-item"><span class="ab-haz gair">${typ}</span>`;
+      o+=`<span style="font-size:10px;color:var(--tx2);font-weight:600">${String(t.notam_id||'').replace(/</g,'&lt;')}</span>`;
+      o+=abDist(t.dist);
+      // Altitudes come as hundreds-of-feet-free raw numbers; ALT = MSL feet.
+      const lo=parseFloat(t.lower),hi=parseFloat(t.upper);
+      const loS=isFinite(lo)?(lo===0?'SFC':ftTxt(lo)):'';
+      const hiS=(isFinite(hi)&&hi>0)?ftTxt(hi):'';   // 0 = not stated, not ground
+      const alt=(loS||hiS)?`${loS||'—'} — ${hiS||'unspecified'}`:'';
+      const bits=[alt,t.radiusNm?`${t.radiusNm} nm radius`:''].filter(Boolean).join(' · ');
+      if(bits)o+=`<div style="font-size:9px;color:var(--tx4);margin-top:3px">${bits}</div>`;
+      if(t.description)o+=`<div class="taf-what" style="margin-top:3px">${String(t.description).replace(/</g,'&lt;')}</div>`;
+      o+='</div>';
+    });
+    if(!local.length)o+=`<div class="ab-none">No local TFRs within ${TFR_RADIUS_NM} nm</div>`;
+    if(national.length)o+=`<div style="font-size:10px;color:var(--tx3);padding:6px 0">+ ${national.length} standing nationwide security TFR${national.length>1?'s':''} (stadiums, VIP movement) — see the FAA map</div>`;
+    if(tfrData.truncated)o+=`<div style="font-size:10px;color:var(--tx3);padding:6px 0">⚠ Only the first ${TFR_DETAIL_CAP} of ${tfrData.inState} active in ${tfrData.state} were checked for distance — open the map for the rest</div>`;
+  }else if(tfrData){
+    o+=`<div class="ab-none">No TFRs within ${TFR_RADIUS_NM} nm${tfrData.state?' ('+tfrData.inState+' active in '+tfrData.state+', '+tfrData.total+' nationwide)':''}</div>`;
+  }
+  o+=`<div style="margin-top:8px"><a class="ab-tfr" href="https://tfr.faa.gov/tfr3/" target="_blank" rel="noopener">View FAA TFR Map ↗</a></div>`;
   o+='</div>';
 
   // ── External links ──
@@ -2666,7 +2754,7 @@ async function refreshAll(force){if(busy)return;busy=true;document.getElementByI
     // ⚠ The aviation fetchers return {ok,data,err} envelopes — do NOT add a
     // `.catch(()=>[])` here. Swallowing the failure into an empty list is what
     // made a dead feed render as "no SIGMETs in your area" for months.
-    const [stnData,afd,metars,tafs,airSig,gair,pireps,sunTimes,hrdps,nbm,hrrr15,grid,obs,alerts,aq]=await Promise.all([
+    const [stnData,afd,metars,tafs,airSig,gair,pireps,tfrs,sunTimes,hrdps,nbm,hrrr15,grid,obs,alerts,aq]=await Promise.all([
       Promise.all(fetches),
       fetchAFD().catch(e=>{console.warn('AFD:',e);return null}),
       fetchMETARs().catch(e=>{console.warn('METAR:',e);return{}}),
@@ -2674,6 +2762,7 @@ async function refreshAll(force){if(busy)return;busy=true;document.getElementByI
       fetchAirSigmet(),
       fetchGAirmets(),
       fetchPIREPs(),
+      fetchTfrs(),
       fetchSunTimes().catch(e=>{console.warn('SUN:',e);return null}),
       fetchHrdps().catch(e=>{console.warn('HRDPS:',e);return null}),
       fetchNbm().catch(e=>{console.warn('NBM:',e);return null}),
@@ -2721,7 +2810,7 @@ async function refreshAll(force){if(busy)return;busy=true;document.getElementByI
     rReality();
     rAlertsAq();
     if(afd)rAFD(afd);else document.getElementById('afdB').innerHTML='<div class="err">AFD unavailable</div>';
-    rAvBriefing(tafs,airSig,gair,pireps);
+    rAvBriefing(tafs,airSig,gair,pireps,tfrs);
     // Timing diagnosis needs the nearest station's recent history — one extra call, after
     // the page has already rendered; re-renders the Reality card (and Go/No-Go) if it finds a lag
     if(obs&&obs.length&&homeData&&isToday()){
@@ -2752,7 +2841,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     if(saved){const s=JSON.parse(saved);
       if(s.lat&&s.lon){
         C.lat=s.lat;C.lon=s.lon;C.elev=s.elev||0;C.name=s.name||'Unknown';C.locName=s.locName||s.name||'Unknown';
-        C.timezone=s.timezone||'America/New_York';C.nwsOffice=s.nwsOffice||'';C.gridUrl=s.gridUrl||'';
+        C.timezone=s.timezone||'America/New_York';C.nwsOffice=s.nwsOffice||'';C.gridUrl=s.gridUrl||'';C.state=s.state||'';
         C.metarStns=s.metarStns||C.metarStns;
         locSource='localStorage ('+C.name+')';
         // Only load saved stations if config version matches — otherwise use fresh defaults
