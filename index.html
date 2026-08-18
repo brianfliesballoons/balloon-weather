@@ -563,6 +563,10 @@ a.badge{cursor:pointer}a.badge:hover{background:rgba(56,189,248,.2);color:#7dd3f
   <div class="cd"><div class="ch tg open" onclick="tog(this)"><div class="ct">🗺 Wind Map</div><a class="badge" id="srcWindy" href="#" target="_blank" rel="noopener" onclick="event.stopPropagation()">Windy</a><span class="chv">▾</span></div><div class="body" style="padding:0"><iframe class="efr" id="windyFrame" loading="lazy"></iframe></div></div>
   <div class="cd"><div class="ch"><div class="ct">✈️ Aviation Briefing<span class="sub">TAFs · SIGMETs · AIRMETs · PIREPs</span></div><a class="badge" id="srcAv" href="#" target="_blank" rel="noopener">aviationweather.gov</a></div><div class="body" id="avB"><div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
   <div class="cd full"><div class="ch tg open" onclick="tog(this)"><div class="ct">📡 Radar<span class="sub">Precipitation · animated</span></div><a class="badge" id="srcRadar" href="#" target="_blank" rel="noopener" onclick="event.stopPropagation()">Windy Radar</a><span class="chv">▾</span></div><div class="body" style="padding:0"><iframe class="efr" id="radarFrame" loading="lazy"></iframe></div></div>
+  <!-- TFR map (v4.18.1). tfr.faa.gov sends no X-Frame-Options, so it frames.
+       Collapsed by default: it's a heavy government page and Brian only needs
+       it occasionally — the header click lazy-loads it via setEmbed(). -->
+  <div class="cd full"><div class="ch tg" onclick="tog(this)"><div class="ct">🚁 TFR Map<span class="sub">FAA temporary flight restrictions</span></div><a class="badge" href="https://tfr.faa.gov/tfr3/" target="_blank" rel="noopener" onclick="event.stopPropagation()">tfr.faa.gov ↗</a><span class="chv">▾</span></div><div class="body hide" style="padding:0"><iframe class="efr" id="tfrFrame" loading="lazy"></iframe></div></div>
   <div class="cd full"><div class="ch tg open" onclick="tog(this)"><div class="ct">📅 5-Day Overview</div><span class="chv">▾</span></div><div class="body" id="dayB"><div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
   <div class="cd full"><div class="ch tg open" onclick="tog(this)"><div class="ct">✅ Go / No-Go<span class="sub">Flight Decision</span></div><span class="chv">▾</span></div><div class="body" id="gngB"><div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
 </div>
@@ -1006,6 +1010,9 @@ function updateUI(){
   }
   setEmbed('windyFrame',`https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=default&metricTemp=%C2%B0F&metricWind=mph&zoom=9&overlay=wind&product=ecmwf&level=surface&lat=${C.lat}&lon=${C.lon}`);
   setEmbed('radarFrame',`https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=default&metricTemp=%C2%B0F&metricWind=mph&zoom=8&overlay=radar&product=radar&level=surface&lat=${C.lat}&lon=${C.lon}`);
+  // The FAA map takes no coordinate params — it opens on its own CONUS view and
+  // is panned by hand. Card stays collapsed until asked for.
+  setEmbed('tfrFrame','https://tfr.faa.gov/tfr3/');
 }
 
 // ═══ DATA FETCH ═══
@@ -1091,6 +1098,35 @@ async function fetchMETARs(){const results={};if(!C.metarStns.length)return resu
 // aviation-proxy/ in this project.
 const AVPROXY='https://aviation-proxy.brianfliesballoons.workers.dev';
 
+// Same lesson the station fetches learned in v4.16.3: a page load fires ~20
+// requests at once, and on a weak WiFi/cellular link the slowest ones get
+// aborted by their own timeout. Brian's phone on 5G, 2026-08-18: TAFs showed
+// "Fetch is aborted" while SIGMETs and AIRMETs — smaller responses — loaded
+// fine. One retry with a fresh timeout is exactly what fixed it for stations.
+// TAFs get the longest budget because their response is the biggest.
+async function fetchAv(url,ms=25000){
+  let last;
+  for(let attempt=0;attempt<2;attempt++){
+    try{
+      const r=await fetchT(url,{},ms);
+      if(!r.ok)throw new Error('HTTP '+r.status);
+      return r;
+    }catch(e){
+      last=e;
+      // Don't burn a retry on a genuine 4xx — only on aborts/network trouble.
+      if(/HTTP 4\d\d/.test(String(e.message||e)))break;
+    }
+  }
+  throw last;
+}
+
+// "Fetch is aborted" is what iOS calls a timeout — say so in the pilot's terms.
+function avErr(e){
+  const m=String((e&&e.message)||e||'');
+  return /abort|timed?\s*out|network|load failed/i.test(m)
+    ? 'timed out — slow connection?' : m;
+}
+
 // Every fetcher returns {ok, data, err} — NEVER a bare empty list on failure.
 // A dead feed must not be able to render as "no advisories in your area"; on a
 // flight tool that reads as clear skies. The renderer shows the difference.
@@ -1098,8 +1134,7 @@ async function fetchTAFs(){
   if(!C.metarStns.length)return{ok:true,data:{},err:''};
   try{
     const ids=C.metarStns.map(s=>s.id).join(',');
-    const r=await fetchT(`${AVPROXY}/taf?ids=${encodeURIComponent(ids)}`,{},20000);
-    if(!r.ok)throw new Error('HTTP '+r.status);
+    const r=await fetchAv(`${AVPROXY}/taf?ids=${encodeURIComponent(ids)}`,30000);
     const d=await r.json();
     if(!Array.isArray(d))throw new Error(d&&d.error?d.error:'unexpected response');
     const results={};
@@ -1108,17 +1143,16 @@ async function fetchTAFs(){
       if(id)results[id]={raw:t.rawTAF||t.rawText||t.raw||'',issueTime:t.issueTime||t.bulletinTime||'',validFrom:t.validTimeFrom||t.validFrom||'',validTo:t.validTimeTo||t.validTo||''};
     });
     return{ok:true,data:results,err:''};
-  }catch(e){console.warn('TAF:',e);return{ok:false,data:{},err:String(e.message||e)}}
+  }catch(e){console.warn('TAF:',e);return{ok:false,data:{},err:avErr(e)}}
 }
 
 async function fetchAirSigmet(){
   try{
-    const r=await fetchT(`${AVPROXY}/airsigmet`,{},20000);
-    if(!r.ok)throw new Error('HTTP '+r.status);
+    const r=await fetchAv(`${AVPROXY}/airsigmet`);
     const d=await r.json();
     if(!Array.isArray(d))throw new Error(d&&d.error?d.error:'unexpected response');
     return{ok:true,data:d,err:''};
-  }catch(e){console.warn('AIRSIGMET:',e);return{ok:false,data:[],err:String(e.message||e)}}
+  }catch(e){console.warn('AIRSIGMET:',e);return{ok:false,data:[],err:avErr(e)}}
 }
 
 // G-AIRMETs are a SEPARATE endpoint. /airsigmet returns SIGMETs only — the old
@@ -1126,12 +1160,11 @@ async function fetchAirSigmet(){
 // 2026-08-18: 9 of 9 records were SIGMETs). Different schema too, see rAvBriefing.
 async function fetchGAirmets(){
   try{
-    const r=await fetchT(`${AVPROXY}/gairmet`,{},20000);
-    if(!r.ok)throw new Error('HTTP '+r.status);
+    const r=await fetchAv(`${AVPROXY}/gairmet`);
     const d=await r.json();
     if(!Array.isArray(d))throw new Error(d&&d.error?d.error:'unexpected response');
     return{ok:true,data:d,err:''};
-  }catch(e){console.warn('GAIRMET:',e);return{ok:false,data:[],err:String(e.message||e)}}
+  }catch(e){console.warn('GAIRMET:',e);return{ok:false,data:[],err:avErr(e)}}
 }
 
 // Upstream requires a station ID + radial distance; the old lat/lon/dist form
@@ -1141,12 +1174,11 @@ async function fetchPIREPs(){
   const stn=(C.metarStns[0]||{}).id;
   if(!stn)return{ok:true,data:[],err:''};
   try{
-    const r=await fetchT(`${AVPROXY}/pirep?id=${encodeURIComponent(stn)}&distance=100`,{},20000);
-    if(!r.ok)throw new Error('HTTP '+r.status);
+    const r=await fetchAv(`${AVPROXY}/pirep?id=${encodeURIComponent(stn)}&distance=100`);
     const d=await r.json();
     if(!Array.isArray(d))throw new Error(d&&d.error?d.error:'unexpected response');
     return{ok:true,data:d,err:''};
-  }catch(e){console.warn('PIREP:',e);return{ok:false,data:[],err:String(e.message||e)}}
+  }catch(e){console.warn('PIREP:',e);return{ok:false,data:[],err:avErr(e)}}
 }
 
 // ═══ SURFACE ═══
