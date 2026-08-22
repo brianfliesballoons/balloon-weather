@@ -308,6 +308,11 @@ a.badge{cursor:pointer}a.badge:hover{background:rgba(56,189,248,.2);color:#7dd3f
 .al-desc{white-space:pre-wrap;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--tx2);margin-top:4px;line-height:1.5}
 
 .efr{width:100%;height:420px;border:none;border-radius:var(--rs);background:var(--card2)}
+/* TFR plan view (v4.20.0). Square and centred; the SVG scales itself, so the
+   density rule is satisfied by geometry rather than by shrinking text. */
+.tfrmap-wrap{width:100%;max-width:460px;margin:0 auto}
+.tfrmap{width:100%;height:auto;display:block}
+.tfrmap-key{font-size:10px;color:var(--tx3);text-align:center;margin-top:6px;font-family:'DM Sans',sans-serif}
 .ldg{display:flex;align-items:center;justify-content:center;padding:16px;gap:6px}
 .dot{width:5px;height:5px;border-radius:50%;background:var(--blue);animation:dp 1.2s ease-in-out infinite}
 .dot:nth-child(2){animation-delay:.15s}.dot:nth-child(3){animation-delay:.3s}
@@ -562,6 +567,10 @@ a.badge{cursor:pointer}a.badge:hover{background:rgba(56,189,248,.2);color:#7dd3f
   <div class="cd full"><div class="ch tg open" onclick="tog(this)"><div class="ct">📝 Area Forecast Discussion</div><a class="badge" id="afdT" href="#" target="_blank" rel="noopener" onclick="event.stopPropagation()">NWS</a><span class="chv" style="margin-left:auto;padding-left:10px">▾</span></div><div class="body" id="afdB"><div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
   <div class="cd"><div class="ch tg open" onclick="tog(this)"><div class="ct">🗺 Wind Map</div><a class="badge" id="srcWindy" href="#" target="_blank" rel="noopener" onclick="event.stopPropagation()">Windy</a><span class="chv">▾</span></div><div class="body" style="padding:0"><iframe class="efr" id="windyFrame" loading="lazy"></iframe></div></div>
   <div class="cd"><div class="ch"><div class="ct">✈️ Aviation Briefing<span class="sub">TAFs · SIGMETs · AIRMETs · PIREPs</span></div><a class="badge" id="srcAv" href="#" target="_blank" rel="noopener">aviationweather.gov</a></div><div class="body" id="avB"><div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
+  <!-- TFR map (v4.20.0). Drawn by us from the polygons /tfrdetail returns —
+       the FAA's own map has no embeddable URL. Pure inline SVG: no tiles, no
+       library, no extra network beyond the TFR list the card above fetched. -->
+  <div class="cd full"><div class="ch tg open" onclick="tog(this)"><div class="ct">🚁 TFR Map<span class="sub">Plan view · centred on you</span></div><a class="badge" href="https://tfr.faa.gov/tfr3/" target="_blank" rel="noopener" onclick="event.stopPropagation()">tfr.faa.gov ↗</a><span class="chv">▾</span></div><div class="body" id="tfrMapB"><div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
   <div class="cd full"><div class="ch tg open" onclick="tog(this)"><div class="ct">📡 Radar<span class="sub">Precipitation · animated</span></div><a class="badge" id="srcRadar" href="#" target="_blank" rel="noopener" onclick="event.stopPropagation()">Windy Radar</a><span class="chv">▾</span></div><div class="body" style="padding:0"><iframe class="efr" id="radarFrame" loading="lazy"></iframe></div></div>
 
   <div class="cd full"><div class="ch tg open" onclick="tog(this)"><div class="ct">📅 5-Day Overview</div><span class="chv">▾</span></div><div class="body" id="dayB"><div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
@@ -1201,7 +1210,7 @@ async function fetchTfrs(){
         const d=await dr.json();
         const dist=(d&&Array.isArray(d.coords)&&d.coords.length)
           ?polyDistNm(C.lat,C.lon,d.coords):null;
-        return{...t,dist,lower:d&&d.lower,upper:d&&d.upper,upperCode:d&&d.upperCode,radiusNm:d&&d.radiusNm};
+        return{...t,dist,coords:(d&&d.coords)||null,lower:d&&d.lower,upper:d&&d.upper,upperCode:d&&d.upperCode,radiusNm:d&&d.radiusNm};
       }catch(e){console.warn('TFR detail',id,e);return{...t,dist:null}}
     };
     const results=[];
@@ -1901,6 +1910,62 @@ function decodeTaf(raw,anchorRaw){
     periods:groups.filter(g=>g.toks.length).map(g=>({...g,phrases:tafGroupPhrases(parseTafGroup(g.toks))}))};
 }
 
+// ── SIGMET decode (v4.20.0) ──
+// Structured fields first, then a few well-known phrases lifted from the raw
+// bulletin (hail size, gust strength, tops) that have no structured equivalent.
+// Literal only, same rule as the TAFs — decode and stop.
+const SIG_HAZ={CONVECTIVE:'Thunderstorms',TURB:'Turbulence',ICE:'Icing',ICING:'Icing',
+  IFR:'IFR conditions','MTN OBSCN':'Mountain obscuration',MTN_OBSCN:'Mountain obscuration',
+  ASH:'Volcanic ash',TS:'Thunderstorms',DUST:'Dust storm',SS:'Sandstorm'};
+
+function decodeSigmet(s){
+  const out=[];
+  const raw=String(s.rawAirSigmet||s.rawText||s.raw||'');
+  const haz=SIG_HAZ[String(s.hazard||'').toUpperCase()]||s.hazard||'Advisory';
+  // "SEV" / "AREA" / "LINE" in the bulletin qualify the hazard itself.
+  const sev=/\bSEV\b/.test(raw)?'Severe ':'';
+  const shape=/\bLINE TS\b/.test(raw)?' (line)':/\bAREA TS\b/.test(raw)?' (area)':'';
+  out.push(`${sev}${sev?haz.toLowerCase():haz}${shape}`);
+
+  const lo=parseFloat(s.altitudeLow1),hi=parseFloat(s.altitudeHi1);
+  // TOPS ABV FLxxx means the structured ceiling is a floor, not a top.
+  const topsAbv=/TOPS ABV FL\d+/.test(raw);
+  if(isFinite(hi)&&hi>0)out.push(`Tops ${topsAbv?'above ':'to '}${ftTxt(hi)}`);
+  if(isFinite(lo)&&lo>0)out.push(`Base ${ftTxt(lo)}`);
+
+  if(s.movementDir!=null&&s.movementSpd!=null&&s.movementSpd!=='')
+    out.push(`Moving from ${cp(+s.movementDir)} (${pad3(+s.movementDir)}°) at ${s.movementSpd} kt`);
+
+  const hail=raw.match(/HAIL TO ([\d/ ]+?)\s*IN\b/);
+  if(hail)out.push(`Hail to ${hail[1].trim()}"`);
+  const gust=raw.match(/WIND GUSTS TO (\d+)\s*KT/);
+  if(gust)out.push(`Gusts to ${gust[1]} kt`);
+  return out;
+}
+
+// ── G-AIRMET "due to" decode ──
+// e.g. "CIG BLW 010 VIS BLW 3SM BR" -> "ceilings below 1,000 ft, visibility
+// below 3 SM in mist". Codes only; anything unrecognised passes through as-is
+// so nothing is silently dropped.
+function decodeDueTo(str){
+  if(!str)return'';
+  let t=String(str).trim();
+  const parts=[];
+  let m;
+  if(m=t.match(/CIG BLW (\d{3})/)){parts.push(`ceilings below ${ftTxt(+m[1]*100)}`);t=t.replace(m[0],'')}
+  if(m=t.match(/VIS BLW ([\d/ ]+?)SM/)){parts.push(`visibility below ${m[1].trim()} SM`);t=t.replace(m[0],'')}
+  const mtns=/MTNS? OBSC/.test(t);
+  if(mtns)t=t.replace(/MTNS? OBSC(?: BY)?/,'');
+  // Whatever is causing it: CLDS plus the usual 2-letter weather codes.
+  const cause=[];
+  if(/\bCLDS?\b/.test(t)){cause.push('cloud');t=t.replace(/\bCLDS?\b/,'')}
+  cause.push(...(t.match(/\b[A-Z]{2}\b/g)||[]).map(c=>WX_PHEN[c]).filter(Boolean));
+  if(mtns)parts.push('mountains obscured'+(cause.length?` by ${cause.join(' and ')}`:''));
+  else if(cause.length)parts.push(`in ${cause.join(' and ')}`);
+  if(!parts.length)return String(str);
+  return parts.join(', ');
+}
+
 // PIREPs come back as structured fields, so decode those rather than re-parsing
 // the raw string. Units verified against rawOb 2026-08-18: fltLvl is HUNDREDS
 // of feet (FL017 -> 17), cloud base/top are already FEET, visib is statute miles,
@@ -2041,14 +2106,14 @@ function rAvBriefing(tafR,airSigR,gairR,pirepR,tfrR){
   }else if(sigmets.length){
     o+='<div class="ab-sec"><div class="ab-st">⚠️ SIGMETs</div>';
     sigmets.slice(0,5).forEach(({item:s,d})=>{
-      const haz=s.hazard||s.hazardType||s.rawAirSigmet?.substring(0,40)||'Active';
-      const sev=s.severity||'';
       const vf=s.validTimeFrom?fTav(s.validTimeFrom):'';
       const vt=s.validTimeTo?fTav(s.validTimeTo):'';
       const raw=s.rawAirSigmet||s.rawText||s.raw||'';
-      o+=`<div class="ab-item"><span class="ab-haz sig">SIGMET${sev?' · '+sev:''}</span>`;
-      if(haz&&haz!=='Active')o+=`<span style="font-size:10px;color:var(--tx2);font-weight:600">${haz}</span>`;
+      const dec=decodeSigmet(s);
+      o+=`<div class="ab-item"><span class="ab-haz sig">SIGMET</span>`;
+      o+=`<span style="font-size:10px;color:var(--tx2);font-weight:600">${(dec[0]||'Advisory').replace(/</g,'&lt;')}</span>`;
       o+=abDist(d);
+      if(dec.length>1)o+=`<div class="taf-what" style="margin-top:3px">${dec.slice(1).map(x=>x.replace(/</g,'&lt;')).join(' · ')}</div>`;
       if(vf||vt)o+=`<div style="font-size:9px;color:var(--tx4);margin-top:3px">Valid ${fRange(s.validTimeFrom,s.validTimeTo)}</div>`;
       if(raw)o+=`<div class="ab-raw">${raw.replace(/</g,'&lt;').substring(0,300)}</div>`;
       o+='</div>';
@@ -2089,7 +2154,7 @@ function rAvBriefing(tafR,airSigR,gairR,pirepR,tfrR){
       o+=abDist(d);
       const alt=(bs||tp)?`${bs||'SFC'} — ${tp||'—'}`:'';
       if(alt||vt)o+=`<div style="font-size:9px;color:var(--tx4);margin-top:3px">${alt}${alt&&vt?' · ':''}${vt?'Valid '+vt:''}</div>`;
-      if(a.due_to)o+=`<div style="font-size:9px;color:var(--tx3);margin-top:2px">Due to ${String(a.due_to).replace(/</g,'&lt;')}</div>`;
+      if(a.due_to)o+=`<div class="taf-what" style="margin-top:2px">Due to ${decodeDueTo(a.due_to).replace(/</g,'&lt;')}</div>`;
       o+='</div>';
     });
     if(gaHaz.length>6)o+=`<div style="font-size:10px;color:var(--tx3);padding:6px 0">+${gaHaz.length-6} more AIRMETs</div>`;
@@ -2167,6 +2232,98 @@ function rAvBriefing(tafR,airSigR,gairR,pirepR,tfrR){
   // ── External links ──
   o+=`<div class="ab-links"><a href="https://ppg.report/${C.lat},${C.lon}" target="_blank" rel="noopener">PPG Report ↗</a><a href="https://aviationweather.gov/" target="_blank" rel="noopener">Aviation Weather ↗</a><a href="https://tfr.faa.gov/tfr3/" target="_blank" rel="noopener">FAA TFRs ↗</a><a href="https://www.1800wxbrief.com/" target="_blank" rel="noopener">1800WxBrief ↗</a></div>`;
 
+  el.innerHTML=o;
+}
+
+// ═══ TFR MAP (v4.20.0) ═══
+// Brian wants a TFR map IN the widget. The FAA's own map cannot be embedded —
+// its app has no map route, so no iframe URL can reach it (settled 2026-08-18,
+// see CLAUDE.md). But we already hold every nearby TFR's polygon from
+// /tfrdetail, so we draw it ourselves: an inline SVG plan view centred on the
+// pilot, no tiles, no library, no network beyond what the list already fetched.
+// That keeps the project's no-dependency rule and works on a weak link.
+const TFR_FILL={SECURITY:'#a855f7',HAZARDS:'#f59e0b',VIP:'#ef4444',SPORT:'#38bdf8',
+  EMERGENCY:'#ef4444',AIRSHOW:'#38bdf8',SPACE:'#38bdf8'};
+const tfrColor=t=>TFR_FILL[String(t||'').toUpperCase()]||'#94a3b8';
+
+function rTfrMap(tfrData){
+  const el=document.getElementById('tfrMapB');
+  if(!el)return;
+  if(!tfrData){el.innerHTML='<div class="ab-none">TFR data unavailable</div>';return}
+
+  // Only things we can actually place: local TFRs with a resolved polygon.
+  const plot=(tfrData.near||[]).filter(t=>Array.isArray(t.coords)&&t.coords.length&&t.dist!=null);
+  const noPoly=(tfrData.near||[]).filter(t=>(t.state||'').toUpperCase()!=='USA'&&!(Array.isArray(t.coords)&&t.coords.length));
+  if(!plot.length){
+    el.innerHTML=`<div class="ab-none">No mappable TFRs within ${TFR_RADIUS_NM} nm</div>`;
+    return;
+  }
+
+  const S=420,C0=S/2,PAD=26;
+  const latR=C0*Math.PI/180;
+  const nmLon=60*Math.cos(C.lat*Math.PI/180),nmLat=60;
+  // Scale so the furthest plotted TFR fits, rounded to a sensible ring step.
+  const maxD=Math.max(30,...plot.map(t=>t.dist||0));
+  const step=maxD<=50?10:maxD<=120?25:maxD<=250?50:100;
+  const span=Math.ceil((maxD*1.12)/step)*step;
+  const px=nm=>(nm/span)*(C0-PAD);
+  const proj=p=>{
+    const dx=(parseFloat(p.lon)-C.lon)*nmLon, dy=(C.lat-parseFloat(p.lat))*nmLat;
+    return[C0+px(dx),C0+px(dy)];
+  };
+
+  let g='';
+  // Range rings
+  for(let r=step;r<=span;r+=step){
+    g+=`<circle cx="${C0}" cy="${C0}" r="${px(r).toFixed(1)}" fill="none" stroke="var(--bdr)" stroke-width="1" opacity=".55"/>`;
+    g+=`<text x="${C0+2}" y="${(C0-px(r)+11).toFixed(1)}" font-size="9" fill="var(--tx4)" font-family="'JetBrains Mono',monospace">${r}</text>`;
+  }
+  // Cardinal cross + labels
+  g+=`<line x1="${C0}" y1="${PAD-8}" x2="${C0}" y2="${S-PAD+8}" stroke="var(--bdr)" stroke-width="1" opacity=".4"/>`;
+  g+=`<line x1="${PAD-8}" y1="${C0}" x2="${S-PAD+8}" y2="${C0}" stroke="var(--bdr)" stroke-width="1" opacity=".4"/>`;
+  [['N',C0,12],['S',C0,S-4],['E',S-8,C0+4],['W',8,C0+4]].forEach(([t,x,y])=>{
+    g+=`<text x="${x}" y="${y}" font-size="10" fill="var(--tx3)" text-anchor="middle" font-family="'JetBrains Mono',monospace">${t}</text>`;
+  });
+
+  // Polygons, furthest first so near ones draw on top
+  const placed=[];   // label positions, for collision nudging
+  [...plot].sort((a,b)=>(b.dist||0)-(a.dist||0)).forEach(t=>{
+    const pts=t.coords.map(proj).filter(p=>isFinite(p[0])&&isFinite(p[1]));
+    if(!pts.length)return;
+    const col=tfrColor(t.type);
+    const xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]);
+    const cx=(Math.min(...xs)+Math.max(...xs))/2, cy=(Math.min(...ys)+Math.max(...ys))/2;
+    const w=Math.max(...xs)-Math.min(...xs), h=Math.max(...ys)-Math.min(...ys);
+    if(pts.length>2){
+      const d=pts.map(p=>`${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' ');
+      g+=`<polygon points="${d}" fill="${col}" fill-opacity=".25" stroke="${col}" stroke-width="1.6" stroke-linejoin="round"/>`;
+    }
+    // A 3 nm TFR at a 125 nm scale is ~4 px across — real, but invisible. Give
+    // every TFR a minimum footprint so none can hide just because we're zoomed out.
+    if(Math.max(w,h)<11){
+      g+=`<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="5.5" fill="${col}" fill-opacity=".3" stroke="${col}" stroke-width="1.6"/>`;
+    }
+    // Label above the shape, pushed clear of any label already placed nearby.
+    let lx=cx, ly=cy-Math.max(h/2,6)-4;
+    for(let guard=0;guard<8;guard++){
+      const hit=placed.find(q=>Math.abs(q.x-lx)<46&&Math.abs(q.y-ly)<11);
+      if(!hit)break;
+      ly=hit.y-11;
+    }
+    placed.push({x:lx,y:ly});
+    g+=`<text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" font-size="9.5" font-weight="700" fill="${col}" text-anchor="middle" font-family="'JetBrains Mono',monospace" style="paint-order:stroke" stroke="var(--card)" stroke-width="3">${String(t.notam_id||'').replace(/</g,'&lt;')}</text>`;
+  });
+
+  // The pilot
+  g+=`<circle cx="${C0}" cy="${C0}" r="4.5" fill="var(--green,#34d399)" stroke="var(--card)" stroke-width="1.5"/>`;
+  g+=`<text x="${C0}" y="${C0-9}" font-size="9" fill="var(--tx2)" text-anchor="middle" font-family="'JetBrains Mono',monospace">YOU</text>`;
+
+  let o=`<div class="tfrmap-wrap"><svg viewBox="0 0 ${S} ${S}" class="tfrmap" role="img" aria-label="Plan view of nearby TFRs">${g}</svg></div>`;
+  o+=`<div class="tfrmap-key">Rings every ${step} nm · centred on ${String(C.locName||C.name||'your location').replace(/</g,'&lt;')}</div>`;
+  // Legend, only for the types actually drawn
+  const types=[...new Set(plot.map(t=>String(t.type||'').toUpperCase()))];
+  o+='<div class="tfrmap-key">'+types.map(ty=>`<span style="color:${tfrColor(ty)}">■</span> ${ty.replace(/</g,'&lt;')}`).join(' &nbsp; ')+'</div>';
+  if(noPoly.length)o+=`<div class="tfrmap-key">⚠ ${noPoly.length} nearby TFR${noPoly.length>1?'s':''} couldn't be plotted (no polygon returned) — see the list above</div>`;
   el.innerHTML=o;
 }
 
@@ -2805,6 +2962,7 @@ async function refreshAll(force){if(busy)return;busy=true;document.getElementByI
     rAlertsAq();
     if(afd)rAFD(afd);else document.getElementById('afdB').innerHTML='<div class="err">AFD unavailable</div>';
     rAvBriefing(tafs,airSig,gair,pireps,tfrs);
+    rTfrMap(tfrs&&tfrs.ok?tfrs.data:null);
     // Timing diagnosis needs the nearest station's recent history — one extra call, after
     // the page has already rendered; re-renders the Reality card (and Go/No-Go) if it finds a lag
     if(obs&&obs.length&&homeData&&isToday()){
