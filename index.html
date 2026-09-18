@@ -3277,12 +3277,20 @@ async function wxlObsAt(lat,lon,tMs){
 // safe here precisely because this is a one-hour lookup, not the 5-day card data.
 async function wxlDrift(e){
   const t=wxlTms(e);if(t==null)return null;
-  const daysBack=Math.ceil((Date.now()-t)/86400000);
-  const past=Math.min(92,Math.max(1,daysBack+1));
   const vars=[];
   ['wind_speed_10m','wind_gusts_10m'].forEach(v=>{for(let k=1;k<=3;k++)vars.push(`${v}_previous_day${k}`)});
+  // ⚠ Ask by DATE RANGE, never past_days. past_days is capped at 92, so a window older than
+  // that came back without the requested day in the array at all and the drift layer silently
+  // vanished — for exactly the old flights the past-window logger exists to record. Caught by
+  // the headless browser pass on 2026-09-17 (a 199-day-old date returned null), and start/end
+  // reaches it fine. The ±1 day window means an offset shift can't put the target hour
+  // outside the response.
+  const dayMs=86400000;
+  const ds0=new Date(t-dayMs).toISOString().slice(0,10);
+  const ds1=new Date(t+dayMs).toISOString().slice(0,10);
   const u=`https://previous-runs-api.open-meteo.com/v1/forecast?latitude=${e.loc.lat}&longitude=${e.loc.lon}`
-    +`&hourly=${vars.join(',')}&models=gfs_seamless&wind_speed_unit=mph&past_days=${past}&forecast_days=1`
+    +`&hourly=${vars.join(',')}&models=gfs_seamless&wind_speed_unit=mph`
+    +`&start_date=${ds0}&end_date=${ds1}`
     +`&timezone=${encodeURIComponent(e.tz||getTZ())}`;
   const r=await fetchT(u,{},20000);
   if(!r.ok)return null;
