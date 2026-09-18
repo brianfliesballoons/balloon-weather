@@ -601,6 +601,21 @@ a.badge{cursor:pointer}a.badge:hover{background:rgba(56,189,248,.2);color:#7dd3f
 .pvw-bar{background:rgba(167,139,250,.14);border-bottom:1px solid rgba(167,139,250,.4);color:#c4b5fd;padding:7px 16px;font-size:12px;text-align:center;font-family:'DM Sans',sans-serif}
 .pvw-bar b{color:#ddd6fe;font-weight:700;letter-spacing:.03em}
 .pvw-bar a{color:#c4b5fd;font-weight:600}
+
+/* past-window picker + accuracy-over-time toggle (v4.21.0) */
+.wxl-when{display:flex;gap:5px;align-items:center;flex-wrap:wrap;margin-bottom:6px}
+.wxl-dt{background:var(--card);border:1px solid var(--bdr2);color:var(--tx);padding:5px 8px;border-radius:var(--rs);font-family:'JetBrains Mono',monospace;font-size:12px;color-scheme:dark}
+.wxl-wbt{background:var(--card);border:1px solid var(--bdr);color:var(--tx3);padding:5px 11px;border-radius:var(--rs);cursor:pointer;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700}
+.wxl-wbt.sel{background:rgba(56,189,248,.14);border-color:var(--blue);color:var(--tx)}
+.wxl-hr{background:var(--card);border:1px solid var(--bdr);color:var(--tx2);padding:5px 6px;border-radius:var(--rs);font-family:'JetBrains Mono',monospace;font-size:12px;color-scheme:dark}
+.wxl-avail{font-size:11px;line-height:1.5;padding:6px 10px;border-radius:var(--rs);margin-bottom:8px}
+.wxl-avail.ok{background:rgba(52,211,153,.08);border:1px solid rgba(52,211,153,.25);color:var(--tx2)}
+.wxl-avail.old{background:rgba(139,151,176,.08);border:1px solid var(--bdr2);color:var(--tx3)}
+.wxl-cd.empty{cursor:pointer}
+.wxl-cd.empty:hover{border-color:var(--blue);color:var(--blue)}
+.wxl-tog{margin-left:auto;display:flex;gap:3px}
+.wxl-tog button{background:var(--card2);border:1px solid var(--bdr);color:var(--tx3);padding:2px 9px;border-radius:10px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.03em}
+.wxl-tog button.sel{background:rgba(56,189,248,.14);border-color:var(--blue);color:var(--tx)}
 </style>
 </head>
 <body>
@@ -3100,8 +3115,33 @@ async function refreshAll(force){if(busy)return;busy=true;document.getElementByI
 // recovered for it. Drift is not affected (previous-runs reaches ~92 days back), which is
 // why the two are fetched independently and an entry can hold one without the other.
 const WXL_KEY='bw_wxlog', WXL_V=1, WXL_CAL_DAYS=56, WXL_OBS_DAYS=7;
-const wxlAgeD=e=>{const t=wxlUtcMs(e.target,e.off);return t==null?null:(Date.now()-t)/86400000};
+// ⚠ MEASURED 2026-09-17: Open-Meteo labels an ENTIRE response in ONE fixed offset — the one
+// in effect when you ask — not true per-date local time. Requesting 2026-03-05..03-11 with
+// timezone=America/Los_Angeles returned utc_offset_seconds -25200 for every day and sunrise
+// moving 07:11 → 07:04 straight through the Mar 8 DST start, with NO one-hour jump. So for
+// any date on the far side of a DST boundary its timestamps are an hour off the real clock.
+// Hence: every entry carries `tMs`, a canonical UTC instant, and everything else is derived
+// from it — the observation lookup, the display, and the drift key. Never compare a stored
+// naive string against an API's time array directly; rebuild the key in THAT response's
+// offset with wxlIsoInOff(). Getting this wrong queries the wrong hour and says nothing.
+const wxlTms=e=>e&&(e.tMs??wxlUtcMs(e.target,e.off));
+const wxlAgeD=e=>{const t=wxlTms(e);return t==null?null:(Date.now()-t)/86400000};
 const wxlObsLeft=e=>{const a=wxlAgeD(e);return a==null?null:WXL_OBS_DAYS-a};
+// True UTC offset (seconds) for an instant in the location's zone — the browser's tz database
+// knows the DST rules the API is flattening away.
+function wxlTrueOff(ms,tz){
+  try{
+    const f=new Intl.DateTimeFormat('en-US',{timeZone:tz||getTZ(),hour12:false,
+      year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    const q={};f.formatToParts(new Date(ms)).forEach(x=>{if(x.type!=='literal')q[x.type]=+x.value});
+    return (Date.UTC(q.year,q.month-1,q.day,q.hour%24,q.minute,q.second)-ms)/1000;
+  }catch(e){return window._tpHomeData?.utc_offset_seconds??0}
+}
+// An instant rendered as the naive local ISO string a given offset would label it with
+function wxlIsoInOff(ms,offSec){
+  const d=new Date(ms+(offSec||0)*1000),z=n=>String(n).padStart(2,'0');
+  return `${d.getUTCFullYear()}-${z(d.getUTCMonth()+1)}-${z(d.getUTCDate())}T${z(d.getUTCHours())}:${z(d.getUTCMinutes())}`;
+}
 const WXL_TAGS=[
   {k:'wind',  l:'Surface Wind', i:'💨'},
   {k:'gust',  l:'Gusts',        i:'🌬'},
@@ -3113,7 +3153,8 @@ const WXL_TAGS=[
   {k:'timing',l:'Timing',       i:'🕐'}
 ];
 let wxLog={v:WXL_V,entries:[],skips:[]};
-let _wxlDraft=null, _wxlBusy=false, _wxlStnCache={key:'',stns:null};
+let _wxlDraft=null, _wxlBusy=false, _wxlStnCache={key:'',stns:null}, _wxlPeriod='month';
+function wxlPeriod(p){_wxlPeriod=p;rWxLog()}
 
 function wxlLoad(){
   try{const s=localStorage.getItem(WXL_KEY);if(!s)return;
@@ -3232,7 +3273,7 @@ async function wxlObsAt(lat,lon,tMs){
 // variables return all-null on best_match, which is what the main fetch uses. That pin is
 // safe here precisely because this is a one-hour lookup, not the 5-day card data.
 async function wxlDrift(e){
-  const t=wxlUtcMs(e.target,e.off);if(t==null)return null;
+  const t=wxlTms(e);if(t==null)return null;
   const daysBack=Math.ceil((Date.now()-t)/86400000);
   const past=Math.min(92,Math.max(1,daysBack+1));
   const vars=[];
@@ -3242,9 +3283,14 @@ async function wxlDrift(e){
     +`&timezone=${encodeURIComponent(e.tz||getTZ())}`;
   const r=await fetchT(u,{},20000);
   if(!r.ok)return null;
-  const d=(await r.json()).hourly;
+  const jj=await r.json();
+  const d=jj.hourly;
   if(!d?.time)return null;
-  const j=d.time.indexOf(e.target);
+  // Rebuild the key in the offset THIS response used, not the entry's true local offset —
+  // across a DST boundary those differ by an hour and a direct indexOf would silently miss
+  // (or worse, match the wrong hour).
+  let j=d.time.indexOf(wxlIsoInOff(t,jj.utc_offset_seconds??0));
+  if(j<0)j=d.time.indexOf(e.target);
   if(j<0)return null;
   const out={};
   for(let k=1;k<=3;k++){
@@ -3268,7 +3314,7 @@ function wxlErr(e){
 // Verify one entry. Only meaningful once the hour has passed — a future target has no
 // observation, so it stays pending rather than being scored against nothing.
 async function wxlVerifyOne(e){
-  const t=wxlUtcMs(e.target,e.off);
+  const t=wxlTms(e);
   if(t==null||t>Date.now()-20*60000)return false;
   let changed=false;
   // Past the archive window there is nothing to fetch — don't burn a request proving it.
@@ -3295,7 +3341,7 @@ async function wxlVerifyOne(e){
 async function wxlVerifyPending(){
   if(_wxlBusy)return;
   const pend=wxLog.entries.filter(e=>{
-    const t=wxlUtcMs(e.target,e.off);
+    const t=wxlTms(e);
     if(t==null||t>=Date.now()-20*60000)return false;
     const obsWanted=!e.obs&&!e.obsGone;
     return obsWanted||!e.drift;
@@ -3315,6 +3361,99 @@ async function wxlVerifyPending(){
   if(s)s.textContent=n?`Checked ${n} of ${pend.length}.`:'Nothing new resolved — stations may not report near this location, or the hour is too old for the obs archive.';
 }
 
+// ── logging an ARBITRARY past window (v4.21.0) ──
+// The nudge only offers the last few days and the time picker only reaches the loaded
+// forecast range, so a flight from three weeks ago had no way in. This does it with ONE
+// request per date: previous-runs serves that date's sunrise/sunset, its own
+// utc_offset_seconds, AND the run that was standing a day ahead — which is the forecast
+// actually worth grading for a window already in the past.
+// ⚠ The offset comes from the RESPONSE, not from today's: a date on the other side of a DST
+// boundary has a different offset, and using today's would shift every obs lookup by an hour.
+function wxlInstantFor(ds,hr){
+  const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(ds||'');
+  if(!m)return null;
+  const naive=Date.UTC(+m[1],+m[2]-1,+m[3],hr,0);
+  let off=wxlTrueOff(naive);
+  off=wxlTrueOff(naive-off*1000);
+  return{ms:naive-off*1000,off};
+}
+let _wxlDayCache={};
+async function wxlDayInfo(ds){
+  if(_wxlDayCache[ds])return _wxlDayCache[ds];
+  const vars=['wind_speed_10m','wind_gusts_10m','wind_direction_10m'].map(v=>v+'_previous_day1');
+  const u=`https://previous-runs-api.open-meteo.com/v1/forecast?latitude=${C.lat}&longitude=${C.lon}`
+    +`&hourly=${vars.join(',')}&daily=sunrise,sunset&models=gfs_seamless&wind_speed_unit=mph`
+    +`&start_date=${ds}&end_date=${ds}&timezone=${encodeURIComponent(getTZ())}`;
+  const r=await fetchT(u,{},20000);
+  if(!r.ok)throw new Error('Open-Meteo '+r.status);
+  const j=await r.json();
+  const info={
+    sunrise:j.daily?.sunrise?.[0]||null,
+    sunset:j.daily?.sunset?.[0]||null,
+    off:j.utc_offset_seconds??0,
+    hourly:j.hourly||null
+  };
+  _wxlDayCache[ds]=info;
+  return info;
+}
+// the AM/PM default hours for a date, from ITS OWN sunrise/sunset — not today's, which
+// drifts more than an hour across a couple of months
+function wxlWinHour(info,win){
+  const src=win==='PM'?info.sunset:info.sunrise;
+  if(!src)return win==='AM'?6:18;
+  // info.sunrise is labelled in the API's flattened offset — turn it into a real instant,
+  // then read the hour off the TRUE local clock for that date.
+  const inst=wxlUtcMs(src,info.off);
+  if(inst==null)return win==='AM'?6:18;
+  let h=+wxlIsoInOff(inst,wxlTrueOff(inst)).slice(11,13);
+  if(win==='PM')h=Math.max(0,h-1);
+  return h;
+}
+function wxlBuildTarget(ds,hr){return `${ds}T${String(hr).padStart(2,'0')}:00`}
+// Re-point the open draft at a different date/hour. If an entry already exists for the new
+// target, that entry is loaded instead of silently creating a duplicate alongside it.
+async function wxlRetarget(ds,hr,win){
+  if(!_wxlDraft)return;
+  const d=_wxlDraft;
+  d._loading=true;rWxLogForm();
+  try{
+    let off=window._tpHomeData?.utc_offset_seconds??0, info=null, live=null;
+    const probe=wxlBuildTarget(ds,hr==null?12:hr);
+    live=wxlSnap(probe);
+    if(!live||hr==null){
+      try{info=await wxlDayInfo(ds);off=info.off}
+      catch(e){d._err='Could not load that date: '+e.message}
+    }
+    if(hr==null)hr=info?wxlWinHour(info,win||d.win):(win==='PM'?18:6);
+    const target=wxlBuildTarget(ds,hr);
+    const existing=wxlFind(target);
+    if(existing){_wxlDraft=JSON.parse(JSON.stringify(existing));_wxlDraft._loading=false;rWxLogForm();return}
+    // target is TRUE local; tMs is the canonical instant everything else derives from
+    const inst=wxlInstantFor(ds,hr);
+    d.target=target;d.id=wxlId(target);d.win=hr<12?'AM':'PM';
+    d.tMs=inst?inst.ms:null; d.off=inst?inst.off:off; d.tz=getTZ();
+    d.obs=null;d.drift=null;d.err=null;delete d.obsGone;
+    const snap=wxlSnap(target);
+    if(snap){d.fc=snap;d.fcSrc='live'}
+    else if(info?.hourly){
+      const j=info.hourly.time.indexOf(d.tMs!=null?wxlIsoInOff(d.tMs,info.off):target);
+      d.fc=j>=0?{
+        wind:info.hourly.wind_speed_10m_previous_day1?.[j]??null,
+        gust:info.hourly.wind_gusts_10m_previous_day1?.[j]??null,
+        dir:info.hourly.wind_direction_10m_previous_day1?.[j]??null,
+        vis:null,ceil:null,temp:null,dew:null,precip:null,aqi:null,verdict:null
+      }:null;
+      d.fcSrc=d.fc?'d1':undefined;
+    }else{d.fc=null;delete d.fcSrc}
+  }finally{
+    if(_wxlDraft)_wxlDraft._loading=false;
+    rWxLogForm();
+  }
+}
+function wxlPickDate(v){if(v)wxlRetarget(v,null,_wxlDraft?.win||'AM')}
+function wxlPickWin(w){if(_wxlDraft)wxlRetarget(_wxlDraft.target.slice(0,10),null,w)}
+function wxlPickHour(h){if(_wxlDraft)wxlRetarget(_wxlDraft.target.slice(0,10),+h,null)}
+
 // ── the log modal ──
 function openWxLog(iso){
   const d=window._tpHomeData;
@@ -3324,10 +3463,17 @@ function openWxLog(iso){
   }
   if(!target){alert('No forecast hour selected yet — let the dashboard finish loading.');return}
   const ex=wxlFind(target);
+  // An hour taken from hourly.time is labelled in the API's offset; anything else (a calendar
+  // day, a nudge) is already true local. Either way we resolve to one canonical instant.
+  const fromApi=!!d?.hourly?.time?.includes(target);
+  const apiOff=d?.utc_offset_seconds??0;
+  let tMs=fromApi?wxlUtcMs(target,apiOff):null, tOff;
+  if(tMs==null){const gi=wxlInstantFor(target.slice(0,10),+(/T(\d{2})/.exec(target)?.[1]??12));tMs=gi?gi.ms:null;tOff=gi?gi.off:apiOff}
+  else{tOff=wxlTrueOff(tMs);target=wxlIsoInOff(tMs,tOff)}
   const hr=+(/T(\d{2})/.exec(target)?.[1]??12);
   _wxlDraft=ex?JSON.parse(JSON.stringify(ex)):{
     id:wxlId(target),ts:Date.now(),target,
-    off:d?.utc_offset_seconds??0, tz:getTZ(),
+    tMs, off:tOff??apiOff, tz:getTZ(),
     win:hr<12?'AM':'PM',
     loc:{name:C.name,lat:C.lat,lon:C.lon},
     call:null,dir:null,tags:[],flew:null,note:'',
@@ -3338,6 +3484,11 @@ function openWxLog(iso){
   document.getElementById('wxlOv').classList.add('v');
   document.body.classList.add('modal-open');
   rWxLogForm();
+}
+// Open the log straight onto a calendar day, letting that date's own sunrise decide the hour
+function openWxLogDay(ds){
+  openWxLog();
+  wxlRetarget(ds,null,'AM');
 }
 function closeWxLog(){
   document.getElementById('wxlOv').classList.remove('v');
@@ -3361,8 +3512,29 @@ function rWxLogForm(){
   const e=_wxlDraft;if(!e)return;
   const el=document.getElementById('wxlBody');
   const f=e.fc;
-  let o=`<div style="font-size:12px;color:var(--tx3);margin-bottom:6px;font-family:'JetBrains Mono',monospace">${wxlFmt(e.target)} · ${e.loc.name}</div>`;
-  if(f){
+  const ds=e.target.slice(0,10), hr=+e.target.slice(11,13);
+  const todayDs=new Date(Date.now()+(window._tpHomeData?.utc_offset_seconds??0)*1000).toISOString().slice(0,10);
+  let hrOpts='';
+  for(let k=0;k<24;k++){const ap=k>=12?'PM':'AM',h12=k%12||12;hrOpts+=`<option value="${k}"${k===hr?' selected':''}>${h12}:00 ${ap}</option>`}
+  // Any past date is loggable, not just what the nudge offers or the picker has loaded.
+  let o=`<div class="wxl-when">`
+    +`<input type="date" class="wxl-dt" value="${ds}" max="${todayDs}" onchange="wxlPickDate(this.value)">`
+    +`<button class="wxl-wbt${e.win==='AM'?' sel':''}" onclick="wxlPickWin('AM')">AM</button>`
+    +`<button class="wxl-wbt${e.win==='PM'?' sel':''}" onclick="wxlPickWin('PM')">PM</button>`
+    +`<select class="wxl-hr" onchange="wxlPickHour(this.value)">${hrOpts}</select>`
+    +`</div>`
+    +`<div style="font-size:12px;color:var(--tx3);margin-bottom:6px;font-family:'JetBrains Mono',monospace">${wxlFmt(e.target)} · ${e.loc.name}</div>`;
+  if(e._err)o+=`<div class="wxl-fc" style="color:var(--danger)">${e._err}</div>`;
+  // Say up front whether the measured-error layer is still reachable for this date — after
+  // the fact is too late, the observation is already gone.
+  const tMs=wxlTms(e), left=wxlObsLeft(e);
+  if(tMs!=null&&tMs<Date.now()){
+    o+= left>0
+      ? `<div class="wxl-avail ok">📡 Observation still on record — about ${left<1?'less than a day':Math.floor(left)+' day'+(Math.floor(left)===1?'':'s')} left to verify this one.</div>`
+      : `<div class="wxl-avail old">📡 Older than the ~${WXL_OBS_DAYS}-day observation archive, so the measured error can't be recovered. Your call, your tags and the lead-time drift are still recorded.</div>`;
+  }
+  if(e._loading)o+=`<div class="wxl-fc" style="color:var(--tx3)">Loading that date…</div>`;
+  else if(f){
     const bits=[];
     if(f.wind!=null)bits.push(`Wind <b>${Math.round(f.wind)}</b> mph${f.dir!=null?' '+cp(f.dir):''}`);
     if(f.gust!=null)bits.push(`Gust <b>${Math.round(f.gust)}</b>`);
@@ -3372,7 +3544,7 @@ function rWxLogForm(){
     if(f.aqi!=null)bits.push(`AQI <b>${f.aqi}</b>`);
     o+=`<div class="wxl-fc"><div style="color:var(--tx4);font-size:10px;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px">The forecast being graded${e.fcSrc==='d1'?' · run standing ~1 day ahead':''}</div>${bits.join(' · ')}${f.verdict?` · <b>${f.verdict}</b>`:''}</div>`;
   }else{
-    o+=`<div class="wxl-fc" style="color:var(--tx4)">That hour is outside the loaded forecast — the forecast values will be filled in from the archived model run when you check outcomes.</div>`;
+    o+=`<div class="wxl-fc" style="color:var(--tx4)">No forecast values for that hour yet — they'll be filled in from the archived model run when you check outcomes.</div>`;
   }
   o+=`<div class="wxl-st" style="font-size:11px;color:var(--tx3);text-transform:uppercase;letter-spacing:.04em;font-weight:600;margin-bottom:4px">How did the forecast do?</div>
     <div class="wxl-row">
@@ -3441,7 +3613,8 @@ function wxlPastWindows(){
     const ds=b.toISOString().slice(0,10);
     [['AM',srH],['PM',Math.max(0,ssH-1)]].forEach(([w,hr])=>{
       const target=`${ds}T${String(hr).padStart(2,'0')}:00`;
-      const t=wxlUtcMs(target,off);
+      const gi=wxlInstantFor(ds,hr);
+      const t=gi?gi.ms:wxlUtcMs(target,off);
       if(t==null||t>Date.now()-45*60000)return; // not finished yet
       out.push({target,win:w,label:`${wxlDayLabel(ds)} ${w}`});
     });
@@ -3476,7 +3649,7 @@ function rWxLog(){
   const off=es.filter(e=>e.call==='off'),ok=es.filter(e=>e.call==='ok');
   const flew=es.filter(e=>e.flew===true).length,scr=es.filter(e=>e.flew===false).length;
   const ver=es.filter(e=>e.err&&e.err.wind!=null);
-  const pend=es.filter(e=>{const t=wxlUtcMs(e.target,e.off);
+  const pend=es.filter(e=>{const t=wxlTms(e);
     if(t==null||t>=Date.now()-20*60000)return false;
     return (!e.obs&&!e.obsGone)||!e.drift;});
   const pending=pend.length;
@@ -3504,7 +3677,14 @@ function rWxLog(){
   for(let d=new Date(start);d<=end;d.setUTCDate(d.getUTCDate()+1)){
     const ds=d.toISOString().slice(0,10),list=byDay[ds];
     const dn=d.getUTCDate();
-    if(!list){o+=`<div class="wxl-cd" title="${ds}">${dn}</div>`;continue}
+    if(!list){
+      // An empty day is the shortest path to logging a past window — tap it.
+      const future=ds>end.toISOString().slice(0,10);
+      o+=future
+        ? `<div class="wxl-cd" title="${ds}">${dn}</div>`
+        : `<div class="wxl-cd empty" title="${ds} — not logged; tap to log this day" onclick="openWxLogDay('${ds}')">${dn}</div>`;
+      continue;
+    }
     const anyOff=list.find(x=>x.call==='off');
     const cls=!anyOff?'ok':anyOff.dir==='worse'?'worse':anyOff.dir==='better'?'better':'off';
     const tip=list.map(x=>`${x.win} ${x.call==='ok'?'accurate':'off'+(x.dir?' ('+x.dir+')':'')}${x.tags?.length?' · '+x.tags.join(', '):''}`).join(' | ');
@@ -3516,6 +3696,46 @@ function rWxLog(){
     +`<span><i style="background:var(--blue)"></i>better than forecast</span>`
     +`<span><i style="background:var(--card2);border:1px solid var(--bdr)"></i>not logged</span>`
     +`</div></div>`;
+
+  // ── accuracy rate over time — the trend the day heatmap can't show ──
+  // Grouped, because a single day is binary: a percentage only means something across a run
+  // of windows. Week and month both offered since a season reads differently at each scale.
+  const per={};
+  es.forEach(e=>{
+    let key,lbl;
+    if(_wxlPeriod==='month'){
+      key=e.target.slice(0,7);
+      lbl=new Date(key+'-01T00:00:00Z').toLocaleDateString('en-US',{month:'short',year:'numeric',timeZone:'UTC'});
+    }else{
+      const d=new Date(e.target.slice(0,10)+'T00:00:00Z');
+      d.setUTCDate(d.getUTCDate()-d.getUTCDay()); // week starts Sunday, matching the calendar
+      key=d.toISOString().slice(0,10);
+      lbl='Week of '+d.toLocaleDateString('en-US',{month:'short',day:'numeric',timeZone:'UTC'});
+    }
+    (per[key]=per[key]||{lbl,list:[]}).list.push(e);
+  });
+  const keys=Object.keys(per).sort().reverse().slice(0,12);
+  if(keys.length){
+    o+=`<div class="wxl-sec"><div class="wxl-st">📈 Accuracy over time`
+      +`<span class="wxl-tog">`
+      +`<button class="${_wxlPeriod==='week'?'sel':''}" onclick="wxlPeriod('week')">Week</button>`
+      +`<button class="${_wxlPeriod==='month'?'sel':''}" onclick="wxlPeriod('month')">Month</button>`
+      +`</span></div><table class="wxl-tbl"><thead><tr>`
+      +`<th>${_wxlPeriod==='month'?'Month':'Week'}</th><th>Logged</th><th>Accurate</th><th></th><th>Median wind error</th></tr></thead><tbody>`;
+    keys.forEach(k=>{
+      const {lbl,list}=per[k];
+      const okN=list.filter(x=>x.call==='ok').length;
+      const pc=Math.round(okN/list.length*100);
+      const errs=list.filter(x=>x.err&&x.err.wind!=null).map(x=>x.err.wind);
+      const med=wxlMed(errs);
+      const col=pc>=70?'var(--calm)':pc>=40?'var(--mod)':'var(--danger)';
+      o+=`<tr><td class="l">${lbl}</td><td style="color:var(--tx3)">${list.length}</td>`
+        +`<td style="color:${col};font-weight:700">${pc}%</td>`
+        +`<td style="width:26%"><div class="wxl-bar"><i style="width:${pc}%;background:${col}"></i></div></td>`
+        +`<td style="color:${med!=null&&Math.abs(med)>=3?'var(--mod)':'var(--tx3)'}">${med==null?'—':(med>0?'+':'')+med.toFixed(1)+' mph'}</td></tr>`;
+    });
+    o+=`</tbody></table><div class="wxl-note">"Accurate" is <b>your own</b> verdict for that period; the median wind error is <b>measured</b> against station observations. They can disagree — a run of mornings you called accurate while the median error grows is the more interesting signal of the two, and the reverse means the model is closer than it feels.</div></div>`;
+  }
 
   // ── your tags ──
   if(off.length){
@@ -3598,7 +3818,7 @@ function rWxLog(){
     if(e.obs)parts.push(`obs ${Math.round(e.obs.spd)}${e.obs.dir!=null?' '+cp(e.obs.dir):''}${e.obs.gst!=null?' g'+Math.round(e.obs.gst):''} @ ${e.obs.stn}`);
     if(e.err?.wind!=null)parts.push(`<span style="color:${Math.abs(e.err.wind)>=4?'var(--mod)':'var(--tx3)'}">Δ${(e.err.wind>0?'+':'')+e.err.wind.toFixed(1)}</span>`);
     if(e.drift){const d=[];for(const k of['d1','d2','d3'])if(e.drift[k]?.wind!=null)d.push(`${k.slice(1)}d:${Math.round(e.drift[k].wind)}`);if(d.length)parts.push(d.join(' '))}
-    if(!e.obs&&wxlUtcMs(e.target,e.off)<Date.now()){
+    if(!e.obs&&wxlTms(e)<Date.now()){
       const left=wxlObsLeft(e);
       parts.push(e.obsGone||left<=0
         ?'<span style="color:var(--tx4)">no observation on record</span>'
