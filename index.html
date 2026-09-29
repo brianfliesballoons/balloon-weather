@@ -421,6 +421,20 @@ a.badge{cursor:pointer}a.badge:hover{background:rgba(56,189,248,.2);color:#7dd3f
 /* keep LIVE beside Ask Claude on the right — tp-mini is display:none when unpinned, so
    space-between would otherwise strand LIVE in the middle of the header */
 .tp-hdr .tp-now{margin-left:auto}
+/* v4.21.2: the chips live in one group that WRAPS instead of overflowing. With five chips
+   (LIVE · Ask Claude · Log · Log book · ↻) the row outgrew a phone and .tp's overflow:hidden
+   clipped ↻ Refresh off the right edge — Brian 2026-09-28: "I can't refresh". The group takes
+   the space left after the title and flows onto a second line when it runs out, so no chip
+   can be clipped. */
+/* flex-basis:auto — the group asks for its full one-line width first and only wraps when the
+   row truly can't hold it; the title (flex-shrink:100) and the pinned time readout (basis 0) give
+   way before it. NOT a fractional flex-shrink on this group — when the unfrozen factors sum
+   below 1, CSS applies only that fraction of the overflow and the group never shrinks enough. */
+.tp-acts{display:flex;flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:5px;flex:0 1 auto;min-width:0;margin-left:auto}
+.tp-hdr .tp-title{flex-shrink:100}
+.tp-acts .tp-now{margin-left:0}
+.tp-acts .tp-ask{margin-left:0}
+.tp-acts .tp-now,.tp-acts .tp-ask{flex-shrink:0}
 .tp-ask:hover{background:rgba(96,165,250,.22)}
 .tpwrap.stuck .tp-ask{padding:4px 8px}
 .tp-body{padding:10px 14px;display:flex;flex-direction:column;gap:8px}
@@ -467,6 +481,7 @@ a.badge{cursor:pointer}a.badge:hover{background:rgba(56,189,248,.2);color:#7dd3f
   .tp-title{min-width:0;flex-shrink:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
   .tp-now{padding:4px 8px;flex-shrink:0}
   .tp-ask{padding:4px 8px;margin-left:5px;flex-shrink:0}
+  .tp-acts .tp-ask{margin-left:0}
 }
 
 /* ═══ GO/NO-GO SCORECARD ═══ */
@@ -650,7 +665,7 @@ a.badge{cursor:pointer}a.badge:hover{background:rgba(56,189,248,.2);color:#7dd3f
 <div class="ga" id="ga"><span>⚠</span><span id="gaTxt"></span></div>
 <div id="tpSentinel" style="height:1px"></div>
 <div class="tpwrap" id="tpWrap">
-  <div class="tp"><div class="tp-hdr"><div class="tp-title">🕐 Forecast<span class="tp-tw"> Window</span></div><div class="tp-mini" id="tpSelMini"></div><button class="tp-now active" id="tpNow" onclick="setNow()">● LIVE</button><button class="tp-ask" id="askBtn" onclick="askClaude()" title="Open Claude with the full raw briefing for the selected flight time (±2h) — works with a free Claude account">✨ Ask Claude</button><button class="tp-ask" id="wxlBtn" onclick="openWxLog()" title="Log how this forecast actually turned out — builds your accuracy record over time">📋 Log</button><button class="tp-ask" id="wxlGoBtn" onclick="goWxLog()" title="Jump to the Forecast Accuracy log — calendar, trends and past entries">📅 Log book</button><button class="tp-ask rbtn" id="rbtn" onclick="refreshAll(true)" title="Refresh all data"><span class="ri">↻</span></button></div>
+  <div class="tp"><div class="tp-hdr"><div class="tp-title">🕐 Forecast<span class="tp-tw"> Window</span></div><div class="tp-mini" id="tpSelMini"></div><div class="tp-acts"><button class="tp-now active" id="tpNow" onclick="setNow()">● LIVE</button><button class="tp-ask" id="askBtn" onclick="askClaude()" title="Open Claude with the full raw briefing for the selected flight time (±2h) — works with a free Claude account">✨ Ask Claude</button><button class="tp-ask" id="wxlBtn" onclick="openWxLog()" title="Log how this forecast actually turned out — builds your accuracy record over time">📋 Log</button><button class="tp-ask" id="wxlGoBtn" onclick="goWxLog()" title="Jump to the Forecast Accuracy log — calendar, trends and past entries">📅 Log book</button><button class="tp-ask rbtn" id="rbtn" onclick="refreshAll(true)" title="Refresh all data"><span class="ri">↻</span></button></div></div>
     <div class="tp-body">
       <div class="tp-days" id="tpDays"></div>
       <div class="tp-hours" id="tpHours"></div>
@@ -3909,7 +3924,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   if(location.pathname.includes('/preview/')){
     const pb=document.createElement('div');
     pb.className='pvw-bar';
-    pb.innerHTML='🧪 <b>PREVIEW BUILD</b> — v4.21.0 Forecast Accuracy Log. This is not the live dashboard. <a href="../">Open the live one ↗</a>';
+    pb.innerHTML='🧪 <b>PREVIEW BUILD</b> — v4.21.2 header fix (↻ Refresh wraps instead of going off-screen). This is not the live dashboard. <a href="../">Open the live one ↗</a>';
     document.body.insertBefore(pb,document.body.firstChild);
   }
   // Load saved location from localStorage.
