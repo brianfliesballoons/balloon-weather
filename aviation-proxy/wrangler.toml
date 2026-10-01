@@ -1,0 +1,8 @@
+name = "aviation-proxy"
+main = "src/worker.js"
+compatibility_date = "2026-08-18"
+
+# Free-tier Worker on the brianfliesballoons Cloudflare account.
+# Deploy:  cd aviation-proxy && npx wrangler deploy
+# Tail:    npx wrangler tail aviation-proxy
+workers_dev = true

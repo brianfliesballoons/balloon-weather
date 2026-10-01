@@ -1,7 +1,7 @@
 # Balloon Weather — Build Overview & Embed Guide
 
 **For:** Flight Maps integration (Alito)
-**From:** Brian Lynch
+**From:** Brian
 **Live app:** https://brianfliesballoons.github.io/balloon-weather/
 **Repo:** https://github.com/brianfliesballoons/balloon-weather (GitHub Pages, `main` branch, `index.html`)
 **Version:** 4.9.x · July 2026
@@ -85,9 +85,3 @@ Apple's WeatherKit provides surface conditions and general forecasts only. It ha
 ### Licensing note (the one flag)
 
 NWS and Aviation Weather Center data are **US public domain** — no restrictions. **Open-Meteo's free tier is licensed for non-commercial use** (their commercial API plan is ~€29/mo and is byte-identical — same endpoints, same models, you just append an API key). While Flight Maps is beta/pre-revenue this is a non-issue at our volumes, and the `SFSafariViewController` link-out pattern keeps the page cleanly Brian's personal non-commercial tool. If Flight Maps commercializes seriously, budget the Open-Meteo subscription — it's a one-line URL change with zero data difference.
-
----
-
-## Contact
-
-Brian Lynch · brianfliesballoons@gmail.com · (951) 480-5640
