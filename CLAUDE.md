@@ -42,6 +42,8 @@ A specialized aviation weather briefing dashboard built for balloon and paraglid
 
 **Primary copy:** `opus 4.7/balloon-weather-ACTIVE.html` — the working file. Publish by copying it to `opus 4.6/balloon-weather/index.html` (the git repo GitHub Pages serves), then commit + push. Full workflow: `opus 4.6/CLAUDE.md`.
 
+**⚠ THIS FILE IS PUBLIC (since 2026-10-01).** Every publish also copies this CLAUDE.md, `BALLOON-WEATHER-BUILD.md` and `aviation-proxy/` into the public repo, so Alito (Flight Maps) and his Claude can read the whole project. **No last names, emails, phone numbers or unrelated projects here.** First names only where they explain a decision. ⚠ An older public commit of `BALLOON-WEATHER-BUILD.md` still holds Brian's phone and email in the repo's git history; scrubbing it means rewriting history and force-pushing, which waits on Brian's call.
+
 ---
 
 ## The Aviation Briefing card + its CORS proxy (v4.17.0, 2026-08-18)
