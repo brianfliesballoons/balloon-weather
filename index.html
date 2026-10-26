@@ -1146,11 +1146,14 @@ function updateUI(){
 }
 
 // ═══ DATA FETCH ═══
-function omUrl(lat,lon){
-  const pv=[];C.levels.forEach(l=>{pv.push(`wind_speed_${l.hPa}hPa`,`wind_direction_${l.hPa}hPa`,`temperature_${l.hPa}hPa`,`geopotential_height_${l.hPa}hPa`,`dew_point_${l.hPa}hPa`)});
+// lite=true for the comparison stations (v4.21.3): they skip the per-level dew point (cloud tops,
+// home only) and RH + cloud layers (home surface card only). Open-Meteo bills every 10 variables
+// as one call, so this takes each comparison request from ~9.8 calls to ~7.8.
+function omUrl(lat,lon,lite){
+  const pv=[];C.levels.forEach(l=>{pv.push(`wind_speed_${l.hPa}hPa`,`wind_direction_${l.hPa}hPa`,`temperature_${l.hPa}hPa`,`geopotential_height_${l.hPa}hPa`);if(!lite)pv.push(`dew_point_${l.hPa}hPa`)});
   // pressure_msl is the sea-level equivalent that METARs and altimeters report (was surface_pressure —
   // that's station pressure at actual elevation, which is ~2 inHg low at Mesquite/Reno/anywhere >1000 ft).
-  const sv=['temperature_2m','dew_point_2m','relative_humidity_2m','wind_speed_10m','wind_direction_10m','wind_gusts_10m','wind_speed_80m','wind_direction_80m','cloud_cover','cloud_cover_low','cloud_cover_mid','cloud_cover_high','visibility','precipitation_probability','pressure_msl','surface_pressure'];
+  const sv=['temperature_2m','dew_point_2m','relative_humidity_2m','wind_speed_10m','wind_direction_10m','wind_gusts_10m','wind_speed_80m','wind_direction_80m','cloud_cover','cloud_cover_low','cloud_cover_mid','cloud_cover_high','visibility','precipitation_probability','pressure_msl','surface_pressure'].filter(v=>!lite||!/^relative_humidity|^cloud_cover_/.test(v));
   // best_match: verified 2026-08-03 (differential test vs each model) that in CONUS this serves
   // HRRR 3 km for BOTH surface AND pressure-level vars through ~h48-60, then hands off to GFS —
   // and it degrades gracefully outside CONUS (Hawaii etc.). Keep best_match here: pinning
@@ -1165,16 +1168,45 @@ function omUrl(lat,lon){
 // can't leave the whole page spinning. The AbortController actually cancels the in-flight request.
 // Uses window.fetch explicitly so the search-and-replace of fetch()->fetchT() doesn't create recursion.
 async function fetchT(url, opts={}, ms=8000){
+  if(/open-meteo\.com/.test(url))return omFetch(url,opts,ms);
+  return fetchT1(url,opts,ms);
+}
+async function fetchT1(url, opts, ms){
   const ctl=new AbortController();
   const to=setTimeout(()=>ctl.abort(),ms);
   try{ return await window.fetch(url,{...opts,signal:ctl.signal}) }
   finally{ clearTimeout(to) }
 }
-let _om429=false; // set when Open-Meteo returns 429 (free daily quota exhausted — shared per IP)
+// v4.21.3: Open-Meteo refuses bursts — a page load fired ~14 requests at once and some came back
+// 429 {"reason":"Too many concurrent requests"} (measured 2026-10-26), which the page then reported as
+// the DAILY quota and never retried. Now at most 4 run at a time, and a "concurrent" 429 waits and
+// retries (up to 3 tries). The real per-minute/hour/day limits still surface as 429 with their own reason.
+let _omActive=0;const _omWait=[];
+async function omFetch(url,opts,ms){
+  while(_omActive>=4)await new Promise(r=>_omWait.push(r));
+  _omActive++;
+  try{
+    for(let a=0;;a++){
+      const r=await fetchT1(url,opts,ms);
+      if(r.status!==429||a>=2)return r;
+      let why='';try{why=(await r.clone().json()).reason||''}catch(e){}
+      if(!/concurrent/i.test(why))return r;
+      await new Promise(res=>setTimeout(res,600*(a+1)+Math.random()*400));
+    }
+  }finally{_omActive--;const n=_omWait.shift();if(n)n();}
+}
+let _om429=false,_om429Why=''; // set when Open-Meteo returns 429; _om429Why is its own "reason" text
+// The free tier has THREE limits per public IP (open-meteo.com/en/terms): 600 calls/min, 5,000/hour,
+// 10,000/day, and a station request (~80-100 variables) counts as ~8-10 calls. A few quick taps can
+// trip the per-minute one, which clears in a minute — so say which limit it was (v4.21.3).
+function omQuota(short){const w=_om429Why;
+  if(/minute/i.test(w))return short?'Open-Meteo per-minute limit hit (clears in about a minute)':'Too many Open-Meteo requests in the last minute (free limit: 600 a minute). Wait a minute, then tap ↻.';
+  if(/hour/i.test(w))return short?'Open-Meteo hourly limit hit (clears within the hour)':'Open-Meteo hourly free limit reached (5,000 an hour, shared by every device on this network). It clears within the hour; switching to Wi-Fi or cellular can bring it back sooner. Then tap ↻.';
+  return short?'Open-Meteo daily quota hit (resets 5 PM Pacific)':'Open-Meteo daily free limit reached — every device on this network shares it. Data resumes at midnight UTC (5:00 PM Pacific). On cellular, switching to Wi-Fi usually brings it back sooner: then tap ↻.';}
 // 20 s timeout (not the 8 s default): each station fetch is ~64 KB and 12 run in parallel —
 // on a slow cellular/weak-WiFi link the 8 s cutoff was killing most of them (2026-08-06,
 // 3 AM field report: 3 of 11 stations loaded, home among the dead → blank Micro Winds)
-async function fetchOM(a,b){const r=await fetchT(omUrl(a,b),{},20000);if(!r.ok){if(r.status===429)_om429=true;throw new Error('Open-Meteo '+r.status)}return r.json()}
+async function fetchOM(a,b,lite){const r=await fetchT(omUrl(a,b,lite),{},20000);if(!r.ok){if(r.status===429){_om429=true;try{const j=await r.json();if(j&&j.reason)_om429Why=String(j.reason)}catch(e){}}throw new Error('Open-Meteo '+r.status)}return r.json()}
 async function fetchSunTimes(){
   const r=await fetchT(`https://api.sunrise-sunset.org/json?lat=${C.lat}&lng=${C.lon}&formatted=0`);
   if(!r.ok)throw new Error('Sun API '+r.status);
@@ -1536,7 +1568,7 @@ function lowLevelShear(h,i){
 function rMicroProfile(allData){
   const el=document.getElementById('microProfB'),tl=document.getElementById('mvTime');
   const homeKey=C.stations[0].label,homeD=allData[homeKey];
-  if(!homeD||!homeD.hourly){el.innerHTML=`<div class="err">Home station (${homeKey}) fetch didn't load — ${_om429?'Open-Meteo daily quota hit (resets 5 PM Pacific)':'usually a slow connection'}. Hit ↻ Refresh to retry.</div>`;return}
+  if(!homeD||!homeD.hourly){el.innerHTML=`<div class="err">Home station (${homeKey}) fetch didn't load — ${_om429?omQuota(true):'usually a slow connection'}. Hit ↻ Refresh to retry.</div>`;return}
   const h=homeD.hourly,ci=getIdx(h.time);
   tl.textContent=isToday()?fT(h.time[ci]):fmtDate(getDateForOffset(selectedOffset))+' 6AM';
   // Build wind data for 0-2000 AGL
@@ -1634,7 +1666,7 @@ function rProfile(allData){
   const cellW=26;
   let o='';
   const missing=C.stations.length-sources.length;
-  if(missing>0)o+=`<div class="err" style="margin-bottom:6px">⚠ ${missing} of ${C.stations.length} stations didn't load${_om429?' — Open-Meteo daily quota hit (resets 5 PM Pacific)':' — usually a slow connection'}. Hit ↻ Refresh to retry.</div>`;
+  if(missing>0)o+=`<div class="err" style="margin-bottom:6px">⚠ ${missing} of ${C.stations.length} stations didn't load${_om429?' — '+omQuota(true):' — usually a slow connection'}. Hit ↻ Refresh to retry.</div>`;
   o+='<div class="vf-scroll">';
   // Header row (outside vf-wrap so sticky works)
   o+='<div class="vf-row vf-hdr"><div class="vf-alt"></div>';
@@ -3013,19 +3045,32 @@ function rAlertsAq(){
 
 // ═══ REFRESH ═══
 let busy=false,_lastRefreshTs=0,_stnCache={ts:0,key:'',data:null};
+// v4.21.3: the comparison-station cache is also kept in localStorage, so an iPhone reloading the
+// Home Screen app (it does, after a switch to Maps) doesn't re-buy ~80 Open-Meteo calls. One slot
+// per location+day, newest 2 kept; any storage error just means no cache.
+const STN_LS='bwStnCache';
+function stnCacheGet(key){if(_stnCache.key===key&&_stnCache.data)return _stnCache;
+  try{const a=JSON.parse(localStorage.getItem(STN_LS)||'[]');const e=a.find(x=>x.key===key);if(e)return e;}catch(e){}return null}
+function stnCachePut(e){_stnCache=e;
+  try{let a=[];try{a=JSON.parse(localStorage.getItem(STN_LS)||'[]').filter(x=>x.key!==e.key)}catch(_){}
+    a.unshift(e);a=a.slice(0,2);
+    try{localStorage.setItem(STN_LS,JSON.stringify(a))}catch(_){localStorage.setItem(STN_LS,JSON.stringify([e]))}}
+  catch(_){try{localStorage.removeItem(STN_LS)}catch(__){}}}
 async function refreshAll(force){if(busy)return;busy=true;document.getElementById('rbtn').classList.add('ld');
   try{
-    _om429=false;_lastRefreshTs=Date.now();
+    _om429=false;_om429Why='';_lastRefreshTs=Date.now();
     // Fetch weather data for all stations + AFD + METARs in parallel.
     // The home station is always fetched fresh; the OTHER stations' profiles change slowly, so in
     // live mode they're reused for up to 15 min — each station call is a heavy Open-Meteo request
     // and the full 12-station fan-out every 5 min was burning the free daily quota (429, 2026-07-29).
     // force=true (the manual Refresh button) bypasses the cache; historical/forecast offsets always do.
-    const locKey=C.lat+','+C.lon;
-    const cacheOK=!force&&selectedOffset===0&&_stnCache.data&&_stnCache.key===locKey&&(Date.now()-_stnCache.ts)<15*60*1000;
-    const fetches=C.stations.map((s,i)=>(i>0&&cacheOK&&_stnCache.data[s.label])
-      ?Promise.resolve(_stnCache.data[s.label])
-      :fetchOM(s.lat,s.lon).catch(e=>{console.warn('OM',s.label,e);return null}));
+    // v4.21.3: cached per location AND day, kept on the phone across reloads (stnCacheGet/Put)
+    const locKey=C.lat+','+C.lon+'|'+selectedOffset+'|'+(isHistorical()?isoDate(getDateForOffset(selectedOffset)):'');
+    const ce=force?null:stnCacheGet(locKey);
+    const cacheOK=!!(ce&&ce.data&&(Date.now()-ce.ts)<15*60*1000);
+    const fetches=C.stations.map((s,i)=>(i>0&&cacheOK&&ce.data[s.label])
+      ?Promise.resolve(ce.data[s.label])
+      :fetchOM(s.lat,s.lon,i>0).catch(e=>{console.warn('OM',s.label,e);return null}));
     // ⚠ The aviation fetchers return {ok,data,err} envelopes — do NOT add a
     // `.catch(()=>[])` here. Swallowing the failure into an empty list is what
     // made a dead feed render as "no SIGMETs in your area" for months.
@@ -3051,7 +3096,7 @@ async function refreshAll(force){if(busy)return;busy=true;document.getElementByI
     // parallel fetches at once while the API itself is fine. Retry only the failures, once,
     // and never when the failure was the daily quota (retries would just burn more of it).
     if(!_om429&&stnData.some(d=>!d)){
-      const retry=await Promise.all(C.stations.map((s,i)=>stnData[i]?Promise.resolve(null):fetchOM(s.lat,s.lon).catch(()=>null)));
+      const retry=await Promise.all(C.stations.map((s,i)=>stnData[i]?Promise.resolve(null):fetchOM(s.lat,s.lon,i>0).catch(()=>null)));
       retry.forEach((d,i)=>{if(d)stnData[i]=d});
     }
     // Build keyed data object
@@ -3060,7 +3105,7 @@ async function refreshAll(force){if(busy)return;busy=true;document.getElementByI
     // profile interpolation filters below-ground levels per station, not per home field
     stnData.forEach(sd=>{if(sd&&sd.hourly&&sd.elevation!=null)sd.hourly._elev=sd.elevation*3.28084});
     // Store/refresh the station cache only on a full live fetch that actually got station data
-    if(!cacheOK&&selectedOffset===0&&stnData.some((d,i)=>i>0&&d))_stnCache={ts:Date.now(),key:locKey,data:allData};
+    if(!cacheOK&&stnData.some((d,i)=>i>0&&d)){const cd={};C.stations.forEach((s,i)=>{if(i>0&&stnData[i])cd[s.label]=stnData[i]});stnCachePut({ts:Date.now(),key:locKey,data:cd})}
     // Render
     const homeData=stnData[0]||stnData.find(d=>d!=null);
     // When the home fetch died but a neighbor's survived, the surface cards render the
@@ -3076,8 +3121,8 @@ async function refreshAll(force){if(busy)return;busy=true;document.getElementByI
       // OM was fully unreachable — show a clear message in the primary cards instead of a stuck spinner.
       // Micro Winds and Winds Aloft handle null data on their own (they render "No wind data").
       const omMsg=_om429
-        ?'<div class="err">Open-Meteo daily free limit reached — every device on this network shares it. Data resumes at midnight UTC (5:00 PM Pacific). Auto-retry continues.</div>'
-        :'<div class="err">Forecast data unavailable — Open-Meteo may be having an outage. Will retry automatically.</div>';
+        ?'<div class="err">'+omQuota(false)+'</div>'
+        :'<div class="err">Forecast data unavailable — Open-Meteo may be having an outage. Tap ↻ to try again.</div>';
       ['surfB','hB','gngB','dayB'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=omMsg});
     }
     rMicroProfile(allData);
