@@ -1122,7 +1122,7 @@ async function selectLocation(geo){
     const stations=[{label:homeLabel,name:geo.name,lat:geo.lat,lon:geo.lon,dist:0},...compStns];
     // Apply to config
     C.lat=geo.lat;C.lon=geo.lon;C.elev=elev;C.name=geo.name;C.locName=geo.name;
-    C.timezone=tz||'America/New_York';C.nwsOffice=office;C.gridUrl=gridUrl;C.state=stateAbbr;
+    C.timezone=tz||Intl.DateTimeFormat().resolvedOptions().timeZone||'America/Los_Angeles';C.nwsOffice=office;C.gridUrl=gridUrl;C.state=stateAbbr;
     C.stations=stations;
     C.metarStns=metarStns.length?metarStns:[];
     // Re-merge any user-defined custom stations so a location change doesn't drop them
@@ -4037,7 +4037,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     if(saved){const s=JSON.parse(saved);
       if(s.lat&&s.lon){
         C.lat=s.lat;C.lon=s.lon;C.elev=s.elev||0;C.name=s.name||'Unknown';C.locName=s.locName||s.name||'Unknown';
-        C.timezone=s.timezone||'America/New_York';C.nwsOffice=s.nwsOffice||'';C.gridUrl=s.gridUrl||'';C.state=s.state||'';
+        C.timezone=s.timezone||Intl.DateTimeFormat().resolvedOptions().timeZone||'America/Los_Angeles'; // v4.21.4c: was New York, which put a zip-code location's sunrise 3 h offC.nwsOffice=s.nwsOffice||'';C.gridUrl=s.gridUrl||'';C.state=s.state||'';
         C.metarStns=s.metarStns||C.metarStns;
         locSource='localStorage ('+C.name+')';
         // Only load saved stations if config version matches — otherwise use fresh defaults
@@ -4086,7 +4086,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 // longer, so a fix could be live and still not on Brian's phone (2026-11-02, twice in a row). On load
 // and whenever the app comes back to the front, ask for the page uncached; if its BUILD differs,
 // reload once onto a fresh address. The build also shows next to "Updated", so the version is visible.
-const BUILD='v4.21.4b';
+const BUILD='v4.21.4c';
 async function checkBuild(){
   try{
     const r=await fetch(location.pathname+'?cb='+Date.now(),{cache:'no-store'});if(!r.ok)return;
