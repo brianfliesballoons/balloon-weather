@@ -1188,12 +1188,29 @@ async function omFetch(url,opts,ms){
   try{
     for(let a=0;;a++){
       const r=await fetchT1(url,opts,ms);
+      if(r.ok){const j=r.json.bind(r);r.json=async()=>omTzFix(await j());}
       if(r.status!==429||a>=2)return r;
       let why='';try{why=(await r.clone().json()).reason||''}catch(e){}
       if(!/concurrent/i.test(why))return r;
       await new Promise(res=>setTimeout(res,600*(a+1)+Math.random()*400));
     }
   }finally{_omActive--;const n=_omWait.shift();if(n)n();}
+}
+// v4.21.4: Open-Meteo labels EVERY time in a response with ONE offset — today's. After the DST change
+// (measured 2026-11-02) Oct 31's sunrise came back as 06:06 when it was really 07:06 PDT, and the hourly
+// labels for those days were an hour off too; a forecast that crosses a change has the same fault for the
+// days after it. So every local time is turned back into a real instant with that offset and re-labelled
+// in the location's own time zone, offset correct for its own date.
+const _tzFmt={};
+function omTzFix(d){
+  if(!d||typeof d!=='object'||typeof d.utc_offset_seconds!=='number'||!d.timezone||/^(GMT|UTC)$/i.test(d.timezone))return d;
+  const off=d.utc_offset_seconds*1000;
+  let f;try{f=_tzFmt[d.timezone]||(_tzFmt[d.timezone]=new Intl.DateTimeFormat('en-CA',{timeZone:d.timezone,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}))}catch(e){return d}
+  const fix=t=>{if(typeof t!=='string'||t.length!==16||t[10]!=='T')return t;const ms=Date.parse(t+'Z');if(isNaN(ms))return t;
+    const p={};f.formatToParts(ms-off).forEach(x=>p[x.type]=x.value);return`${p.year}-${p.month}-${p.day}T${p.hour}:${p.minute}`};
+  ['hourly','daily','minutely_15','current'].forEach(k=>{const o=d[k];if(!o)return;
+    ['time','sunrise','sunset'].forEach(n=>{if(Array.isArray(o[n]))o[n]=o[n].map(fix);else if(typeof o[n]==='string')o[n]=fix(o[n])})});
+  return d;
 }
 let _om429=false,_om429Why=''; // set when Open-Meteo returns 429; _om429Why is its own "reason" text
 // The free tier has THREE limits per public IP (open-meteo.com/en/terms): 600 calls/min, 5,000/hour,
@@ -1207,12 +1224,21 @@ function omQuota(short){const w=_om429Why;
 // on a slow cellular/weak-WiFi link the 8 s cutoff was killing most of them (2026-08-06,
 // 3 AM field report: 3 of 11 stations loaded, home among the dead → blank Micro Winds)
 async function fetchOM(a,b,lite){const r=await fetchT(omUrl(a,b,lite),{},20000);if(!r.ok){if(r.status===429){_om429=true;try{const j=await r.json();if(j&&j.reason)_om429Why=String(j.reason)}catch(e){}}throw new Error('Open-Meteo '+r.status)}return r.json()}
-async function fetchSunTimes(){
-  const r=await fetchT(`https://api.sunrise-sunset.org/json?lat=${C.lat}&lng=${C.lon}&formatted=0`);
+// v4.21.4: asks for a DATE. It used to ask for no date, so the Sun & Twilight row showed today's times
+// whatever day was picked — and a day picked across a DST change was an hour off.
+async function fetchSunTimes(ds){
+  ds=ds||isoDate(getDateForOffset(selectedOffset));
+  const r=await fetchT(`https://api.sunrise-sunset.org/json?lat=${C.lat}&lng=${C.lon}&formatted=0&date=${ds}`);
   if(!r.ok)throw new Error('Sun API '+r.status);
   const d=await r.json();if(d.status!=='OK')throw new Error('Sun API: '+d.status);
+  (window._sunByDate=window._sunByDate||{})[`${C.lat},${C.lon},${ds}`]=d.results;
   return d.results;
 }
+const _sunPending={};
+function sunFor(ds){const k=`${C.lat},${C.lon},${ds}`,m=window._sunByDate||{};
+  if(m[k])return m[k];
+  if(!_sunPending[k]){_sunPending[k]=1;fetchSunTimes(ds).then(()=>reRender()).catch(e=>console.warn('SUN:',e)).finally(()=>delete _sunPending[k])}
+  return null}
 async function fetchAFD(){
   if(!C.nwsOffice)throw new Error('No NWS office');
   const lr=await fetchT(`https://api.weather.gov/products/types/AFD/locations/${C.nwsOffice}`);if(!lr.ok)throw new Error('AFD '+lr.status);
@@ -1455,7 +1481,8 @@ function rSurf(d,metars,sunTimes){
     ${(()=>{const q=aqAt(h.time[i]);if(!q)return'';return`<div class="stat"><div><div class="stat-lbl">Air Quality (US AQI)</div><div class="stat-sub" style="color:${aqiC(q.aqi)}">${aqiLbl(q.aqi)}${q.pm25!=null?' · PM2.5 '+Math.round(q.pm25):''}</div></div><div class="stat-val" style="color:${aqiC(q.aqi)}">${Math.round(q.aqi)}</div></div>`})()}
     <div class="stat"><div class="stat-lbl">Precip Chance</div><div class="stat-val">${prc!=null?Math.round(prc):'—'}%</div></div>
     <div class="stat"><div class="stat-lbl">Pressure</div><div class="stat-val">${inhg??'—'} inHg</div></div>
-    ${(()=>{if(!sunTimes)return'';const fmt=iso=>{if(!iso)return'—';return new Date(iso).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',hour12:true,timeZone:getTZ()})};return`<div class="stat" style="margin-top:6px;border-top:1px solid var(--bdr);padding-top:10px"><div class="stat-lbl" style="color:var(--tx2);font-weight:600">☀ Sun & Twilight</div><div class="stat-val" style="font-size:11px;color:var(--tx3)">Today</div></div><div class="stat"><div class="stat-lbl">Nautical Dawn</div><div class="stat-val" style="color:var(--violet)">${fmt(sunTimes.nautical_twilight_begin)}</div></div><div class="stat"><div class="stat-lbl">Civil Dawn</div><div class="stat-val" style="color:var(--blue)">${fmt(sunTimes.civil_twilight_begin)}</div></div><div class="stat"><div class="stat-lbl">☀ Sunrise</div><div class="stat-val" style="color:var(--mod)">${fmt(sunTimes.sunrise)}</div></div><div class="stat"><div class="stat-lbl">🌅 Sunset</div><div class="stat-val" style="color:var(--strong)">${fmt(sunTimes.sunset)}</div></div><div class="stat"><div class="stat-lbl">Civil Dusk</div><div class="stat-val" style="color:var(--blue)">${fmt(sunTimes.civil_twilight_end)}</div></div><div class="stat"><div class="stat-lbl">Nautical Dusk</div><div class="stat-val" style="color:var(--violet)">${fmt(sunTimes.nautical_twilight_end)}</div></div>`})()}
+    ${(()=>{const sds=(h.time[i]||'').slice(0,10);sunTimes=sds?sunFor(sds):sunTimes;if(!sunTimes)return'';
+      const sLbl=sds===isoDate(new Date())?'Today':new Date(sds+'T12:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});const fmt=iso=>{if(!iso)return'—';return new Date(iso).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',hour12:true,timeZone:getTZ()})};return`<div class="stat" style="margin-top:6px;border-top:1px solid var(--bdr);padding-top:10px"><div class="stat-lbl" style="color:var(--tx2);font-weight:600">☀ Sun & Twilight</div><div class="stat-val" style="font-size:11px;color:var(--tx3)">${sLbl}</div></div><div class="stat"><div class="stat-lbl">Nautical Dawn</div><div class="stat-val" style="color:var(--violet)">${fmt(sunTimes.nautical_twilight_begin)}</div></div><div class="stat"><div class="stat-lbl">Civil Dawn</div><div class="stat-val" style="color:var(--blue)">${fmt(sunTimes.civil_twilight_begin)}</div></div><div class="stat"><div class="stat-lbl">☀ Sunrise</div><div class="stat-val" style="color:var(--mod)">${fmt(sunTimes.sunrise)}</div></div><div class="stat"><div class="stat-lbl">🌅 Sunset</div><div class="stat-val" style="color:var(--strong)">${fmt(sunTimes.sunset)}</div></div><div class="stat"><div class="stat-lbl">Civil Dusk</div><div class="stat-val" style="color:var(--blue)">${fmt(sunTimes.civil_twilight_end)}</div></div><div class="stat"><div class="stat-lbl">Nautical Dusk</div><div class="stat-val" style="color:var(--violet)">${fmt(sunTimes.nautical_twilight_end)}</div></div>`})()}
   </div></div>`;
   if(metars&&Object.keys(metars).length){
     const ceilCls={CLR:'clr',SKC:'clr',FEW:'few',SCT:'sct',BKN:'bkn',OVC:'ovc'};
