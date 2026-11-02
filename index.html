@@ -3197,7 +3197,7 @@ async function refreshAll(force){if(busy)return;busy=true;document.getElementByI
       }).catch(()=>{});
     }
     const updLabel=isToday()?'Updated '+new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',second:'2-digit',hour12:true,timeZone:getTZ()}):'Loaded '+fmtDate(getDateForOffset(selectedOffset));
-    document.getElementById('upd').textContent=updLabel;
+    document.getElementById('upd').textContent=updLabel+' · '+BUILD;
     // Update hist banner after successful load
     const hb=document.getElementById('histB'),ht=document.getElementById('histTxt');
     if(isHistorical()){hb.classList.add('v');ht.textContent=`Viewing past conditions for ${fmtDate(getDateForOffset(selectedOffset))}`}
@@ -4081,6 +4081,21 @@ document.addEventListener('DOMContentLoaded',()=>{
   // Refresh button is the only thing that hits the APIs. (The old 5-min setInterval here is what
   // silently burned the Open-Meteo daily quota from left-open tabs.)
 });
+
+// v4.21.4: GitHub Pages lets a phone keep its copy for 10 minutes, and the Home Screen app can hold it
+// longer, so a fix could be live and still not on Brian's phone (2026-11-02, twice in a row). On load
+// and whenever the app comes back to the front, ask for the page uncached; if its BUILD differs,
+// reload once onto a fresh address. The build also shows next to "Updated", so the version is visible.
+const BUILD='v4.21.4b';
+async function checkBuild(){
+  try{
+    const r=await fetch(location.pathname+'?cb='+Date.now(),{cache:'no-store'});if(!r.ok)return;
+    const m=/const BUILD='([^']+)'/.exec(await r.text());if(!m||m[1]===BUILD)return;
+    try{if(sessionStorage.getItem('bwReloadFor')===m[1])return;sessionStorage.setItem('bwReloadFor',m[1])}catch(e){}
+    location.replace(location.pathname+'?v='+encodeURIComponent(m[1])+location.hash);
+  }catch(e){}
+}
+if(location.protocol.startsWith('http')){checkBuild();document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkBuild()})}
 </script>
 </body>
 </html>
