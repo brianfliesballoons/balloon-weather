@@ -799,9 +799,31 @@ function buildTimePicker(d){
   const dEl=document.getElementById('tpDays'),hEl=document.getElementById('tpHours');
   const dayKeys=Object.keys(days);
   let dHTML=pastDays.map(p=>`<div class="tp-day past${selectedOffset===p.offset?' sel':''}" data-key="${p.key}" data-offset="${p.offset}" onclick="pickPastDay(${p.offset})"><span class="day-name">${p.label}</span><span class="day-date">${p.date}</span></div>`).join('');
-  dHTML+=dayKeys.map((k,i)=>`<div class="tp-day${selectedOffset===0&&!isHistorical()?'':''}" data-key="${k}" onclick="pickDay('${k}')"><span class="day-name">${days[k].label}</span><span class="day-date">${days[k].date}</span></div>`).join('');
+  if(isHistorical()){
+    // v4.21.4: a past day's fetch holds only that day, which used to make today and the coming days
+    // vanish from the picker (Brian, 2026-11-02: "need to compare"). They stay as buttons that
+    // load the live data again and open that day.
+    for(let off=0;off>=-4;off--){const fd=getDateForOffset(off);
+      const k=fd.toLocaleDateString('en-US',{timeZone:getTZ(),year:'numeric',month:'2-digit',day:'2-digit'});
+      dHTML+=`<div class="tp-day" data-key="${k}" onclick="pickLiveDay('${k}')"><span class="day-name">${fd.toLocaleDateString('en-US',{timeZone:getTZ(),weekday:'short'})}</span><span class="day-date">${fd.toLocaleDateString('en-US',{timeZone:getTZ(),month:'short',day:'numeric'})}</span></div>`}
+  }else{
+    dHTML+=dayKeys.map(k=>`<div class="tp-day" data-key="${k}" onclick="pickDay('${k}')"><span class="day-name">${days[k].label}</span><span class="day-date">${days[k].date}</span></div>`).join('');
+  }
   dEl.innerHTML=dHTML;
   window._tpDays=days;window._tpSunData=sunData;
+  // On a past day, list its hours too, so its dawn can be picked like any other day's
+  if(isHistorical()&&dayKeys.length){const k=dayKeys[0],sun=sunData[k]||{},cur=getIdx(h.time);
+    hEl.innerHTML=days[k].hours.map(x=>{const hr=x.dt.getHours();let cls='tp-hr';
+      if(sun.srH!=null&&hr>=sun.srH-1&&hr<=sun.srH+2)cls+=' dawn';if(sun.ssH!=null&&hr>=sun.ssH-2&&hr<=sun.ssH)cls+=' dusk';
+      if(x.idx===cur)cls+=' sel';
+      return`<div class="${cls}" data-idx="${x.idx}" onclick="pickHour(${x.idx})">${x.hour}</div>`}).join('');}
+}
+async function pickLiveDay(key){
+  selectedOffset=0;liveMode=true;selectedIdx=null;
+  document.getElementById('histB').classList.remove('v');
+  document.querySelectorAll('.tp-day').forEach(d=>d.classList.toggle('sel',d.dataset.key===key));
+  await refreshAll();
+  if(window._tpDays&&window._tpDays[key])pickDay(key);
 }
 function pickPastDay(offset){
   selectedOffset=offset;
@@ -1188,7 +1210,7 @@ async function omFetch(url,opts,ms){
   try{
     for(let a=0;;a++){
       const r=await fetchT1(url,opts,ms);
-      if(r.ok&&!/previous-runs-api/.test(url)){const j=r.json.bind(r);r.json=async()=>omTzFix(await j());} // the Accuracy Log corrects its own (wxlUtcMs)
+      if(r.ok&&!/previous-runs-api/.test(url)){const j=r.json.bind(r);r.json=async()=>omTzFix(await j(),url);} // the Accuracy Log corrects its own (wxlUtcMs)
       if(r.status!==429||a>=2)return r;
       let why='';try{why=(await r.clone().json()).reason||''}catch(e){}
       if(!/concurrent/i.test(why))return r;
@@ -1202,7 +1224,7 @@ async function omFetch(url,opts,ms){
 // days after it. So every local time is turned back into a real instant with that offset and re-labelled
 // in the location's own time zone, offset correct for its own date.
 const _tzFmt={};
-function omTzFix(d){
+function omTzFix(d,url){
   if(!d||typeof d!=='object'||typeof d.utc_offset_seconds!=='number'||!d.timezone||/^(GMT|UTC)$/i.test(d.timezone))return d;
   const off=d.utc_offset_seconds*1000;
   let f;try{f=_tzFmt[d.timezone]||(_tzFmt[d.timezone]=new Intl.DateTimeFormat('en-CA',{timeZone:d.timezone,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}))}catch(e){return d}
@@ -1210,6 +1232,12 @@ function omTzFix(d){
     const p={};f.formatToParts(ms-off).forEach(x=>p[x.type]=x.value);return`${p.year}-${p.month}-${p.day}T${p.hour}:${p.minute}`};
   ['hourly','daily','minutely_15','current'].forEach(k=>{const o=d[k];if(!o)return;
     ['time','sunrise','sunset'].forEach(n=>{if(Array.isArray(o[n]))o[n]=o[n].map(fix);else if(typeof o[n]==='string')o[n]=fix(o[n])})});
+  // A one-day request (a past day) now has an hour spilling onto the next date — drop it, or the
+  // picker grows a phantom day holding only "12 AM".
+  const m=/start_date=(\d{4}-\d{2}-\d{2})&end_date=\1(?!\d)/.exec(url||'');
+  if(m)['hourly','minutely_15'].forEach(k=>{const o=d[k];if(!o||!Array.isArray(o.time))return;
+    const keep=o.time.map((t,i)=>t.slice(0,10)===m[1]?i:-1).filter(i=>i>=0);if(keep.length===o.time.length)return;
+    Object.keys(o).forEach(n=>{if(Array.isArray(o[n]))o[n]=keep.map(i=>o[n][i])})});
   return d;
 }
 let _om429=false,_om429Why=''; // set when Open-Meteo returns 429; _om429Why is its own "reason" text
