@@ -1188,7 +1188,7 @@ async function omFetch(url,opts,ms){
   try{
     for(let a=0;;a++){
       const r=await fetchT1(url,opts,ms);
-      if(r.ok){const j=r.json.bind(r);r.json=async()=>omTzFix(await j());}
+      if(r.ok&&!/previous-runs-api/.test(url)){const j=r.json.bind(r);r.json=async()=>omTzFix(await j());} // the Accuracy Log corrects its own (wxlUtcMs)
       if(r.status!==429||a>=2)return r;
       let why='';try{why=(await r.clone().json()).reason||''}catch(e){}
       if(!/concurrent/i.test(why))return r;
