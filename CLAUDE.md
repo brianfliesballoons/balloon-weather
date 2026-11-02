@@ -42,6 +42,8 @@ A specialized aviation weather briefing dashboard built for balloon and paraglid
 
 **Sub-project:** [`aviation-proxy/`](aviation-proxy/CLAUDE.md) 📘 — the Cloudflare Worker the Aviation Briefing card depends on. Its own CLAUDE.md is authoritative for deploy/ops.
 
+**Time zones (v4.21.4, 2026-11-02):** Open-Meteo labels every time in a response with ONE offset, today's, so days on the far side of a DST change read an hour off (found the day after the Nov 1 change: Oct 31 sunrise came back 06:06, really 07:06 PDT). `omTzFix()` in `omFetch` re-labels every `time`/`sunrise`/`sunset` per its own date; don't bypass `omFetch` for Open-Meteo calls. The Sun & Twilight row now asks sunrise-sunset.org for the picked day's date (it used to always show today). Verified in headless Chrome for Oct 31, today, Nov 6 and a March 2027 date.
+
 **Primary copy:** `opus 4.7/balloon-weather-ACTIVE.html` — the working file. Publish by copying it to `opus 4.6/balloon-weather/index.html` (the git repo GitHub Pages serves), then commit + push. Full workflow: `opus 4.6/CLAUDE.md`.
 
 **⚠ THIS FILE IS PUBLIC (since 2026-10-01).** Every publish also copies this CLAUDE.md, `BALLOON-WEATHER-BUILD.md` and `aviation-proxy/` into the public repo, so Alito (Flight Maps) and his Claude can read the whole project. **No last names, emails, phone numbers or unrelated projects here.** First names only where they explain a decision. ⚠ An older public commit of `BALLOON-WEATHER-BUILD.md` still holds Brian's phone and email in the repo's git history; scrubbing it means rewriting history and force-pushing, which waits on Brian's call.
