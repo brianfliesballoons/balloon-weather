@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Balloon Weather</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;700&family=JetBrains+Mono:wght@300;400;500;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root {
   --bg:#0a0e1a;--card:#111827;--card2:#0f1525;--bdr:#1e293b;--bdr2:#2a3a52;
@@ -16,7 +16,7 @@
   --r:12px;--rs:8px;--sh:0 2px 12px rgba(0,0,0,.25);
 }
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;-webkit-font-smoothing:antialiased;zoom:var(--fs-scale,1)}
+body{font-family:var(--sans);background:var(--bg);color:var(--tx);min-height:100vh;-webkit-font-smoothing:antialiased;zoom:var(--fs-scale,1)}
 body.modal-open{overflow:hidden;touch-action:none}
 @-moz-document url-prefix(){body{transform:scale(var(--fs-scale,1));transform-origin:top center;width:calc(100% / var(--fs-scale,1));}}
 ::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--bdr2);border-radius:3px}
@@ -29,11 +29,11 @@ body.embed .hdr{padding:8px 12px}
 body.embed .hdr-r{width:100%;justify-content:space-between}
 .hdr-l{display:flex;align-items:center;gap:12px}
 .logo{width:36px;height:36px;background:linear-gradient(135deg,var(--mod),#f97316);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
-.hdr-title{font-family:'Instrument Serif',serif;font-size:21px}
+.hdr-title{font-family:var(--sans);font-size:21px}
 .hdr-sub{font-size:11px;color:var(--tx3);margin-top:-2px}
 .hdr-r{display:flex;align-items:center;gap:14px}
-.upd{font-size:10px;color:var(--tx3);font-family:'JetBrains Mono',monospace}
-.rbtn{background:var(--card);border:1px solid var(--bdr);color:var(--tx2);padding:6px 13px;border-radius:var(--rs);cursor:pointer;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;transition:all .15s;display:flex;align-items:center;gap:5px}
+.upd{font-size:10px;color:var(--tx3);font-family:var(--mono)}
+.rbtn{background:var(--card);border:1px solid var(--bdr);color:var(--tx2);padding:6px 13px;border-radius:var(--rs);cursor:pointer;font-family:var(--sans);font-size:12px;font-weight:500;transition:all .15s;display:flex;align-items:center;gap:5px}
 .rbtn:hover{background:var(--card2);border-color:var(--bdr2);color:var(--tx)}
 .rbtn.ld .ri{animation:sp .8s linear infinite}@keyframes sp{to{transform:rotate(360deg)}}.ri{display:inline-block}
 
@@ -86,7 +86,7 @@ body.embed .hdr-r{width:100%;justify-content:space-between}
 .ch{padding:8px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(30,41,59,.5)}
 .ct{font-size:12px;font-weight:600;color:var(--tx2);text-transform:uppercase;letter-spacing:.06em;display:flex;align-items:center;gap:7px}
 .ct .sub{font-weight:400;color:var(--tx3);text-transform:none;letter-spacing:0;font-size:11px;margin-left:4px}
-.badge{font-size:10px;font-family:'JetBrains Mono',monospace;background:rgba(56,189,248,.1);color:var(--blue);padding:2px 8px;border-radius:12px;text-decoration:none;transition:background .15s,color .15s}
+.badge{font-size:10px;font-family:var(--mono);background:rgba(56,189,248,.1);color:var(--blue);padding:2px 8px;border-radius:12px;text-decoration:none;transition:background .15s,color .15s}
 a.badge{cursor:pointer}a.badge:hover{background:rgba(56,189,248,.2);color:#7dd3fc}
 .body{padding:12px 14px}
 .ch.tg{cursor:pointer;user-select:none;transition:background .15s}.ch.tg:hover{background:rgba(255,255,255,.02)}
@@ -98,12 +98,12 @@ a.badge{cursor:pointer}a.badge:hover{background:rgba(56,189,248,.2);color:#7dd3f
 .cbox{position:relative;width:210px;height:210px}
 .cring{width:100%;height:100%;border-radius:50%;border:2px solid var(--bdr);position:relative;background:radial-gradient(circle,rgba(17,24,39,.6),rgba(15,21,37,.95))}
 .ctick{position:absolute;width:1px;height:8px;background:var(--tx4);top:4px;left:50%;transform-origin:0.5px 101px}
-.clbl{position:absolute;font-size:11px;font-weight:700;color:var(--tx3);font-family:'JetBrains Mono',monospace}
+.clbl{position:absolute;font-size:11px;font-weight:700;color:var(--tx3);font-family:var(--mono)}
 .clbl.n{top:10px;left:50%;transform:translateX(-50%)}.clbl.s{bottom:10px;left:50%;transform:translateX(-50%)}
 .clbl.e{right:12px;top:50%;transform:translateY(-50%)}.clbl.w{left:12px;top:50%;transform:translateY(-50%)}
 .cneedle{position:absolute;top:50%;left:50%;transform-origin:center center;transition:transform .6s cubic-bezier(.4,0,.2,1)}
 .cdot{position:absolute;top:50%;left:50%;width:8px;height:8px;border-radius:50%;background:var(--tx);transform:translate(-50%,-50%);z-index:2;box-shadow:0 0 6px rgba(255,255,255,.3)}
-.cspeed{text-align:center;margin-top:8px;font-family:'JetBrains Mono',monospace}
+.cspeed{text-align:center;margin-top:8px;font-family:var(--mono)}
 .cspeed .big{font-size:44px;font-weight:700;line-height:1}.cspeed .unit{font-size:14px;color:var(--tx2);margin-left:3px}
 .cspeed .dir{font-size:14px;color:var(--tx2);margin-top:2px}
 
@@ -111,8 +111,8 @@ a.badge{cursor:pointer}a.badge:hover{background:rgba(56,189,248,.2);color:#7dd3f
 .stats{display:flex;flex-direction:column;gap:5px;min-width:210px}
 .stat{display:flex;justify-content:space-between;align-items:center;padding:5px 10px;background:var(--card2);border-radius:var(--rs)}
 .stat-lbl{font-size:11px;color:var(--tx3);font-weight:500}
-.stat-val{font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:600}
-.stat-sub{font-size:10px;color:var(--tx3);font-family:'JetBrains Mono',monospace}
+.stat-val{font-family:var(--mono);font-size:16px;font-weight:600}
+.stat-sub{font-size:10px;color:var(--tx3);font-family:var(--mono)}
 .gauge{height:4px;border-radius:2px;background:var(--bdr);margin-top:4px;overflow:hidden}
 .gauge-fill{height:100%;border-radius:2px;transition:width .4s ease}
 
@@ -120,11 +120,11 @@ a.badge{cursor:pointer}a.badge:hover{background:rgba(56,189,248,.2);color:#7dd3f
 .vf-scroll{overflow:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch;max-height:70vh}
 .vf-wrap{padding:6px 0;display:inline-flex;flex-direction:column;min-width:100%}
 .vf-row{display:flex;align-items:center;gap:0;margin-bottom:1px}
-.vf-alt{width:70px;min-width:70px;flex-shrink:0;text-align:right;padding-right:10px;font-size:10px;color:var(--tx3);font-family:'JetBrains Mono',monospace;white-space:nowrap;position:sticky;left:0;z-index:3;background:var(--card)}
+.vf-alt{width:70px;min-width:70px;flex-shrink:0;text-align:right;padding-right:10px;font-size:10px;color:var(--tx3);font-family:var(--mono);white-space:nowrap;position:sticky;left:0;z-index:3;background:var(--card)}
 .vf-alt .msl{font-size:8px;color:var(--tx4);display:block}
 .vf-cell{width:140px;min-width:140px;max-width:140px;flex-shrink:0;height:26px;position:relative;display:flex;align-items:center;justify-content:flex-start;gap:3px;padding-left:2px;border-bottom:1px solid rgba(30,41,59,.3);overflow:hidden}
 /* Single-line winds-aloft readout (v4.15.1 — match the micro card's tightness, bigger speed font) */
-.vf-txt{display:flex;align-items:baseline;gap:5px;font-family:'JetBrains Mono',monospace;white-space:nowrap;min-width:0}
+.vf-txt{display:flex;align-items:baseline;gap:5px;font-family:var(--mono);white-space:nowrap;min-width:0}
 .vfs{font-weight:700;font-size:14px}
 .vfd{font-size:10px}
 @media(max-width:900px){.vfs{font-size:15px}.vfd{font-size:11px}}
@@ -137,23 +137,23 @@ a.badge{cursor:pointer}a.badge:hover{background:rgba(56,189,248,.2);color:#7dd3f
 .vf-ghost2{position:absolute;left:4px;top:0;display:none;z-index:8;background:var(--card);border-bottom:1px solid var(--bdr2);box-shadow:0 5px 12px rgba(0,0,0,.45);pointer-events:none;min-width:100%} /* left:4px = mobile .winds-main .body padding-left, so ghost columns overlay the real ones */
 .vf-arrow-wrap{position:relative;display:flex;align-items:center;justify-content:center}
 .vf-hdr{background:var(--card);margin-bottom:0;padding:4px 0 3px;border-bottom:1px solid var(--bdr);position:sticky;top:-1px;z-index:5;display:inline-flex;min-width:100%}
-.vf-info{width:140px;min-width:140px;flex-shrink:0;padding-left:12px;font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--tx2);white-space:nowrap;display:flex;align-items:center;gap:6px}
+.vf-info{width:140px;min-width:140px;flex-shrink:0;padding-left:12px;font-size:10px;font-family:var(--mono);color:var(--tx2);white-space:nowrap;display:flex;align-items:center;gap:6px}
 .vf-spd{font-weight:600;font-size:12px}
-.vf-dist{font-size:8px;color:var(--tx4);font-family:'JetBrains Mono',monospace;margin-top:1px}
+.vf-dist{font-size:8px;color:var(--tx4);font-family:var(--mono);margin-top:1px}
 
 /* ═══ WIND SHEAR BARS ═══ */
 .vf-shear{display:flex;align-items:center;gap:0;margin:0;height:22px;background:rgba(251,191,36,.1);border-top:1.5px solid rgba(251,191,36,.35);border-bottom:1.5px solid rgba(251,191,36,.35)}
 .vf-shear.strong{background:rgba(255,107,53,.1);border-color:rgba(255,107,53,.35)}
 .vf-shear .vf-alt{font-size:8px;color:var(--mod);font-weight:600;background:linear-gradient(rgba(251,191,36,.1),rgba(251,191,36,.1)) var(--card)}
 .vf-shear.strong .vf-alt{color:var(--gust);background:linear-gradient(rgba(255,107,53,.1),rgba(255,107,53,.1)) var(--card)}
-.vf-shear .vf-cell{height:22px;border:none;justify-content:flex-start;padding-left:6px;font-size:9px;font-family:'JetBrains Mono',monospace;color:var(--mod);font-weight:600}
+.vf-shear .vf-cell{height:22px;border:none;justify-content:flex-start;padding-left:6px;font-size:9px;font-family:var(--mono);color:var(--mod);font-weight:600}
 .vf-shear.strong .vf-cell{color:var(--gust)}
 
 /* ═══ MICRO WINDS ALOFT ═══ */
 .mvf-scroll{overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch}
 .mvf-wrap{padding:6px 0;display:flex;flex-direction:column;min-width:100%}
 .mvf-row{display:flex;align-items:center;gap:0;margin-bottom:1px}
-.mvf-alt{width:65px;min-width:65px;flex-shrink:0;text-align:right;padding-right:8px;font-size:9px;color:var(--tx3);font-family:'JetBrains Mono',monospace;white-space:nowrap}
+.mvf-alt{width:65px;min-width:65px;flex-shrink:0;text-align:right;padding-right:8px;font-size:9px;color:var(--tx3);font-family:var(--mono);white-space:nowrap}
 .mvf-alt .msl{font-size:7px;color:var(--tx4);display:block}
 .mvf-cell{width:200px;min-width:200px;flex-shrink:0;height:24px;display:flex;align-items:center;justify-content:flex-start;gap:6px;padding-left:4px;border-bottom:1px solid rgba(30,41,59,.2);overflow:hidden}
 .mvf-hdr{background:var(--card);margin-bottom:3px;padding:4px 0;border-bottom:1px solid var(--bdr)}
@@ -161,7 +161,7 @@ a.badge{cursor:pointer}a.badge:hover{background:rgba(56,189,248,.2);color:#7dd3f
 .mvf-shear.strong{background:rgba(255,107,53,.1);border-color:rgba(255,107,53,.3)}
 .mvf-shear .mvf-alt{font-size:7px;color:var(--mod);font-weight:600}
 .mvf-shear.strong .mvf-alt{color:var(--gust)}
-.mvf-shear .mvf-cell{height:18px;border:none;font-size:8px;font-family:'JetBrains Mono',monospace;color:var(--mod);font-weight:600}
+.mvf-shear .mvf-cell{height:18px;border:none;font-size:8px;font-family:var(--mono);color:var(--mod);font-weight:600}
 .mvf-shear.strong .mvf-cell{color:var(--gust)}
 
 /* ═══ WINDS PAIR LAYOUT ═══ */
@@ -204,8 +204,8 @@ a.badge{cursor:pointer}a.badge:hover{background:rgba(56,189,248,.2);color:#7dd3f
 .sc-scroll{overflow:auto;padding-bottom:6px;-webkit-overflow-scrolling:touch;max-height:60vh}
 .sc-grid{display:inline-flex;flex-direction:column;min-width:100%}
 .sc-row{display:flex;align-items:center;gap:0;margin-bottom:1px}
-.sc-lbl{width:90px;min-width:90px;flex-shrink:0;text-align:right;padding-right:10px;font-size:10px;color:var(--tx3);font-family:'JetBrains Mono',monospace;white-space:nowrap}
-.sc-cell{width:120px;min-width:120px;max-width:120px;flex-shrink:0;height:26px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;border-bottom:1px solid rgba(30,41,59,.2);overflow:hidden}
+.sc-lbl{width:90px;min-width:90px;flex-shrink:0;text-align:right;padding-right:10px;font-size:10px;color:var(--tx3);font-family:var(--mono);white-space:nowrap}
+.sc-cell{width:120px;min-width:120px;max-width:120px;flex-shrink:0;height:26px;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:12px;font-weight:600;border-bottom:1px solid rgba(30,41,59,.2);overflow:hidden}
 .sc-hdr{background:var(--card);padding:6px 0 4px;border-bottom:1px solid var(--bdr);margin-bottom:0;position:sticky;top:-1px;z-index:5;display:inline-flex;min-width:100%}
 .sc-hdr .sc-cell{height:auto;border:none;flex-direction:column;gap:1px;padding:4px 2px}
 
@@ -214,16 +214,16 @@ a.badge{cursor:pointer}a.badge:hover{background:rgba(56,189,248,.2);color:#7dd3f
 .hcol{flex:0 0 52px;display:flex;flex-direction:column;align-items:center;gap:1px;padding:4px 3px;border-radius:6px;transition:background .15s;cursor:pointer}
 .hcol:hover{background:rgba(255,255,255,.05)}.hcol.gy{background:var(--gust-bg);border:1px solid var(--gust-bdr)}
 .hcol.sel{background:rgba(56,189,248,.08);border:1px solid rgba(56,189,248,.25);box-shadow:0 0 8px rgba(56,189,248,.1)}
-.htime{font-size:8px;color:var(--tx3);font-family:'JetBrains Mono',monospace;font-weight:500}
-.htemp{font-size:13px;font-weight:600;font-family:'JetBrains Mono',monospace}
-.hspd{font-size:9px;font-family:'JetBrains Mono',monospace;font-weight:500}
-.hgust{font-size:8px;color:var(--gust);font-weight:600;font-family:'JetBrains Mono',monospace}
-.hdir{font-size:7px;color:var(--tx3);font-family:'JetBrains Mono',monospace}
-.hprc{font-size:8px;color:var(--blue);font-family:'JetBrains Mono',monospace;font-weight:600}
-.hcb{font-size:7px;color:var(--tx4);font-family:'JetBrains Mono',monospace}
+.htime{font-size:8px;color:var(--tx3);font-family:var(--mono);font-weight:500}
+.htemp{font-size:13px;font-weight:600;font-family:var(--mono)}
+.hspd{font-size:9px;font-family:var(--mono);font-weight:500}
+.hgust{font-size:8px;color:var(--gust);font-weight:600;font-family:var(--mono)}
+.hdir{font-size:7px;color:var(--tx3);font-family:var(--mono)}
+.hprc{font-size:8px;color:var(--blue);font-family:var(--mono);font-weight:600}
+.hcb{font-size:7px;color:var(--tx4);font-family:var(--mono)}
 .ceil-wrap{margin-top:10px;padding-top:8px;border-top:1px solid var(--bdr)}
 .ceil-lbl{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--tx3);font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:6px}
-.ceil-stn{display:flex;align-items:center;gap:8px;padding:4px 0;font-family:'JetBrains Mono',monospace;font-size:11px}
+.ceil-stn{display:flex;align-items:center;gap:8px;padding:4px 0;font-family:var(--mono);font-size:11px}
 .ceil-id{color:var(--blue);width:36px;font-weight:600;font-size:10px;flex-shrink:0}
 .ceil-nm{color:var(--tx4);font-size:9px;width:60px;flex-shrink:0}
 .ceil-layers{display:flex;gap:6px;flex-wrap:wrap}
@@ -239,14 +239,14 @@ a.badge{cursor:pointer}a.badge:hover{background:rgba(56,189,248,.2);color:#7dd3f
 .hdet.v{display:block}
 @keyframes hdetIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
 .hdet-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
-.hdet-time{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;color:var(--blue)}
+.hdet-time{font-family:var(--mono);font-size:14px;font-weight:700;color:var(--blue)}
 .hdet-close{background:none;border:none;color:var(--tx3);cursor:pointer;font-size:16px;padding:2px 6px;border-radius:4px}.hdet-close:hover{color:var(--tx);background:rgba(255,255,255,.05)}
 .hdet-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
 @media(max-width:500px){.hdet-grid{grid-template-columns:1fr 1fr}}
 .hdet-item{padding:8px 10px;background:var(--card);border-radius:6px}
 .hdet-lbl{font-size:9px;color:var(--tx3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px}
-.hdet-val{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:600}
-.hdet-sub{font-size:9px;color:var(--tx4);font-family:'JetBrains Mono',monospace;margin-top:1px}
+.hdet-val{font-family:var(--mono);font-size:15px;font-weight:600}
+.hdet-sub{font-size:9px;color:var(--tx4);font-family:var(--mono);margin-top:1px}
 
 
 /* ═══ AFD ═══ */
@@ -256,7 +256,7 @@ a.badge{cursor:pointer}a.badge:hover{background:rgba(56,189,248,.2);color:#7dd3f
 .asum{padding:10px 10px;background:var(--card2);border-radius:var(--rs)}
 .asmt{font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--tx3);font-weight:600;margin-bottom:5px}
 .akws{display:flex;flex-wrap:wrap;gap:4px}
-.akw{font-size:9px;padding:2px 7px;border-radius:14px;font-weight:500;font-family:'JetBrains Mono',monospace}
+.akw{font-size:9px;padding:2px 7px;border-radius:14px;font-weight:500;font-family:var(--mono)}
 .akw.ks{background:rgba(239,68,68,.12);color:var(--ks)}.akw.kp{background:rgba(59,130,246,.12);color:var(--kp)}
 .akw.km{background:rgba(6,182,212,.12);color:var(--km)}.akw.kf{background:rgba(168,85,247,.12);color:var(--kf)}
 .akw.kw{background:rgba(245,158,11,.12);color:var(--kw)}.akw.kt{background:rgba(236,72,153,.12);color:var(--kt)}
@@ -268,7 +268,7 @@ a.badge{cursor:pointer}a.badge:hover{background:rgba(56,189,248,.2);color:#7dd3f
 .apt.kw{border-left-color:var(--kw);background:rgba(245,158,11,.04)}.apt.kt{border-left-color:var(--kt);background:rgba(236,72,153,.04)}
 .apt.ka{border-left-color:var(--ka);background:rgba(148,163,184,.05)}
 .atog{display:none}
-.afull{padding:14px;background:var(--card2);border-radius:var(--rs);font-family:'JetBrains Mono',monospace;font-size:11px;line-height:1.65;color:var(--tx2);white-space:pre-wrap;word-wrap:break-word;overflow-wrap:break-word;max-height:500px;overflow-y:auto;flex:1}
+.afull{padding:14px;background:var(--card2);border-radius:var(--rs);font-family:var(--mono);font-size:11px;line-height:1.65;color:var(--tx2);white-space:pre-wrap;word-wrap:break-word;overflow-wrap:break-word;max-height:500px;overflow-y:auto;flex:1}
 .afull .hs0{color:var(--ks);font-weight:600;background:rgba(239,68,68,.1);padding:0 2px;border-radius:2px}
 .afull .hp0{color:var(--kp);font-weight:600;background:rgba(59,130,246,.1);padding:0 2px;border-radius:2px}
 .afull .hm0{color:var(--km);font-weight:600;background:rgba(6,182,212,.1);padding:0 2px;border-radius:2px}
@@ -276,7 +276,7 @@ a.badge{cursor:pointer}a.badge:hover{background:rgba(56,189,248,.2);color:#7dd3f
 .afull .hw0{color:var(--kw);font-weight:600;background:rgba(245,158,11,.1);padding:0 2px;border-radius:2px}
 .afull .ht0{color:var(--kt);font-weight:600;background:rgba(236,72,153,.1);padding:0 2px;border-radius:2px}
 .afull .ha0{color:var(--ka);font-weight:600;background:rgba(148,163,184,.12);padding:0 2px;border-radius:2px}
-.aext{display:inline-block;margin-top:6px;font-size:9px;color:var(--blue);text-decoration:none;font-family:'JetBrains Mono',monospace}.aext:hover{text-decoration:underline}
+.aext{display:inline-block;margin-top:6px;font-size:9px;color:var(--blue);text-decoration:none;font-family:var(--mono)}.aext:hover{text-decoration:underline}
 @media(max-width:900px){
 .afd-split{min-height:250px;gap:8px}
 .afd-notes{flex:0 0 33%;max-width:33%;max-height:500px}
@@ -288,38 +288,38 @@ a.badge{cursor:pointer}a.badge:hover{background:rgba(56,189,248,.2);color:#7dd3f
 /* ═══ SMOKE & AIR QUALITY ═══ */
 /* Compact per the density rule (Brian 2026-08-04): tighten spacing, single-line hero */
 .aq-hero{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;padding:4px 10px;background:var(--card2);border-radius:var(--rs);margin-bottom:6px}
-.aq-num{font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:700;line-height:1}
+.aq-num{font-family:var(--mono);font-size:24px;font-weight:700;line-height:1}
 .aq-cat{font-size:13px;font-weight:600}
-.aq-sub{font-size:10px;color:var(--tx3);font-family:'JetBrains Mono',monospace}
+.aq-sub{font-size:10px;color:var(--tx3);font-family:var(--mono)}
 /* EPA scale bar: six equal band segments, ▼ marker = selected hour, │ tick = pilot's limit */
 .aq-scale{position:relative;margin:14px 2px 2px}
 .aq-bar{display:flex;height:13px;border-radius:7px;overflow:hidden}
-.aq-seg{flex:1;display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:700;color:rgba(0,0,0,.62);font-family:'JetBrains Mono',monospace;white-space:nowrap;overflow:hidden}
-.aq-mark{position:absolute;top:-11px;transform:translateX(-50%);font-size:9px;font-weight:700;font-family:'JetBrains Mono',monospace;line-height:1;white-space:nowrap}
+.aq-seg{flex:1;display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:700;color:rgba(0,0,0,.62);font-family:var(--mono);white-space:nowrap;overflow:hidden}
+.aq-mark{position:absolute;top:-11px;transform:translateX(-50%);font-size:9px;font-weight:700;font-family:var(--mono);line-height:1;white-space:nowrap}
 .aq-tick{position:absolute;top:-2px;width:2px;height:17px;background:var(--tx);border-radius:1px;transform:translateX(-50%);box-shadow:0 0 3px rgba(0,0,0,.6)}
 .aq-nums{position:relative;height:9px;margin-top:1px}
-.aq-nums span{position:absolute;transform:translateX(-50%);font-size:7px;color:var(--tx4);font-family:'JetBrains Mono',monospace}
-.aq-key{font-size:9px;color:var(--tx3);font-family:'JetBrains Mono',monospace;margin-top:2px}
+.aq-nums span{position:absolute;transform:translateX(-50%);font-size:7px;color:var(--tx4);font-family:var(--mono)}
+.aq-key{font-size:9px;color:var(--tx3);font-family:var(--mono);margin-top:2px}
 .al-item{padding:5px 8px;border-radius:var(--rs);border-left:3px solid var(--tx3);background:var(--card2);margin-bottom:4px;font-size:11px;line-height:1.35}
 .al-ev{font-weight:700;font-size:12px}
-.al-tm{font-size:9px;color:var(--tx3);font-family:'JetBrains Mono',monospace;margin-left:6px}
+.al-tm{font-size:9px;color:var(--tx3);font-family:var(--mono);margin-left:6px}
 .al-item details{margin-top:2px}
 .al-item summary{cursor:pointer;font-size:10px;color:var(--blue)}
-.al-desc{white-space:pre-wrap;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--tx2);margin-top:4px;line-height:1.5}
+.al-desc{white-space:pre-wrap;font-family:var(--mono);font-size:10px;color:var(--tx2);margin-top:4px;line-height:1.5}
 
 .efr{width:100%;height:420px;border:none;border-radius:var(--rs);background:var(--card2)}
 /* TFR plan view (v4.20.0). Square and centred; the SVG scales itself, so the
    density rule is satisfied by geometry rather than by shrinking text. */
 .tfrmap-wrap{width:100%;max-width:460px;margin:0 auto}
 .tfrmap{width:100%;height:auto;display:block}
-.tfrmap-key{font-size:10px;color:var(--tx3);text-align:center;margin-top:6px;font-family:'DM Sans',sans-serif}
+.tfrmap-key{font-size:10px;color:var(--tx3);text-align:center;margin-top:6px;font-family:var(--sans)}
 .ldg{display:flex;align-items:center;justify-content:center;padding:16px;gap:6px}
 .dot{width:5px;height:5px;border-radius:50%;background:var(--blue);animation:dp 1.2s ease-in-out infinite}
 .dot:nth-child(2){animation-delay:.15s}.dot:nth-child(3){animation-delay:.3s}
 @keyframes dp{0%,80%,100%{opacity:.2;transform:scale(.8)}40%{opacity:1;transform:scale(1.1)}}
-.err{padding:12px;font-size:11px;color:var(--danger);font-family:'JetBrains Mono',monospace;background:rgba(248,113,113,.06);border-radius:var(--rs)}
+.err{padding:12px;font-size:11px;color:var(--danger);font-family:var(--mono);background:rgba(248,113,113,.06);border-radius:var(--rs)}
 
-.dtable{width:100%;border-collapse:collapse;font-family:'JetBrains Mono',monospace;font-size:11px;margin-top:12px}
+.dtable{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11px;margin-top:12px}
 .dtable th{text-align:left;padding:6px 8px;font-size:9px;text-transform:uppercase;letter-spacing:.05em;color:var(--tx3);font-weight:600;border-bottom:1px solid var(--bdr)}
 .dtable td{padding:5px 8px;border-bottom:1px solid rgba(30,41,59,.4);white-space:nowrap}.dtable tr:hover td{background:rgba(56,189,248,.02)}
 
@@ -331,20 +331,21 @@ a.badge{cursor:pointer}a.badge:hover{background:rgba(56,189,248,.2);color:#7dd3f
 .loc-hd-t{font-size:13px;font-weight:600;color:var(--tx2);text-transform:uppercase;letter-spacing:.05em}
 .loc-close{background:none;border:none;color:var(--tx3);cursor:pointer;font-size:18px;padding:2px 6px;border-radius:4px}.loc-close:hover{color:var(--tx);background:rgba(255,255,255,.05)}
 .loc-body{padding:14px 18px;overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;min-height:0}
-.loc-cur{font-size:11px;color:var(--tx3);margin-bottom:10px;font-family:'JetBrains Mono',monospace}
+.loc-cur{font-size:11px;color:var(--tx3);margin-bottom:10px;font-family:var(--mono)}
 .loc-cur span{color:var(--blue);font-weight:600}
 .loc-row{display:flex;gap:8px}
-.loc-input{flex:1;background:var(--card2);border:1px solid var(--bdr);color:var(--tx);padding:9px 14px;border-radius:var(--rs);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;transition:border-color .15s}
+.loc-input{flex:1;background:var(--card2);border:1px solid var(--bdr);color:var(--tx);padding:9px 14px;border-radius:var(--rs);font-family:var(--sans);font-size:13px;outline:none;transition:border-color .15s}
 .loc-input:focus{border-color:var(--blue)}
 .loc-input::placeholder{color:var(--tx4)}
-.loc-go{background:rgba(56,189,248,.12);border:1px solid rgba(56,189,248,.25);color:var(--blue);padding:9px 16px;border-radius:var(--rs);cursor:pointer;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;transition:all .15s}
+.loc-go{background:rgba(56,189,248,.12);border:1px solid rgba(56,189,248,.25);color:var(--blue);padding:9px 16px;border-radius:var(--rs);cursor:pointer;font-family:var(--sans);font-size:12px;font-weight:600;transition:all .15s}
 .loc-go:hover{background:rgba(56,189,248,.2)}
 .loc-results{margin-top:10px;display:flex;flex-direction:column;gap:4px}
 .loc-item{padding:10px 14px;background:var(--card2);border:1px solid var(--bdr);border-radius:var(--rs);cursor:pointer;transition:all .15s}
 .loc-item:hover{border-color:var(--blue);background:rgba(56,189,248,.04)}
 .loc-item-name{font-size:13px;font-weight:600;color:var(--tx)}
-.loc-item-sub{font-size:10px;color:var(--tx3);margin-top:2px;font-family:'JetBrains Mono',monospace}
-.loc-msg{font-size:11px;margin-top:10px;padding:8px 12px;border-radius:var(--rs);font-family:'JetBrains Mono',monospace}
+.loc-item-sub{font-size:10px;color:var(--tx3);margin-top:2px;font-family:var(--mono)}
+.loc-stn{color:var(--tx2)}
+.loc-msg{font-size:11px;margin-top:10px;padding:8px 12px;border-radius:var(--rs);font-family:var(--mono)}
 .loc-msg.err{color:var(--danger);background:rgba(248,113,113,.06)}
 .loc-msg.info{color:var(--blue);background:rgba(56,189,248,.06)}
 .loc-msg.ok{color:var(--calm);background:rgba(52,211,153,.06)}
@@ -356,22 +357,22 @@ a.badge{cursor:pointer}a.badge:hover{background:rgba(56,189,248,.2);color:#7dd3f
 .set-st{font-size:12px;font-weight:700;color:var(--tx);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;display:flex;align-items:center;gap:8px}
 .set-desc{font-size:11px;color:var(--tx3);margin-bottom:10px;line-height:1.4}
 .fs-options{display:flex;gap:6px;flex-wrap:wrap}
-.fs-opt{flex:1;min-width:60px;padding:10px 8px;background:var(--card2);border:1px solid var(--bdr);color:var(--tx2);border-radius:var(--rs);cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600;text-align:center;transition:all .15s}
+.fs-opt{flex:1;min-width:60px;padding:10px 8px;background:var(--card2);border:1px solid var(--bdr);color:var(--tx2);border-radius:var(--rs);cursor:pointer;font-family:var(--sans);font-weight:600;text-align:center;transition:all .15s}
 .fs-opt:hover{border-color:var(--bdr2);color:var(--tx)}
 .fs-opt.sel{background:rgba(56,189,248,.15);border-color:rgba(56,189,248,.4);color:var(--blue);box-shadow:0 0 8px rgba(56,189,248,.1)}
 .fs-opt .fs-lbl{display:block;font-size:11px;color:var(--tx4);margin-top:2px;font-weight:400;text-transform:none;letter-spacing:0}
 .fs-opt.sel .fs-lbl{color:var(--blue)}
 .cs-list{display:flex;flex-direction:column;gap:6px;margin-top:10px}
 .cs-item{display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--card2);border:1px solid var(--bdr);border-radius:var(--rs)}
-.cs-id{font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--blue);font-size:13px;min-width:50px}
+.cs-id{font-family:var(--mono);font-weight:700;color:var(--blue);font-size:13px;min-width:50px}
 .cs-nm{flex:1;font-size:12px;color:var(--tx2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.cs-dist{font-size:10px;color:var(--tx4);font-family:'JetBrains Mono',monospace}
-.cs-rm{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);color:var(--danger);padding:4px 10px;border-radius:var(--rs);cursor:pointer;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;transition:all .15s}
+.cs-dist{font-size:10px;color:var(--tx4);font-family:var(--mono)}
+.cs-rm{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);color:var(--danger);padding:4px 10px;border-radius:var(--rs);cursor:pointer;font-family:var(--sans);font-size:11px;font-weight:600;transition:all .15s}
 .cs-rm:hover{background:rgba(248,113,113,.18)}
 .cs-add-row{display:flex;gap:8px;margin-top:8px}
 .cs-empty{font-size:11px;color:var(--tx4);font-style:italic;padding:10px 0;text-align:center}
-.cs-help{font-size:10px;color:var(--tx4);margin-top:6px;line-height:1.4;font-family:'JetBrains Mono',monospace}
-.cs-msg{font-size:11px;margin-top:8px;padding:7px 11px;border-radius:var(--rs);font-family:'JetBrains Mono',monospace}
+.cs-help{font-size:10px;color:var(--tx4);margin-top:6px;line-height:1.4;font-family:var(--mono)}
+.cs-msg{font-size:11px;margin-top:8px;padding:7px 11px;border-radius:var(--rs);font-family:var(--mono)}
 .cs-msg.err{color:var(--danger);background:rgba(248,113,113,.06)}
 .cs-msg.info{color:var(--blue);background:rgba(56,189,248,.06)}
 .cs-msg.ok{color:var(--calm);background:rgba(52,211,153,.06)}
@@ -385,26 +386,26 @@ a.badge{cursor:pointer}a.badge:hover{background:rgba(56,189,248,.2);color:#7dd3f
 .ab-st{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--tx3);font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:6px}
 .ab-item{padding:8px 0;border-bottom:1px solid rgba(30,41,59,.3);font-size:11px;line-height:1.5}
 .ab-item:last-child{border-bottom:none}
-.ab-stn{font-family:'JetBrains Mono',monospace;color:var(--blue);font-weight:700;font-size:11px}
-.ab-tm{font-size:9px;color:var(--tx3);font-family:'JetBrains Mono',monospace;margin-left:6px}
-.ab-raw{background:var(--card);padding:8px 10px;border-radius:var(--rs);margin-top:6px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--tx2);white-space:pre-wrap;word-wrap:break-word;line-height:1.6}
+.ab-stn{font-family:var(--mono);color:var(--blue);font-weight:700;font-size:11px}
+.ab-tm{font-size:9px;color:var(--tx3);font-family:var(--mono);margin-left:6px}
+.ab-raw{background:var(--card);padding:8px 10px;border-radius:var(--rs);margin-top:6px;font-family:var(--mono);font-size:10px;color:var(--tx2);white-space:pre-wrap;word-wrap:break-word;line-height:1.6}
 /* Plain-English TAF/PIREP decode (v4.18.0). Density rule: tighten with spacing,
    never font size — Brian runs a large font scale and needs both readable AND dense. */
 .taf-dec{margin-top:6px;display:flex;flex-direction:column;gap:4px}
 .taf-per{display:grid;grid-template-columns:minmax(118px,auto) 1fr;gap:4px 10px;align-items:baseline}
-.taf-when{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--blue);white-space:nowrap}
+.taf-when{font-family:var(--mono);font-size:10px;color:var(--blue);white-space:nowrap}
 .taf-what{font-size:11px;color:var(--tx2);line-height:1.45}
 @media(max-width:560px){.taf-per{grid-template-columns:1fr;gap:1px}}
-.ab-haz{display:inline-block;padding:2px 9px;border-radius:12px;font-size:9px;font-weight:600;margin-right:6px;font-family:'JetBrains Mono',monospace}
+.ab-haz{display:inline-block;padding:2px 9px;border-radius:12px;font-size:9px;font-weight:600;margin-right:6px;font-family:var(--mono)}
 .ab-haz.sig{background:rgba(248,113,113,.12);color:var(--danger)}
 .ab-haz.air{background:rgba(251,146,60,.12);color:var(--strong)}
 .ab-haz.pir{background:rgba(56,189,248,.12);color:var(--blue)}
 .ab-haz.gair{background:rgba(168,85,247,.12);color:var(--violet)}
-.ab-tfr{display:inline-block;padding:7px 16px;background:rgba(245,158,11,.1);color:var(--kw);border:1px solid rgba(245,158,11,.25);border-radius:var(--rs);text-decoration:none;font-size:11px;font-weight:600;font-family:'DM Sans',sans-serif;transition:all .15s}
+.ab-tfr{display:inline-block;padding:7px 16px;background:rgba(245,158,11,.1);color:var(--kw);border:1px solid rgba(245,158,11,.25);border-radius:var(--rs);text-decoration:none;font-size:11px;font-weight:600;font-family:var(--sans);transition:all .15s}
 .ab-tfr:hover{background:rgba(245,158,11,.2);border-color:rgba(245,158,11,.4)}
 .ab-none{font-size:11px;color:var(--tx3);padding:8px 0;text-align:center}
 .ab-links{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;padding-top:12px;border-top:1px solid var(--bdr)}
-.ab-links a{font-size:10px;color:var(--blue);text-decoration:none;font-family:'JetBrains Mono',monospace}.ab-links a:hover{text-decoration:underline}
+.ab-links a{font-size:10px;color:var(--blue);text-decoration:none;font-family:var(--mono)}.ab-links a:hover{text-decoration:underline}
 
 /* ═══ TIME PICKER ═══ */
 .hist-banner{background:rgba(168,85,247,.08);border:1px solid rgba(168,85,247,.2);border-radius:var(--rs);padding:8px 14px;font-size:12px;color:var(--violet);display:none;align-items:center;gap:6px;margin-top:4px}
@@ -414,10 +415,10 @@ a.badge{cursor:pointer}a.badge:hover{background:rgba(56,189,248,.2);color:#7dd3f
 .tp{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden}
 .tp-hdr{padding:8px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(30,41,59,.5)}
 .tp-title{font-size:13px;font-weight:600;color:var(--tx2);text-transform:uppercase;letter-spacing:.04em;display:flex;align-items:center;gap:6px}
-.tp-now{background:rgba(52,211,153,.12);border:1px solid rgba(52,211,153,.25);color:var(--calm);padding:4px 12px;border-radius:var(--rs);cursor:pointer;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;transition:all .15s}
+.tp-now{background:rgba(52,211,153,.12);border:1px solid rgba(52,211,153,.25);color:var(--calm);padding:4px 12px;border-radius:var(--rs);cursor:pointer;font-family:var(--sans);font-size:11px;font-weight:600;transition:all .15s}
 .tp-now:hover{background:rgba(52,211,153,.2)}
 .tp-now.active{background:rgba(52,211,153,.25);box-shadow:0 0 8px rgba(52,211,153,.2)}
-.tp-ask{background:rgba(96,165,250,.12);border:1px solid rgba(96,165,250,.3);color:var(--blue);padding:4px 12px;border-radius:var(--rs);cursor:pointer;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;transition:all .15s;margin-left:8px;white-space:nowrap}
+.tp-ask{background:rgba(96,165,250,.12);border:1px solid rgba(96,165,250,.3);color:var(--blue);padding:4px 12px;border-radius:var(--rs);cursor:pointer;font-family:var(--sans);font-size:11px;font-weight:600;transition:all .15s;margin-left:8px;white-space:nowrap}
 /* keep LIVE beside Ask Claude on the right — tp-mini is display:none when unpinned, so
    space-between would otherwise strand LIVE in the middle of the header */
 .tp-hdr .tp-now{margin-left:auto}
@@ -439,27 +440,27 @@ a.badge{cursor:pointer}a.badge:hover{background:rgba(56,189,248,.2);color:#7dd3f
 .tpwrap.stuck .tp-ask{padding:4px 8px}
 .tp-body{padding:10px 14px;display:flex;flex-direction:column;gap:8px}
 .tp-days{display:flex;gap:4px;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch}
-.tp-day{flex:0 0 auto;padding:6px 14px;border-radius:6px;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500;color:var(--tx3);background:var(--card2);border:1px solid var(--bdr);transition:all .15s;white-space:nowrap;text-align:center}
+.tp-day{flex:0 0 auto;padding:6px 14px;border-radius:6px;cursor:pointer;font-family:var(--mono);font-size:12px;font-weight:500;color:var(--tx3);background:var(--card2);border:1px solid var(--bdr);transition:all .15s;white-space:nowrap;text-align:center}
 .tp-day:hover{border-color:var(--bdr2);color:var(--tx)}
 .tp-day.sel{background:rgba(56,189,248,.12);border-color:rgba(56,189,248,.3);color:var(--blue)}
 .tp-day .day-name{font-weight:700;font-size:13px;display:block}
 .tp-day .day-date{font-size:10px;color:var(--tx4);display:block;margin-top:1px}
 .tp-hours{display:flex;gap:3px;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch}
-.tp-hr{flex:0 0 48px;padding:6px 4px;border-radius:6px;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;color:var(--tx3);background:var(--card2);border:1px solid var(--bdr);transition:all .15s;text-align:center}
+.tp-hr{flex:0 0 48px;padding:6px 4px;border-radius:6px;cursor:pointer;font-family:var(--mono);font-size:13px;font-weight:600;color:var(--tx3);background:var(--card2);border:1px solid var(--bdr);transition:all .15s;text-align:center}
 .tp-hr:hover{border-color:var(--bdr2);color:var(--tx)}
 .tp-hr.sel{background:rgba(56,189,248,.12);border-color:rgba(56,189,248,.3);color:var(--blue)}
 .tp-hr.dawn{border-color:rgba(251,191,36,.25);background:rgba(251,191,36,.06)}
 .tp-hr.dawn.sel{background:rgba(251,191,36,.18);border-color:rgba(251,191,36,.4);color:var(--mod)}
 .tp-hr.dusk{border-color:rgba(168,85,247,.25);background:rgba(168,85,247,.06)}
 .tp-hr.dusk.sel{background:rgba(168,85,247,.18);border-color:rgba(168,85,247,.4);color:var(--violet)}
-.tp-sel{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--tx2);padding:4px 0;text-align:center}
+.tp-sel{font-family:var(--mono);font-size:12px;color:var(--tx2);padding:4px 0;text-align:center}
 .tp-sel .tp-sel-time{color:var(--blue);font-weight:700}
 
 /* ═══ STICKY FORECAST WINDOW ═══ */
 /* Lives OUTSIDE the .dash grid — a sticky grid item only pins within its own row, so the
    picker gets its own wrapper pinned to the viewport for the whole page scroll. */
 .tpwrap{position:sticky;top:0;z-index:90;max-width:1400px;margin:0 auto;padding:16px 24px 10px;background:var(--bg)}
-.tp-mini{display:none;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:var(--blue);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:0 10px;flex:1;text-align:right;min-width:0}
+.tp-mini{display:none;font-family:var(--mono);font-size:11px;font-weight:700;color:var(--blue);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:0 10px;flex:1;text-align:right;min-width:0}
 .tpwrap.stuck .tp{box-shadow:0 12px 32px rgba(0,0,0,.55);border-color:var(--bdr2)}
 .tpwrap.stuck .tp-mini{display:block}
 .tpwrap.stuck .tp-hdr{padding:5px 14px}
@@ -487,14 +488,14 @@ a.badge{cursor:pointer}a.badge:hover{background:rgba(56,189,248,.2);color:#7dd3f
 /* ═══ GO/NO-GO SCORECARD ═══ */
 .gng-grid{display:flex;flex-direction:column;gap:5px}
 .gng-verdict{text-align:center;padding:10px;border-radius:var(--rs);margin-bottom:4px}
-.gng-verdict-text{font-family:'Instrument Serif',serif;font-size:32px;font-weight:700}
-.gng-verdict-sub{font-size:13px;margin-top:2px;font-family:'JetBrains Mono',monospace}
+.gng-verdict-text{font-family:var(--sans);font-size:32px;font-weight:700}
+.gng-verdict-sub{font-size:13px;margin-top:2px;font-family:var(--mono)}
 .gng-row{display:flex;align-items:center;gap:10px;padding:6px 12px;background:var(--card2);border-radius:var(--rs);border:1px solid var(--bdr)}
 .gng-icon{font-size:18px;flex-shrink:0;width:28px;text-align:center}
 .gng-detail{flex:1}
 .gng-name{font-size:13px;font-weight:600;color:var(--tx)}
-.gng-val{font-size:12px;color:var(--tx3);font-family:'JetBrains Mono',monospace;margin-top:1px}
-.gng-status{flex-shrink:0;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;padding:3px 10px;border-radius:12px}
+.gng-val{font-size:12px;color:var(--tx3);font-family:var(--mono);margin-top:1px}
+.gng-status{flex-shrink:0;font-family:var(--mono);font-size:13px;font-weight:700;padding:3px 10px;border-radius:12px}
 .gng-go{color:var(--calm);background:rgba(52,211,153,.1)}
 .gng-caution{color:var(--mod);background:rgba(251,191,36,.1)}
 .gng-nogo{color:var(--danger);background:rgba(248,113,113,.1)}
@@ -502,9 +503,9 @@ a.badge{cursor:pointer}a.badge:hover{background:rgba(56,189,248,.2);color:#7dd3f
 .gng-limits-title{font-size:11px;color:var(--tx3);text-transform:uppercase;letter-spacing:.04em;font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:6px}
 .gng-limit-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
 .gng-limit-lbl{font-size:12px;color:var(--tx2);flex:1}
-.gng-limit-input{background:var(--bg);border:1px solid var(--bdr);color:var(--tx);padding:4px 8px;border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:12px;width:60px;text-align:center}
+.gng-limit-input{background:var(--bg);border:1px solid var(--bdr);color:var(--tx);padding:4px 8px;border-radius:4px;font-family:var(--mono);font-size:12px;width:60px;text-align:center}
 .gng-limit-unit{font-size:11px;color:var(--tx4);width:36px}
-.gng-save{background:rgba(56,189,248,.12);border:1px solid rgba(56,189,248,.25);color:var(--blue);padding:6px 16px;border-radius:var(--rs);cursor:pointer;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;margin-top:8px;transition:all .15s}
+.gng-save{background:rgba(56,189,248,.12);border:1px solid rgba(56,189,248,.25);color:var(--blue);padding:6px 16px;border-radius:var(--rs);cursor:pointer;font-family:var(--sans);font-size:12px;font-weight:600;margin-top:8px;transition:all .15s}
 .gng-save:hover{background:rgba(56,189,248,.2)}
 
 /* ═══ 5-DAY OVERVIEW ═══ */
@@ -512,15 +513,15 @@ a.badge{cursor:pointer}a.badge:hover{background:rgba(56,189,248,.2);color:#7dd3f
 .day-card{background:var(--card2);border-radius:var(--rs);padding:8px 10px;display:flex;flex-direction:column;gap:4px;border:1px solid var(--bdr)}
 .day-card.today{border-color:rgba(56,189,248,.3)}
 .day-card-hdr{display:flex;justify-content:space-between;align-items:center}
-.day-card-name{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;color:var(--tx)}
-.day-card-date{font-size:11px;color:var(--tx3);font-family:'JetBrains Mono',monospace}
-.day-card-verdict{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;padding:3px 10px;border-radius:12px}
+.day-card-name{font-family:var(--mono);font-size:14px;font-weight:700;color:var(--tx)}
+.day-card-date{font-size:11px;color:var(--tx3);font-family:var(--mono)}
+.day-card-verdict{font-family:var(--mono);font-size:12px;font-weight:700;padding:3px 10px;border-radius:12px}
 .day-card-row{display:flex;justify-content:space-between;align-items:center;font-size:13px}
 .day-card-lbl{color:var(--tx3)}
-.day-card-val{font-family:'JetBrains Mono',monospace;font-weight:600}
+.day-card-val{font-family:var(--mono);font-weight:600}
 .dawn-table{width:100%;border-collapse:collapse;margin-top:6px}
-.dawn-table th{text-align:center;padding:2px 4px;font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--tx4);font-weight:600;font-family:'JetBrains Mono',monospace;border-bottom:1px solid var(--bdr)}
-.dawn-table td{text-align:center;padding:3px 4px;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;border-bottom:1px solid rgba(30,41,59,.3)}
+.dawn-table th{text-align:center;padding:2px 4px;font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--tx4);font-weight:600;font-family:var(--mono);border-bottom:1px solid var(--bdr)}
+.dawn-table td{text-align:center;padding:3px 4px;font-family:var(--mono);font-size:13px;font-weight:600;border-bottom:1px solid rgba(30,41,59,.3)}
 .dawn-table td.dawn-lbl{text-align:left;color:var(--tx3);font-weight:500;font-size:12px;width:60px}
 /* Reality Check card: compact density (Brian, 2026-08-03 — "a lot more compact",
    whitespace not font size). #id specificity beats the mobile block regardless of order. */
@@ -541,14 +542,14 @@ a.badge{cursor:pointer}a.badge:hover{background:rgba(56,189,248,.2);color:#7dd3f
 .wxl-nudge.v{display:flex}
 .wxl-nudge-t{flex:1;min-width:170px;color:var(--tx2)}
 .wxl-nudge-t b{color:var(--blue);font-weight:600}
-.wxl-nb{background:var(--card);border:1px solid var(--bdr2);color:var(--tx);padding:4px 12px;border-radius:var(--rs);cursor:pointer;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;flex-shrink:0}
+.wxl-nb{background:var(--card);border:1px solid var(--bdr2);color:var(--tx);padding:4px 12px;border-radius:var(--rs);cursor:pointer;font-family:var(--sans);font-size:12px;font-weight:600;flex-shrink:0}
 .wxl-nb:hover{background:var(--card2)}
 .wxl-nb:disabled{opacity:.45;cursor:default}
 .wxl-nb.ghost{color:var(--tx3);border-color:var(--bdr)}
 
 .wxl-hero{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
 .wxl-stat{flex:1;min-width:80px;background:var(--card2);border:1px solid var(--bdr);border-radius:var(--rs);padding:6px 10px}
-.wxl-stat-n{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:700;line-height:1.1}
+.wxl-stat-n{font-family:var(--mono);font-size:20px;font-weight:700;line-height:1.1}
 .wxl-stat-l{font-size:10px;color:var(--tx3);text-transform:uppercase;letter-spacing:.04em;margin-top:2px}
 
 .wxl-sec{margin-top:9px}
@@ -557,54 +558,54 @@ a.badge{cursor:pointer}a.badge:hover{background:rgba(56,189,248,.2);color:#7dd3f
 
 .wxl-cal{display:grid;grid-template-columns:repeat(7,24px);gap:3px}
 .wxl-cdow{display:grid;grid-template-columns:repeat(7,24px);gap:3px;margin-bottom:2px}
-.wxl-cdow span{text-align:center;font-size:8px;color:var(--tx4);font-family:'JetBrains Mono',monospace}
-.wxl-cd{height:24px;border-radius:4px;background:var(--card2);border:1px solid var(--bdr);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--tx4)}
+.wxl-cdow span{text-align:center;font-size:8px;color:var(--tx4);font-family:var(--mono)}
+.wxl-cd{height:24px;border-radius:4px;background:var(--card2);border:1px solid var(--bdr);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:9px;color:var(--tx4)}
 .wxl-cd.has{cursor:pointer;color:#0a0e1a;font-weight:700}
 .wxl-cd.has:hover{filter:brightness(1.15)}
 .wxl-cd.ok{background:var(--calm);border-color:var(--calm)}
 .wxl-cd.worse{background:var(--danger);border-color:var(--danger)}
 .wxl-cd.better{background:var(--blue);border-color:var(--blue)}
 .wxl-cd.off{background:var(--mod);border-color:var(--mod)}
-.wxl-leg{display:flex;gap:10px;flex-wrap:wrap;margin-top:5px;font-size:10px;color:var(--tx3);font-family:'JetBrains Mono',monospace}
+.wxl-leg{display:flex;gap:10px;flex-wrap:wrap;margin-top:5px;font-size:10px;color:var(--tx3);font-family:var(--mono)}
 .wxl-leg i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:4px;vertical-align:-1px;font-style:normal}
 
 .wxl-tbl{width:100%;border-collapse:collapse}
-.wxl-tbl th{text-align:left;padding:3px 6px;font-size:9px;text-transform:uppercase;letter-spacing:.03em;color:var(--tx4);font-weight:600;font-family:'JetBrains Mono',monospace;border-bottom:1px solid var(--bdr)}
-.wxl-tbl td{padding:3px 6px;font-family:'JetBrains Mono',monospace;font-size:12px;border-bottom:1px solid rgba(30,41,59,.3);vertical-align:middle}
-.wxl-tbl td.l{font-family:'DM Sans',sans-serif;color:var(--tx2)}
+.wxl-tbl th{text-align:left;padding:3px 6px;font-size:9px;text-transform:uppercase;letter-spacing:.03em;color:var(--tx4);font-weight:600;font-family:var(--mono);border-bottom:1px solid var(--bdr)}
+.wxl-tbl td{padding:3px 6px;font-family:var(--mono);font-size:12px;border-bottom:1px solid rgba(30,41,59,.3);vertical-align:middle}
+.wxl-tbl td.l{font-family:var(--sans);color:var(--tx2)}
 .wxl-tbl td.r{text-align:right}
 .wxl-bar{height:5px;border-radius:3px;background:var(--bdr);overflow:hidden;min-width:30px}
 .wxl-bar i{display:block;height:100%;border-radius:3px}
 
 .wxl-e{background:var(--card2);border:1px solid var(--bdr);border-radius:var(--rs);padding:6px 10px;margin-bottom:4px}
 .wxl-e-h{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
-.wxl-e-d{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--tx)}
-.wxl-e-b{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;padding:1px 7px;border-radius:10px;white-space:nowrap}
+.wxl-e-d{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--tx)}
+.wxl-e-b{font-family:var(--mono);font-size:10px;font-weight:700;padding:1px 7px;border-radius:10px;white-space:nowrap}
 .wxl-e-tags{display:flex;gap:4px;flex-wrap:wrap;align-items:center;margin-left:auto}
 .wxl-tag{font-size:10px;padding:1px 6px;border-radius:9px;background:var(--bg);border:1px solid var(--bdr2);color:var(--tx2);white-space:nowrap}
-.wxl-e-r{font-size:11px;color:var(--tx3);font-family:'JetBrains Mono',monospace;margin-top:3px;line-height:1.5;word-break:break-word}
+.wxl-e-r{font-size:11px;color:var(--tx3);font-family:var(--mono);margin-top:3px;line-height:1.5;word-break:break-word}
 .wxl-e-n{font-size:11px;color:var(--tx2);margin-top:2px;font-style:italic}
 .wxl-del{background:none;border:none;color:var(--tx4);cursor:pointer;font-size:13px;padding:0 2px;line-height:1}
 .wxl-del:hover{color:var(--blue)}
 
 .wxl-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:9px}
-.wxl-opt{flex:1;min-width:112px;background:var(--card);border:1px solid var(--bdr);color:var(--tx2);padding:9px 10px;border-radius:var(--rs);cursor:pointer;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;text-align:center;transition:all .12s}
+.wxl-opt{flex:1;min-width:112px;background:var(--card);border:1px solid var(--bdr);color:var(--tx2);padding:9px 10px;border-radius:var(--rs);cursor:pointer;font-family:var(--sans);font-size:13px;font-weight:600;text-align:center;transition:all .12s}
 .wxl-opt:hover{border-color:var(--bdr2);color:var(--tx)}
 .wxl-opt.sel{background:rgba(56,189,248,.12);border-color:var(--blue);color:var(--tx)}
 .wxl-opt.sel.good{background:rgba(52,211,153,.12);border-color:var(--calm)}
 .wxl-opt.sel.bad{background:rgba(248,113,113,.12);border-color:var(--danger)}
-.wxl-tg{background:var(--card);border:1px solid var(--bdr);color:var(--tx3);padding:6px 11px;border-radius:14px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;transition:all .12s}
+.wxl-tg{background:var(--card);border:1px solid var(--bdr);color:var(--tx3);padding:6px 11px;border-radius:14px;cursor:pointer;font-family:var(--sans);font-size:12px;font-weight:500;transition:all .12s}
 .wxl-tg:hover{color:var(--tx)}
 .wxl-tg.sel{background:rgba(251,191,36,.14);border-color:var(--mod);color:var(--tx)}
-.wxl-ta{width:100%;background:var(--card);border:1px solid var(--bdr);border-radius:var(--rs);color:var(--tx);padding:8px 10px;font-family:'DM Sans',sans-serif;font-size:13px;resize:vertical;min-height:52px}
+.wxl-ta{width:100%;background:var(--card);border:1px solid var(--bdr);border-radius:var(--rs);color:var(--tx);padding:8px 10px;font-family:var(--sans);font-size:13px;resize:vertical;min-height:52px}
 .wxl-ta:focus{outline:none;border-color:var(--bdr2)}
-.wxl-fc{background:var(--card2);border:1px solid var(--bdr);border-radius:var(--rs);padding:7px 10px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--tx2);line-height:1.6;margin-bottom:10px}
+.wxl-fc{background:var(--card2);border:1px solid var(--bdr);border-radius:var(--rs);padding:7px 10px;font-family:var(--mono);font-size:12px;color:var(--tx2);line-height:1.6;margin-bottom:10px}
 .wxl-fc b{color:var(--tx);font-weight:700}
-.wxl-sv{width:100%;background:var(--blue);border:none;color:#06121c;padding:10px;border-radius:var(--rs);cursor:pointer;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;margin-top:6px}
+.wxl-sv{width:100%;background:var(--blue);border:none;color:#06121c;padding:10px;border-radius:var(--rs);cursor:pointer;font-family:var(--sans);font-size:14px;font-weight:700;margin-top:6px}
 .wxl-sv:hover{filter:brightness(1.08)}
 .wxl-sv:disabled{opacity:.4;cursor:not-allowed}
 .wxl-io{display:flex;gap:6px;margin-top:10px}
-.wxl-io button{flex:1;background:var(--card2);border:1px solid var(--bdr);color:var(--tx2);padding:7px;border-radius:var(--rs);cursor:pointer;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600}
+.wxl-io button{flex:1;background:var(--card2);border:1px solid var(--bdr);color:var(--tx2);padding:7px;border-radius:var(--rs);cursor:pointer;font-family:var(--sans);font-size:12px;font-weight:600}
 .wxl-io button:hover{background:var(--card);color:var(--tx)}
 @media(max-width:900px){
   .wxl-nudge{margin:10px 12px 0}
@@ -613,32 +614,164 @@ a.badge{cursor:pointer}a.badge:hover{background:rgba(56,189,248,.2);color:#7dd3f
 }
 /* Preview-build banner. Shown ONLY when served from a /preview/ path — the same file is
    used for both, so what gets eyeballed is byte-identical to what ships. */
-.pvw-bar{background:rgba(167,139,250,.14);border-bottom:1px solid rgba(167,139,250,.4);color:#c4b5fd;padding:7px 16px;font-size:12px;text-align:center;font-family:'DM Sans',sans-serif}
+.pvw-bar{background:rgba(167,139,250,.14);border-bottom:1px solid rgba(167,139,250,.4);color:#c4b5fd;padding:7px 16px;font-size:12px;text-align:center;font-family:var(--sans)}
 .pvw-bar b{color:#ddd6fe;font-weight:700;letter-spacing:.03em}
 .pvw-bar a{color:#c4b5fd;font-weight:600}
 
 /* past-window picker + accuracy-over-time toggle (v4.21.0) */
 .wxl-when{display:flex;gap:5px;align-items:center;flex-wrap:wrap;margin-bottom:6px}
-.wxl-dt{background:var(--card);border:1px solid var(--bdr2);color:var(--tx);padding:5px 8px;border-radius:var(--rs);font-family:'JetBrains Mono',monospace;font-size:12px;color-scheme:dark}
-.wxl-wbt{background:var(--card);border:1px solid var(--bdr);color:var(--tx3);padding:5px 11px;border-radius:var(--rs);cursor:pointer;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700}
+.wxl-dt{background:var(--card);border:1px solid var(--bdr2);color:var(--tx);padding:5px 8px;border-radius:var(--rs);font-family:var(--mono);font-size:12px;color-scheme:dark}
+.wxl-wbt{background:var(--card);border:1px solid var(--bdr);color:var(--tx3);padding:5px 11px;border-radius:var(--rs);cursor:pointer;font-family:var(--sans);font-size:12px;font-weight:700}
 .wxl-wbt.sel{background:rgba(56,189,248,.14);border-color:var(--blue);color:var(--tx)}
-.wxl-hr{background:var(--card);border:1px solid var(--bdr);color:var(--tx2);padding:5px 6px;border-radius:var(--rs);font-family:'JetBrains Mono',monospace;font-size:12px;color-scheme:dark}
+.wxl-hr{background:var(--card);border:1px solid var(--bdr);color:var(--tx2);padding:5px 6px;border-radius:var(--rs);font-family:var(--mono);font-size:12px;color-scheme:dark}
 .wxl-avail{font-size:11px;line-height:1.5;padding:6px 10px;border-radius:var(--rs);margin-bottom:8px}
 .wxl-avail.ok{background:rgba(52,211,153,.08);border:1px solid rgba(52,211,153,.25);color:var(--tx2)}
 .wxl-avail.old{background:rgba(139,151,176,.08);border:1px solid var(--bdr2);color:var(--tx3)}
 .wxl-cd.empty{cursor:pointer}
 .wxl-cd.empty:hover{border-color:var(--blue);color:var(--blue)}
 .wxl-tog{margin-left:auto;display:flex;gap:3px}
-.wxl-tog button{background:var(--card2);border:1px solid var(--bdr);color:var(--tx3);padding:2px 9px;border-radius:10px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.03em}
+.wxl-tog button{background:var(--card2);border:1px solid var(--bdr);color:var(--tx3);padding:2px 9px;border-radius:10px;cursor:pointer;font-family:var(--sans);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.03em}
 .wxl-tog button.sel{background:rgba(56,189,248,.14);border-color:var(--blue);color:var(--tx)}
 
 .wxl-flash{animation:wxlFlash 1.4s ease-out}
 @keyframes wxlFlash{0%,100%{box-shadow:0 0 0 0 rgba(56,189,248,0)}25%{box-shadow:0 0 0 5px rgba(56,189,248,.35)}}
+
+/* ═══ GLASS THEME (v4.22.0, Brian 2026-11-03: "more glassy, more modern… smoky dark rainbow,
+   not sparkly"). Visual only: every card, its order and its data are unchanged. Sits LAST in
+   the stylesheet on purpose (CSS cascade trap in CLAUDE.md). The data colors (wC/wH wind
+   bands, spC, aqiC) are untouched. --card stays OPAQUE: the frozen altitude labels, sticky
+   titles and the ghost station header paint over scrolling content with it. ═══ */
+:root{
+  --sans:'Inter',system-ui,-apple-system,sans-serif;--mono:'Inter',system-ui,-apple-system,sans-serif;
+  --bg:#07060f;--card:#121020;--card2:rgba(255,255,255,.05);--bdr:rgba(255,255,255,.08);--bdr2:rgba(255,255,255,.15);
+  --tx:#eef2f7;--tx2:#b4bccb;--tx3:#8d97aa;--tx4:#646f84;--blue:#8ec5ff;
+  --glass:linear-gradient(135deg,rgba(236,72,153,.06),rgba(124,58,237,.05) 30%,rgba(37,99,235,.05) 55%,rgba(16,185,129,.04) 80%,rgba(234,179,8,.04)),rgba(255,255,255,.045);
+  --glass-bdr:rgba(255,255,255,.10);--glass-hi:inset 0 1px 0 rgba(255,255,255,.07);
+  --r:20px;--rs:12px;
+}
+body{font-variant-numeric:tabular-nums;position:relative;background:var(--bg);letter-spacing:-.005em}
+/* Smoky rainbow: soft radial pools drifting violet → magenta → ember → gold → green → teal → blue
+   down the page. Gradients only (no filter:blur) so phones scroll it cheaply. */
+body::before{content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;
+  background:
+    radial-gradient(520px 520px at 0% 0%,rgba(109,40,217,.30),transparent 70%),
+    radial-gradient(480px 480px at 100% 6%,rgba(219,39,119,.17),transparent 70%),
+    radial-gradient(520px 520px at 0% 20%,rgba(234,88,12,.12),transparent 70%),
+    radial-gradient(500px 500px at 100% 33%,rgba(202,138,4,.10),transparent 70%),
+    radial-gradient(540px 540px at 0% 48%,rgba(5,150,105,.14),transparent 70%),
+    radial-gradient(540px 540px at 100% 62%,rgba(8,145,178,.16),transparent 70%),
+    radial-gradient(560px 560px at 0% 78%,rgba(37,99,235,.20),transparent 70%),
+    radial-gradient(520px 520px at 100% 94%,rgba(124,58,237,.20),transparent 70%)}
+.hdr{background:rgba(7,6,15,.55);border-bottom:1px solid var(--bdr)}
+.logo{border-radius:12px}
+.hdr-title{font-weight:700;letter-spacing:-.02em}
+.rbtn{background:var(--glass);border:1px solid var(--glass-bdr);border-radius:12px;color:var(--tx);box-shadow:var(--glass-hi)}
+.cd{background:var(--glass);border:1px solid var(--glass-bdr);border-radius:var(--r);box-shadow:var(--glass-hi),0 8px 30px rgba(0,0,0,.22);-webkit-backdrop-filter:blur(14px) saturate(140%);backdrop-filter:blur(14px) saturate(140%)}
+.cd:hover{border-color:rgba(255,255,255,.16)}
+.ch{border-bottom:1px solid var(--bdr)}
+.ct{color:var(--tx3);font-weight:700;letter-spacing:.08em}
+.ct .sub{text-transform:none;letter-spacing:0;font-weight:500}
+.badge{background:rgba(142,197,255,.10);color:var(--blue);border-radius:10px}
+.stat{border-radius:12px;border:1px solid rgba(255,255,255,.06)}
+.ga{border-radius:14px}
+.tpwrap{background:rgba(7,6,15,.62);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px)}
+.tp{background:var(--glass);border:1px solid var(--glass-bdr);border-radius:var(--r);box-shadow:var(--glass-hi)}
+.tp-day{border-radius:12px;background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.08)}
+.tp-day.sel{background:rgba(238,242,247,.95);border-color:transparent;color:#0b0a16}
+.tp-day.sel .day-date{color:#2a2838}
+.tp-hr{border-radius:11px;background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.08);color:var(--tx2)}
+.tp-hr.sel{background:var(--blue);border-color:transparent;color:#071222}
+.tp-hr.dawn.sel{background:var(--mod);border-color:transparent;color:#1a1206}
+.tp-hr.dusk.sel{background:var(--violet);border-color:transparent;color:#140a22}
+.tp-now,.tp-ask,.tp-log,.tp-book,.tp-ref{border-radius:11px}
+.loc-ov{background:rgba(4,3,10,.55)}
+.loc-panel{background:linear-gradient(135deg,rgba(236,72,153,.07),rgba(37,99,235,.06) 50%,rgba(16,185,129,.05)),rgba(18,16,32,.94);border:1px solid var(--glass-bdr);border-radius:22px;-webkit-backdrop-filter:blur(22px);backdrop-filter:blur(22px)}
+.loc-input,.loc-item{border-radius:12px}
+.loc-go{border-radius:12px}
+
+/* Compare chip (v4.22.0): after switching hours, one tap jumps back to the hour you were on */
+.tp-sel{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap}
+.tp-back{display:inline-flex;align-items:center;gap:5px;height:28px;padding:0 10px;border-radius:14px;border:1px dashed var(--blue);background:rgba(142,197,255,.08);color:var(--blue);font:600 12px var(--sans);cursor:pointer}
+.tpwrap.stuck .tp-back{display:none}
+/* On a phone the chips squeeze the title down to a lone "F" — the LIVE chip already says what this is */
+@media(max-width:500px){.tp-title{display:none}}
+
+/* Micro Winds, compact (Brian 2026-11-03): one line per 100 ft — AGL, MSL, speed, direction.
+   The scaled vector arrows are gone (he found them a waste of space); a small fixed arrow
+   sits by the direction instead. Speed keeps its wC color. */
+.mvf-row{margin-bottom:0}
+.mvf-alt{display:flex;align-items:baseline;justify-content:flex-start;gap:5px;text-align:left;padding:0 4px 0 2px;font-size:11px;color:var(--tx);font-weight:500}
+.mvf-alt .msl{display:inline;font-size:9px;color:var(--tx3)}
+.mvf-row.k .mvf-alt{font-weight:700}
+.mvf-cell{height:23px;gap:4px;justify-content:space-between;padding:0 2px 0 0;border-bottom:1px solid var(--bdr)}
+.mvs{font-weight:700;font-size:13px;min-width:18px;text-align:right}
+.mvd{display:inline-flex;align-items:center;gap:2px;font-size:10px;color:var(--tx2);white-space:nowrap}
+.mvd svg,.vfl svg{flex:none}
+.mvf-shear .mvf-cell{height:18px;border:none}
+.winds-micro .mvf-alt{width:64px;min-width:64px}
+.winds-micro .mvf-cell{width:84px;min-width:84px}
+
+/* Winds Aloft tiles: each station × altitude is a small rounded tile tinted by its wind band */
+.vf-cell.t{padding:2px;border-bottom:none;height:44px;justify-content:center}
+.vf-tile{width:100%;height:100%;border-radius:10px;border:1px solid transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;line-height:1}
+.vf-tile .vfs{font-weight:700;font-size:15px}
+.vfl{display:inline-flex;align-items:center;gap:2px;font-size:10px;color:var(--tx2);white-space:nowrap}
+.vf-tile.home{box-shadow:inset 0 0 0 1.5px rgba(142,197,255,.6)}
+.vf-shear{background:rgba(251,146,60,.08);border-top:1px solid rgba(251,146,60,.22);border-bottom:1px solid rgba(251,146,60,.22)}
+.vf-shear .vf-cell{justify-content:center;padding-left:0}
+@media(max-width:900px){
+  .winds-micro .mvf-alt{width:62px;min-width:62px}
+  .winds-micro .mvf-cell{width:82px;min-width:82px}
+  .winds-main .vf-cell{width:70px;min-width:70px;max-width:70px}
+  .winds-main .vf-cell.t{height:44px}
+  .winds-main .vf-alt{width:58px;min-width:58px}
+}
+
+/* Location map (v4.22.0) */
+.lmap-wrap{position:relative;margin-top:10px;border-radius:16px;overflow:hidden;border:1px solid var(--glass-bdr);height:300px;background:#0d0c18}
+#lmap{position:absolute;inset:0}
+.lmap-hint{position:absolute;left:8px;bottom:8px;z-index:500;font:600 11px var(--sans);color:var(--tx);background:rgba(7,6,15,.78);padding:5px 9px;border-radius:9px;pointer-events:none}
+.lmap-num{width:26px;height:26px;border-radius:13px;background:#eef2f7;color:#0b0a16;border:2px solid #0b0a16;font:700 13px var(--sans);display:flex;align-items:center;justify-content:center;box-sizing:border-box}
+.lmap-cur{width:16px;height:16px;border-radius:8px;background:var(--blue);border:3px solid #0b0a16;box-sizing:border-box;box-shadow:0 0 0 3px rgba(142,197,255,.35)}
+.lmap-pin{width:26px;height:32px}
+.lpin{margin-top:10px;padding:12px 14px;border-radius:16px;background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.28);display:none;flex-direction:column;gap:8px}
+.lpin.v{display:flex}
+.lpin-row{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.lpin-name{flex:1;min-width:0;background:transparent;border:0;border-bottom:1px dashed rgba(251,191,36,.4);color:var(--tx);font:600 15px var(--sans);padding:2px 0;outline:none}
+.lpin-meta{font-size:12px;color:#d9c79a}
+.lpin-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.lpin-use{height:42px;border-radius:12px;border:0;background:var(--mod);color:#1a1206;font:700 14px var(--sans);cursor:pointer}
+.lpin-fav{height:42px;border-radius:12px;border:1px solid rgba(251,191,36,.35);background:transparent;color:var(--tx);font:600 14px var(--sans);cursor:pointer}
+.loc-item{display:flex;align-items:center;gap:10px}
+.loc-item .lnum{width:24px;height:24px;flex:none;border-radius:12px;background:#eef2f7;color:#0b0a16;font:700 12px var(--sans);display:flex;align-items:center;justify-content:center}
+.lfavs{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.lfav{display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 6px 0 12px;border-radius:17px;border:1px solid var(--glass-bdr);background:rgba(255,255,255,.05);color:var(--tx);font:600 12px var(--sans);cursor:pointer}
+.lfav b{font-weight:400;color:var(--tx3);padding:0 4px;font-size:14px}
+.lsec{font:700 10px var(--sans);letter-spacing:.08em;color:var(--tx3);margin-top:12px}
+
+/* Customize sections (v4.22.0) */
+.cus-list{display:flex;flex-direction:column;border:1px solid var(--glass-bdr);border-radius:16px;overflow:hidden}
+.cus-row{display:flex;align-items:center;gap:2px;min-height:48px;padding:0 4px 0 8px;border-top:1px solid var(--bdr);background:rgba(255,255,255,.02);touch-action:none}
+.cus-row:first-child{border-top:0}
+.cus-row.off .cus-name{color:var(--tx4);text-decoration:line-through}
+.cus-row.drag{background:rgba(142,197,255,.12);box-shadow:0 6px 20px rgba(0,0,0,.4);position:relative;z-index:2}
+.cus-grip{color:var(--tx4);padding:8px 4px;cursor:grab;display:flex}
+.cus-name{flex:1;font:500 14px var(--sans);color:var(--tx)}
+.cus-b{width:36px;height:38px;border:0;background:transparent;color:var(--tx3);cursor:pointer;display:flex;align-items:center;justify-content:center;border-radius:10px}
+.cus-b.eye{color:var(--blue)}.cus-row.off .cus-b.eye{color:var(--tx4)}
+.cus-b.del{color:var(--danger)}
+.cus-adds{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.cus-add{height:36px;padding:0 12px;border-radius:18px;border:1px solid var(--glass-bdr);background:rgba(255,255,255,.05);color:var(--blue);font:600 12px var(--sans);cursor:pointer}
+.cus-reset{margin-top:12px;width:100%;height:40px;border-radius:12px;border:1px solid var(--bdr2);background:transparent;color:var(--tx2);font:600 13px var(--sans);cursor:pointer}
+.cus-open{display:block;margin:6px auto 0;height:44px;padding:0 18px;border-radius:14px;border:1px solid var(--glass-bdr);background:var(--glass);color:var(--blue);font:600 14px var(--sans);cursor:pointer}
+.sec-off{display:none!important}
+.atog{background:rgba(255,255,255,.06);border:1px solid var(--glass-bdr);color:var(--tx);border-radius:12px;font:600 12px var(--sans);cursor:pointer}
 </style>
 </head>
 <body>
-<header class="hdr"><div class="hdr-l"><div class="logo">🎈</div><div><div class="hdr-title" id="hdrTitle">Balloon Weather</div><div class="hdr-sub" id="hdrSub">Loading...</div></div></div><div class="hdr-r"><div class="upd" id="upd">—</div><button class="rbtn" onclick="openLoc()">📍 Location</button><button class="rbtn" onclick="openSet()">⚙ Settings</button></div></header>
-<div class="loc-ov" id="locOv" onclick="if(event.target===this)closeLoc()"><div class="loc-panel"><div class="loc-hd"><span class="loc-hd-t">Set Location</span><button class="loc-close" onclick="closeLoc()">✕</button></div><div class="loc-body"><div class="loc-cur" id="locCur"></div><div class="loc-row"><input class="loc-input" id="locIn" placeholder="City, State or ZIP code" autocomplete="off"><button class="loc-go" onclick="doSearch()">Search</button></div><div class="loc-results" id="locRes"></div></div></div></div>
+<header class="hdr"><div class="hdr-l"><div class="logo">🎈</div><div><div class="hdr-title" id="hdrTitle">Balloon Weather</div><div class="hdr-sub" id="hdrSub">Loading...</div></div></div><div class="hdr-r"><div class="upd" id="upd">—</div><button class="rbtn" onclick="openLoc()">📍 Location</button><button class="rbtn" onclick="openSet()">⚙ Settings</button><button class="rbtn" onclick="openCus()">▤ Sections</button></div></header>
+<div class="loc-ov" id="locOv" onclick="if(event.target===this)closeLoc()"><div class="loc-panel"><div class="loc-hd"><span class="loc-hd-t">Set Location</span><button class="loc-close" onclick="closeLoc()">✕</button></div><div class="loc-body"><div class="loc-cur" id="locCur"></div><div class="loc-row"><input class="loc-input" id="locIn" placeholder="Address, place, town, ZIP or lat, lon" autocomplete="off"><button class="loc-go" onclick="doSearch()">Search</button></div><div class="lmap-wrap"><div id="lmap"></div><div class="lmap-hint">Tap the map to drop a pin</div></div><div class="lpin" id="lpin"><div class="lpin-row"><input class="lpin-name" id="lpinName" value="My spot" aria-label="Name this spot" maxlength="40"><span class="lpin-meta" id="lpinElev"></span></div><div class="lpin-meta" id="lpinMeta"></div><div class="lpin-btns"><button class="lpin-use" onclick="usePin()">Use this pin</button><button class="lpin-fav" onclick="favPin()">Save as favorite</button></div></div><div class="loc-results" id="locRes"></div><div class="lsec" id="lfavH" style="display:none">FAVORITES</div><div class="lfavs" id="lfavs"></div></div></div></div>
+<div class="loc-ov" id="cusOv" onclick="if(event.target===this)closeCus()"><div class="loc-panel set-panel"><div class="loc-hd"><span class="loc-hd-t">Customize sections</span><button class="loc-close" onclick="closeCus()">✕</button></div><div class="loc-body"><div class="set-desc" style="margin-bottom:10px">Drag ⠿ or use the arrows to reorder · eye hides a section · trash removes it (add it back below). Saved on this device.</div><div class="cus-list" id="cusList"></div><div class="lsec" id="cusAddH">ADD A SECTION</div><div class="cus-adds" id="cusAdds"></div><button class="cus-reset" onclick="resetCus()">Reset to default layout</button></div></div></div>
 <div class="loc-ov" id="setOv" onclick="if(event.target===this)closeSet()"><div class="loc-panel set-panel"><div class="loc-hd"><span class="loc-hd-t">⚙ Settings</span><button class="loc-close" onclick="closeSet()">✕</button></div><div class="loc-body">
   <div class="set-sec"><div class="set-st">🔠 Text Size</div><div class="set-desc">Make all text bigger or smaller — applies everywhere on the dashboard.</div>
     <div class="fs-options" id="fsOpts">
@@ -651,7 +784,7 @@ a.badge{cursor:pointer}a.badge:hover{background:rgba(56,189,248,.2);color:#7dd3f
   </div>
   <div class="set-sec"><div class="set-st">📡 Custom Reporting Stations</div><div class="set-desc">Add additional METAR/airport stations (ICAO ID, e.g. KLAX, KCRQ) to track macro trends. They'll appear in surface conditions, the comparison grid, winds aloft, and the aviation briefing.</div>
     <div class="cs-list" id="csList"></div>
-    <div class="cs-add-row"><input class="loc-input" id="csIn" placeholder="ICAO ID (e.g. KLAX, KSAN)" autocomplete="off" maxlength="4" style="text-transform:uppercase;font-family:'JetBrains Mono',monospace"><button class="loc-go" onclick="addCustomStn()">+ Add</button></div>
+    <div class="cs-add-row"><input class="loc-input" id="csIn" placeholder="ICAO ID (e.g. KLAX, KSAN)" autocomplete="off" maxlength="4" style="text-transform:uppercase;font-family:var(--mono)"><button class="loc-go" onclick="addCustomStn()">+ Add</button></div>
     <div class="cs-help">Tip: 4-letter ICAO ID — usually starts with K in the US (e.g. KLAX = Los Angeles Intl).</div>
     <div id="csMsg"></div>
   </div>
@@ -665,7 +798,7 @@ a.badge{cursor:pointer}a.badge:hover{background:rgba(56,189,248,.2);color:#7dd3f
 <div class="ga" id="ga"><span>⚠</span><span id="gaTxt"></span></div>
 <div id="tpSentinel" style="height:1px"></div>
 <div class="tpwrap" id="tpWrap">
-  <div class="tp"><div class="tp-hdr"><div class="tp-title">🕐 Forecast<span class="tp-tw"> Window</span></div><div class="tp-mini" id="tpSelMini"></div><div class="tp-acts"><button class="tp-now active" id="tpNow" onclick="setNow()">● LIVE</button><button class="tp-ask" id="askBtn" onclick="askClaude()" title="Open Claude with the full raw briefing for the selected flight time (±2h) — works with a free Claude account">✨ Ask Claude</button><button class="tp-ask" id="wxlBtn" onclick="openWxLog()" title="Log how this forecast actually turned out — builds your accuracy record over time">📋 Log</button><button class="tp-ask" id="wxlGoBtn" onclick="goWxLog()" title="Jump to the Forecast Accuracy log — calendar, trends and past entries">📅 Log book</button><button class="tp-ask rbtn" id="rbtn" onclick="refreshAll(true)" title="Refresh all data"><span class="ri">↻</span></button></div></div>
+  <div class="tp"><div class="tp-hdr"><div class="tp-title">Forecast<span class="tp-tw"> Window</span></div><div class="tp-mini" id="tpSelMini"></div><div class="tp-acts"><button class="tp-now active" id="tpNow" onclick="setNow()">● LIVE</button><button class="tp-ask" id="askBtn" onclick="askClaude()" title="Open Claude with the full raw briefing for the selected flight time (±2h) — works with a free Claude account">✨ Ask Claude</button><button class="tp-ask" id="wxlBtn" onclick="openWxLog()" title="Log how this forecast actually turned out — builds your accuracy record over time">📋 Log</button><button class="tp-ask" id="wxlGoBtn" onclick="goWxLog()" title="Jump to the Forecast Accuracy log — calendar, trends and past entries">📅 Log book</button><button class="tp-ask rbtn" id="rbtn" onclick="refreshAll(true)" title="Refresh all data"><span class="ri">↻</span></button></div></div>
     <div class="tp-body">
       <div class="tp-days" id="tpDays"></div>
       <div class="tp-hours" id="tpHours"></div>
@@ -675,31 +808,32 @@ a.badge{cursor:pointer}a.badge:hover{background:rgba(56,189,248,.2);color:#7dd3f
   </div>
 </div>
 <div class="dash">
-  <div class="cd full"><div class="ch"><div class="ct">🌡 Surface Conditions</div><a class="badge" id="srcSurf" href="#" target="_blank" rel="noopener">Open-Meteo GFS</a></div><div class="body" id="surfB"><div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
+  <div class="cd full"><div class="ch"><div class="ct">Surface Conditions</div><a class="badge" id="srcSurf" href="#" target="_blank" rel="noopener">Open-Meteo GFS</a></div><div class="body" id="surfB"><div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
   <div class="full winds-pair">
-    <div class="cd winds-micro"><div class="ch"><div class="ct">🔬 Micro Winds<span class="sub">0–2000'</span></div><div class="badge" id="mvTime">Loading…</div></div><div class="body" id="microProfB"><div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
-    <div class="cd winds-main"><div class="ch"><div class="ct">🎯 Winds Aloft<span class="sub" id="waSub">Loading...</span></div><div style="display:flex;gap:6px;align-items:center"><a class="badge" id="srcWA" href="#" target="_blank" rel="noopener">Open-Meteo GFS</a><div class="badge" id="wTime">Loading…</div></div></div><div class="body" id="profB"><div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
+    <div class="cd winds-micro"><div class="ch"><div class="ct">Micro Winds<span class="sub">0–2000'</span></div><div class="badge" id="mvTime">Loading…</div></div><div class="body" id="microProfB"><div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
+    <div class="cd winds-main"><div class="ch"><div class="ct">Winds Aloft<span class="sub" id="waSub">Loading...</span></div><div style="display:flex;gap:6px;align-items:center"><a class="badge" id="srcWA" href="#" target="_blank" rel="noopener">Open-Meteo GFS</a><div class="badge" id="wTime">Loading…</div></div></div><div class="body" id="profB"><div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
   </div>
-  <div class="cd full"><div class="ch tg open" onclick="tog(this)"><div class="ct">🔥 Smoke & Air Quality<span class="sub">US AQI · PM2.5 · NWS alerts</span></div><a class="badge" id="srcAq" href="https://fire.airnow.gov/" target="_blank" rel="noopener" onclick="event.stopPropagation()">AirNow Fire & Smoke ↗</a><span class="chv">▾</span></div><div class="body" id="aqB"><div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
-  <div class="cd full"><div class="ch tg open" onclick="tog(this)"><div class="ct">🛰 Reality Check<span class="sub">Live obs vs model · model agreement · mixed layer</span></div><a class="badge" id="srcRl" href="https://www.weather.gov/" target="_blank" rel="noopener" onclick="event.stopPropagation()">NWS + Open-Meteo</a><span class="chv">▾</span></div><div class="body" id="rlB"><div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
-  <div class="cd full"><div class="ch tg open" onclick="tog(this)"><div class="ct">📊 Hourly Forecast<span class="sub">Next 24h</span></div><a class="badge" id="srcHr" href="#" target="_blank" rel="noopener" onclick="event.stopPropagation()">Open-Meteo GFS</a><span class="chv">▾</span></div><div class="body" id="hB"><div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
-  <div class="cd full"><div class="ch tg open" onclick="tog(this)"><div class="ct">📝 Area Forecast Discussion</div><a class="badge" id="afdT" href="#" target="_blank" rel="noopener" onclick="event.stopPropagation()">NWS</a><span class="chv" style="margin-left:auto;padding-left:10px">▾</span></div><div class="body" id="afdB"><div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
-  <div class="cd"><div class="ch tg open" onclick="tog(this)"><div class="ct">🗺 Wind Map</div><a class="badge" id="srcWindy" href="#" target="_blank" rel="noopener" onclick="event.stopPropagation()">Windy</a><span class="chv">▾</span></div><div class="body" style="padding:0"><iframe class="efr" id="windyFrame" loading="lazy"></iframe></div></div>
-  <div class="cd"><div class="ch"><div class="ct">✈️ Aviation Briefing<span class="sub">TAFs · SIGMETs · AIRMETs · PIREPs</span></div><a class="badge" id="srcAv" href="#" target="_blank" rel="noopener">aviationweather.gov</a></div><div class="body" id="avB"><div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
+  <div class="cd full"><div class="ch tg open" onclick="tog(this)"><div class="ct">Smoke & Air Quality<span class="sub">US AQI · PM2.5 · NWS alerts</span></div><a class="badge" id="srcAq" href="https://fire.airnow.gov/" target="_blank" rel="noopener" onclick="event.stopPropagation()">AirNow Fire & Smoke ↗</a><span class="chv">▾</span></div><div class="body" id="aqB"><div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
+  <div class="cd full"><div class="ch tg open" onclick="tog(this)"><div class="ct">Reality Check<span class="sub">Live obs vs model · model agreement · mixed layer</span></div><a class="badge" id="srcRl" href="https://www.weather.gov/" target="_blank" rel="noopener" onclick="event.stopPropagation()">NWS + Open-Meteo</a><span class="chv">▾</span></div><div class="body" id="rlB"><div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
+  <div class="cd full"><div class="ch tg open" onclick="tog(this)"><div class="ct">Hourly Forecast<span class="sub">Next 24h</span></div><a class="badge" id="srcHr" href="#" target="_blank" rel="noopener" onclick="event.stopPropagation()">Open-Meteo GFS</a><span class="chv">▾</span></div><div class="body" id="hB"><div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
+  <div class="cd full"><div class="ch tg open" onclick="tog(this)"><div class="ct">Area Forecast Discussion</div><a class="badge" id="afdT" href="#" target="_blank" rel="noopener" onclick="event.stopPropagation()">NWS</a><span class="chv" style="margin-left:auto;padding-left:10px">▾</span></div><div class="body" id="afdB"><div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
+  <div class="cd"><div class="ch tg open" onclick="tog(this)"><div class="ct">Wind Map</div><a class="badge" id="srcWindy" href="#" target="_blank" rel="noopener" onclick="event.stopPropagation()">Windy</a><span class="chv">▾</span></div><div class="body" style="padding:0"><iframe class="efr" id="windyFrame" loading="lazy"></iframe></div></div>
+  <div class="cd"><div class="ch"><div class="ct">Aviation Briefing<span class="sub">TAFs · SIGMETs · AIRMETs · PIREPs</span></div><a class="badge" id="srcAv" href="#" target="_blank" rel="noopener">aviationweather.gov</a></div><div class="body" id="avB"><div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
   <!-- TFR map (v4.20.0). Drawn by us from the polygons /tfrdetail returns —
        the FAA's own map has no embeddable URL. Pure inline SVG: no tiles, no
        library, no extra network beyond the TFR list the card above fetched. -->
-  <div class="cd full"><div class="ch tg open" onclick="tog(this)"><div class="ct">🚁 TFR Map<span class="sub">Plan view · centred on you</span></div><a class="badge" href="https://tfr.faa.gov/tfr3/" target="_blank" rel="noopener" onclick="event.stopPropagation()">tfr.faa.gov ↗</a><span class="chv">▾</span></div><div class="body" id="tfrMapB"><div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
-  <div class="cd full"><div class="ch tg open" onclick="tog(this)"><div class="ct">📡 Radar<span class="sub">Precipitation · animated</span></div><a class="badge" id="srcRadar" href="#" target="_blank" rel="noopener" onclick="event.stopPropagation()">Windy Radar</a><span class="chv">▾</span></div><div class="body" style="padding:0"><iframe class="efr" id="radarFrame" loading="lazy"></iframe></div></div>
+  <div class="cd full"><div class="ch tg open" onclick="tog(this)"><div class="ct">TFR Map<span class="sub">Plan view · centred on you</span></div><a class="badge" href="https://tfr.faa.gov/tfr3/" target="_blank" rel="noopener" onclick="event.stopPropagation()">tfr.faa.gov ↗</a><span class="chv">▾</span></div><div class="body" id="tfrMapB"><div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
+  <div class="cd full"><div class="ch tg open" onclick="tog(this)"><div class="ct">Radar<span class="sub">Precipitation · animated</span></div><a class="badge" id="srcRadar" href="#" target="_blank" rel="noopener" onclick="event.stopPropagation()">Windy Radar</a><span class="chv">▾</span></div><div class="body" style="padding:0"><iframe class="efr" id="radarFrame" loading="lazy"></iframe></div></div>
 
-  <div class="cd full"><div class="ch tg open" onclick="tog(this)"><div class="ct">📅 5-Day Overview</div><span class="chv">▾</span></div><div class="body" id="dayB"><div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
-  <div class="cd full"><div class="ch tg open" onclick="tog(this)"><div class="ct">✅ Go / No-Go<span class="sub">Flight Decision</span></div><span class="chv">▾</span></div><div class="body" id="gngB"><div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
+  <div class="cd full"><div class="ch tg open" onclick="tog(this)"><div class="ct">5-Day Overview</div><span class="chv">▾</span></div><div class="body" id="dayB"><div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
+  <div class="cd full"><div class="ch tg open" onclick="tog(this)"><div class="ct">Go / No-Go<span class="sub">Flight Decision</span></div><span class="chv">▾</span></div><div class="body" id="gngB"><div class="ldg"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
   <!-- Forecast Accuracy Log (v4.21.0). Retrospective, so it sits last: the pilot's own
        call on how the forecast turned out, the measured forecast-vs-observed error, and
        how the same valid hour looked at 1-3 days of lead. Reads localStorage on load and
        makes NO network call until a window is logged or "Check outcomes" is pressed. -->
-  <div class="cd full"><div class="ch tg open" onclick="tog(this)"><div class="ct">📋 Forecast Accuracy<span class="sub">Your calls · measured error · lead-time drift</span></div><button class="wxl-nb" onclick="event.stopPropagation();openWxLog()">+ Log a window</button><span class="chv">▾</span></div><div class="body" id="wxlB"></div></div>
+  <div class="cd full"><div class="ch tg open" onclick="tog(this)"><div class="ct">Forecast Accuracy<span class="sub">Your calls · measured error · lead-time drift</span></div><button class="wxl-nb" onclick="event.stopPropagation();openWxLog()">+ Log a window</button><span class="chv">▾</span></div><div class="body" id="wxlB"></div></div>
 </div>
+<div style="text-align:center;padding:0 0 40px"><button class="cus-open" onclick="openCus()">▤ Customize sections</button></div>
 <script>
 // ═══ CONFIG (dynamic + static) ═══
 const C={
@@ -775,7 +909,42 @@ function setNow(){
   document.getElementById('histB').classList.remove('v');
   document.getElementById('tpSel').innerHTML='Showing: <span class="tp-sel-time">Current conditions</span>';
   syncTpMini();
+  noteSel(wasHistorical?null:{live:true});
   if(wasHistorical){refreshAll()}else{reRender()}
+}
+// ═══ COMPARE CHIP (v4.22.0) ═══ Brian toggles between hours to compare periods; after a
+// switch, a dashed "Back to …" chip in the Showing line returns to the previous selection in
+// one tap (and tapping it again swaps back). Selections are kept by their timestamp, not the
+// array index, so a refresh in between can't point the chip at the wrong hour. Past-day
+// (historical) views reset it: their data is a different fetch.
+let _selHist={cur:{live:true},prev:null};
+function noteSel(next){
+  if(!next||isHistorical()){_selHist={cur:next||{live:true},prev:null};renderBack();return}
+  const c=_selHist.cur,same=c&&c.live===next.live&&c.t===next.t;
+  if(!same)_selHist={cur:next,prev:c};
+  renderBack();
+}
+function selLabel(s){
+  if(s.live)return 'Live';
+  return new Date(s.t).toLocaleString('en-US',{timeZone:getTZ(),weekday:'short',hour:'numeric',hour12:true});
+}
+function renderBack(){
+  const el=document.getElementById('tpSel');if(!el)return;
+  const old=el.querySelector('.tp-back');if(old)old.remove();
+  const p=_selHist.prev,hd=window._tpHomeData;
+  if(!p||isHistorical())return;
+  if(!p.live&&!(hd&&hd.hourly.time.includes(p.t)))return;
+  const b=document.createElement('button');b.className='tp-back';b.onclick=backSel;
+  b.innerHTML=`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 7h13l-4-4M17 17H4l4 4"/></svg>Back to ${selLabel(p)}`;
+  el.appendChild(b);
+}
+function backSel(){
+  const p=_selHist.prev,hd=window._tpHomeData;if(!p)return;
+  if(p.live){setNow();return}
+  const idx=hd?hd.hourly.time.indexOf(p.t):-1;if(idx<0)return;
+  const key=Object.keys(window._tpDays||{}).find(k=>window._tpDays[k].hours.some(h=>h.idx===idx));
+  if(key)showDayHours(key);
+  pickHour(idx);
 }
 function buildTimePicker(d){
   const h=d.hourly,daily=d.daily;
@@ -846,18 +1015,23 @@ function pickDay(key){
   // Clicking a forecast day resets to today's offset if we were viewing history
   if(isHistorical()){selectedOffset=0;document.getElementById('histB').classList.remove('v')}
   liveMode=false;document.getElementById('tpNow').classList.remove('active');
+  const day=window._tpDays[key],sun=window._tpSunData[key]||{};
+  showDayHours(key);
+  const dawnHr=day.hours.find(h=>{const hr=h.dt.getHours();return sun.srH!=null&&hr===sun.srH});
+  if(dawnHr)pickHour(dawnHr.idx);
+}
+// Marks a day selected and lists its hours (split out of pickDay in v4.22.0 so the compare
+// chip can return to an hour on another day without pickDay's jump to dawn)
+function showDayHours(key){
   document.querySelectorAll('.tp-day').forEach(d=>d.classList.toggle('sel',d.dataset.key===key));
   const day=window._tpDays[key],sun=window._tpSunData[key]||{};
-  const hEl=document.getElementById('tpHours');
-  hEl.innerHTML=day.hours.map(h=>{
+  document.getElementById('tpHours').innerHTML=day.hours.map(h=>{
     const hr=h.dt.getHours();
     let cls='tp-hr';
     if(sun.srH!=null&&hr>=sun.srH-1&&hr<=sun.srH+2)cls+=' dawn';
     if(sun.ssH!=null&&hr>=sun.ssH-2&&hr<=sun.ssH)cls+=' dusk';
     return`<div class="${cls}" data-idx="${h.idx}" onclick="pickHour(${h.idx})">${h.hour}</div>`;
   }).join('');
-  const dawnHr=day.hours.find(h=>{const hr=h.dt.getHours();return sun.srH!=null&&hr===sun.srH});
-  if(dawnHr)pickHour(dawnHr.idx);
 }
 function pickHour(idx){
   liveMode=false;selectedIdx=idx;
@@ -869,6 +1043,7 @@ function pickHour(idx){
     const dt=new Date(t);
     document.getElementById('tpSel').innerHTML=`Showing: <span class="tp-sel-time">${dt.toLocaleString('en-US',{timeZone:getTZ(),weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit',hour12:true})}</span>`;
     syncTpMini();
+    noteSel({live:false,t});
     reRender();
   }
 }
@@ -888,6 +1063,10 @@ const toD=d=>((Math.round(d)+180)%360);
 const fDir=d=>d==null||isNaN(d)?'—':`To ${pad3(toD(d))} / From ${pad3(d)}`;
 const fDirTF=d=>d==null||isNaN(d)?'—':`<div style="color:var(--tx2)">To ${cp(toD(d))} ${pad3(toD(d))}°</div><div style="color:var(--tx4)">From ${cp(d)} ${pad3(d)}°</div>`;
 
+// Small fixed-size arrow pointing the way the wind GOES (v4.22.0 compact winds)
+function miniArrow(goDeg,sz){return `<svg width="${sz}" height="${sz}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="transform:rotate(${Math.round(goDeg)}deg)" aria-hidden="true"><path d="M12 20V4M6 10l6-6 6 6"/></svg>`}
+// Wind-band hex (wH) as rgba for tile tints
+function wTint(s,a){const h=wH(s);return `rgba(${parseInt(h.slice(1,3),16)},${parseInt(h.slice(3,5),16)},${parseInt(h.slice(5,7),16)},${a})`}
 function vecArrow(dir, spd, maxSpd, color, cellW) {
   if(dir==null||spd==null) return '';
   const len = Math.max(8, (spd / maxSpd) * (cellW * 0.42));
@@ -908,8 +1087,152 @@ function smArrow(dir, col, sz) {
 function tog(h){h.classList.toggle('open');const b=h.nextElementSibling;b.classList.toggle('hide');const f=b.querySelector('iframe[data-src]');if(f&&!f.src){void b.offsetHeight;f.src=f.dataset.src;f.removeAttribute('data-src')}}
 
 // ═══ LOCATION SEARCH ═══
-function openLoc(){document.getElementById('locOv').classList.add('v');document.body.classList.add('modal-open');document.getElementById('locIn').focus();updateLocCur()}
+function openLoc(){document.getElementById('locOv').classList.add('v');document.body.classList.add('modal-open');document.getElementById('locIn').focus();updateLocCur();renderFavs();setTimeout(initLocMap,60)}
 function closeLoc(){document.getElementById('locOv').classList.remove('v');document.getElementById('locRes').innerHTML='';if(!document.getElementById('setOv').classList.contains('v'))document.body.classList.remove('modal-open')}
+// ═══ LOCATION MAP (v4.22.0) ═══ Brian, 2026-11-03: pick the spot closest to the flight
+// area by eye instead of guessing from coordinates. Esri satellite + street/place names
+// (keyless tiles, attribution shown). Search results are numbered pins matching the list;
+// tapping the map drops a draggable pin → elevation (Open-Meteo) + nearest NWS station, then
+// "Use this pin" runs the normal selectLocation() pipeline. Leaflet loads only when the
+// Location panel first opens. The map is counter-zoomed against body{zoom:var(--fs-scale)}
+// so taps land where the finger is at every text size.
+let _lmap=null,_lmapRes=null,_lmapCur=null,_lpinMk=null,_lpinGeo=null,_lpinSeq=0;
+function loadLeaflet(){
+  if(window.L)return Promise.resolve();
+  if(window._lfP)return window._lfP;
+  window._lfP=new Promise((ok,bad)=>{
+    const c=document.createElement('link');c.rel='stylesheet';c.href='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css';document.head.appendChild(c);
+    const j=document.createElement('script');j.src='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js';j.onload=ok;j.onerror=()=>{window._lfP=null;bad(new Error('map library failed to load'))};document.head.appendChild(j);
+  });
+  return window._lfP;
+}
+async function initLocMap(){
+  const wrap=document.querySelector('.lmap-wrap');if(!wrap)return;
+  wrap.style.zoom=1/(fontScale||1);wrap.style.height=Math.round(300*(fontScale||1))+'px';
+  try{await loadLeaflet()}catch(e){wrap.querySelector('.lmap-hint').textContent='Map unavailable — search still works';return}
+  if(!_lmap){
+    _lmap=L.map('lmap',{zoomControl:true,attributionControl:true}).setView([C.lat,C.lon],11);
+    const E='https://server.arcgisonline.com/ArcGIS/rest/services/';
+    L.tileLayer(E+'World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19,attribution:'Imagery © Esri, Maxar, Earthstar Geographics'}).addTo(_lmap);
+    L.tileLayer(E+'Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}',{maxZoom:19}).addTo(_lmap);
+    L.tileLayer(E+'Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',{maxZoom:19}).addTo(_lmap);
+    _lmapRes=L.layerGroup().addTo(_lmap);
+    _lmap.on('click',e=>dropPin(e.latlng.lat,e.latlng.lng));
+  }else{_lmap.invalidateSize();_lmap.setView([C.lat,C.lon],_lmap.getZoom())}
+  if(_lmapCur)_lmapCur.remove();
+  _lmapCur=L.marker([C.lat,C.lon],{icon:L.divIcon({className:'',html:'<div class="lmap-cur"></div>',iconSize:[16,16],iconAnchor:[8,8]}),keyboard:false,interactive:false}).addTo(_lmap);
+}
+function showResultPins(results){
+  if(!_lmap||!_lmapRes)return;
+  _lmapRes.clearLayers();
+  const pts=[];
+  results.forEach((r,i)=>{
+    const m=L.marker([r.lat,r.lon],{icon:L.divIcon({className:'',html:`<div class="lmap-num">${i+1}</div>`,iconSize:[26,26],iconAnchor:[13,13]}),title:r.name});
+    m.on('click',()=>selectLocation(r));m.addTo(_lmapRes);pts.push([r.lat,r.lon]);
+  });
+  if(pts.length===1)_lmap.setView(pts[0],12);else if(pts.length)_lmap.fitBounds(pts,{padding:[30,30],maxZoom:13});
+}
+const PIN_SVG='<svg class="lmap-pin" viewBox="0 0 26 32" aria-hidden="true"><path d="M13 31C13 31 24 19 24 12A11 11 0 0 0 2 12C2 19 13 31 13 31Z" fill="#fbbf24" stroke="#1a1206" stroke-width="1.5"/><circle cx="13" cy="12" r="4" fill="#1a1206"/></svg>';
+async function dropPin(lat,lon){
+  const seq=++_lpinSeq;
+  if(_lpinMk)_lpinMk.setLatLng([lat,lon]);
+  else{_lpinMk=L.marker([lat,lon],{draggable:true,icon:L.divIcon({className:'',html:PIN_SVG,iconSize:[26,32],iconAnchor:[13,31]})}).addTo(_lmap);
+    _lpinMk.on('dragend',()=>{const p=_lpinMk.getLatLng();dropPin(p.lat,p.lng)})}
+  _lpinGeo={name:'',admin:'Map pin',lat:+lat.toFixed(4),lon:+lon.toFixed(4),elevation:null,timezone:null,country:'US'};
+  const card=document.getElementById('lpin');card.classList.add('v');
+  document.getElementById('lpinElev').textContent='…';
+  document.getElementById('lpinMeta').textContent=`${Math.abs(lat).toFixed(3)}°${lat>=0?'N':'S'} ${Math.abs(lon).toFixed(3)}°${lon>=0?'E':'W'} · finding nearest station…`;
+  const [ev,st]=await Promise.all([
+    fetchT(`https://api.open-meteo.com/v1/elevation?latitude=${lat.toFixed(4)}&longitude=${lon.toFixed(4)}`,{},15000).then(r=>r.ok?r.json():null).catch(()=>null),
+    nearStn(lat,lon)
+  ]);
+  if(seq!==_lpinSeq)return; // a newer tap won
+  const em=ev&&ev.elevation&&ev.elevation[0]!=null?ev.elevation[0]:null;
+  _lpinGeo.elevation=em;
+  document.getElementById('lpinElev').textContent=em!=null?Math.round(em*3.28084).toLocaleString()+' ft':'';
+  const near=st?`nearest live station ${st.id} ${st.name}, ${st.mi.toFixed(1)} mi`:'no NWS station found nearby';
+  document.getElementById('lpinMeta').textContent=`${Math.abs(lat).toFixed(3)}°${lat>=0?'N':'S'} ${Math.abs(lon).toFixed(3)}°${lon>=0?'E':'W'} · forecast for this exact spot · ${near}`;
+}
+function pinGeo(){
+  if(!_lpinGeo)return null;
+  const nm=(document.getElementById('lpinName').value||'').trim()||'My spot';
+  return{..._lpinGeo,name:nm};
+}
+function usePin(){const g=pinGeo();if(g)selectLocation(g)}
+function getFavs(){try{return JSON.parse(localStorage.getItem('bw_favLocs')||'[]')}catch(e){return[]}}
+function setFavs(a){try{localStorage.setItem('bw_favLocs',JSON.stringify(a.slice(0,12)))}catch(e){}renderFavs()}
+function favPin(){const g=pinGeo();if(!g)return;const a=getFavs().filter(f=>!(Math.abs(f.lat-g.lat)<1e-4&&Math.abs(f.lon-g.lon)<1e-4));a.unshift(g);setFavs(a);
+  const b=document.querySelector('.lpin-fav');if(b){b.textContent='Saved ✓';setTimeout(()=>b.textContent='Save as favorite',1500)}}
+function renderFavs(){
+  const el=document.getElementById('lfavs'),h=document.getElementById('lfavH');if(!el)return;
+  const a=getFavs();h.style.display=a.length?'':'none';el.innerHTML='';
+  a.forEach((f,i)=>{const b=document.createElement('button');b.className='lfav';b.title=`${f.lat}, ${f.lon}`;
+    b.innerHTML=`${f.name.replace(/</g,'&lt;')}<b aria-label="Remove">×</b>`;
+    b.onclick=e=>{if(e.target.tagName==='B'){e.stopPropagation();const x=getFavs();x.splice(i,1);setFavs(x)}else selectLocation(f)};
+    el.appendChild(b)});
+}
+
+// ═══ CUSTOMIZE SECTIONS (v4.22.0) ═══ Brian, 2026-11-03: "easily customizable! Delete, add,
+// rearrange sections". Works on the top-level cards of .dash (the Micro + Winds Aloft pair is
+// one unit, so the side-by-side band can't be split). Moving a card moves its DOM node —
+// every renderer writes by element id, so order is free. bw_layout = {order, off, removed};
+// both off and removed hide the card; removed also drops it from the list into "Add a section".
+// Cards unknown to a saved layout (added in a later version) append in their default place.
+const _secDefault=[];
+function secKey(el){
+  if(el.classList.contains('winds-pair'))return'winds';
+  const t=el.querySelector('.ct');return t?t.childNodes[0].textContent.trim().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''):null;
+}
+function secName(el){if(el.classList.contains('winds-pair'))return'Micro Winds + Winds Aloft';const t=el.querySelector('.ct');return t?t.childNodes[0].textContent.trim():'Section'}
+function secEls(){const m={};document.querySelectorAll('.dash > *').forEach(el=>{const k=secKey(el);if(k){el.dataset.sec=k;m[k]=el}});return m}
+function getLayout(){try{const o=JSON.parse(localStorage.getItem('bw_layout')||'null');if(o&&Array.isArray(o.order))return{order:o.order,off:o.off||[],removed:o.removed||[]}}catch(e){}return null}
+function applyLayout(){
+  const m=secEls();if(!_secDefault.length)Object.keys(m).forEach(k=>_secDefault.push(k));
+  const lay=getLayout()||{order:_secDefault.slice(),off:[],removed:[]};
+  const dash=document.querySelector('.dash');
+  const order=lay.order.filter(k=>m[k]);_secDefault.forEach((k,i)=>{if(!order.includes(k))order.splice(Math.min(i,order.length),0,k)});
+  order.forEach(k=>dash.appendChild(m[k]));
+  Object.keys(m).forEach(k=>m[k].classList.toggle('sec-off',lay.off.includes(k)||lay.removed.includes(k)));
+  return{...lay,order};
+}
+function saveLayout(lay){try{localStorage.setItem('bw_layout',JSON.stringify(lay))}catch(e){}applyLayout();renderCus();
+  if(typeof vfGhostSync==='function')vfGhostSync();
+  // A Windy iframe moved while hidden can come back blank — nudge any lazy ones
+  document.querySelectorAll('.dash iframe[data-src]').forEach(f=>{if(!f.closest('.sec-off')&&!f.closest('.hide')&&!f.src){f.src=f.dataset.src;f.removeAttribute('data-src')}})}
+function openCus(){renderCus();document.getElementById('cusOv').classList.add('v');document.body.classList.add('modal-open')}
+function closeCus(){document.getElementById('cusOv').classList.remove('v');if(!document.querySelector('.loc-ov.v'))document.body.classList.remove('modal-open')}
+function resetCus(){try{localStorage.removeItem('bw_layout')}catch(e){}saveLayout({order:_secDefault.slice(),off:[],removed:[]});try{localStorage.removeItem('bw_layout')}catch(e){}}
+const CUS_IC={up:'<path d="M6 15l6-6 6 6"/>',dn:'<path d="M6 9l6 6 6-6"/>',eye:'<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',off:'<path d="M3 3l18 18M10.6 5.1A10 10 0 0 1 12 5c6.4 0 10 7 10 7a17 17 0 0 1-3 3.8M6.2 6.2C3.6 8 2 12 2 12s3.6 7 10 7a9.6 9.6 0 0 0 4.3-1"/>',del:'<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>'};
+const cusSvg=k=>`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${CUS_IC[k]}</svg>`;
+function renderCus(){
+  const list=document.getElementById('cusList'),adds=document.getElementById('cusAdds');if(!list)return;
+  const m=secEls(),lay=applyLayout();
+  const shown=lay.order.filter(k=>!lay.removed.includes(k));
+  list.innerHTML=shown.map(k=>{const off=lay.off.includes(k);return`<div class="cus-row${off?' off':''}" data-k="${k}"><span class="cus-grip" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.6"/><circle cx="15" cy="6" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="18" r="1.6"/><circle cx="15" cy="18" r="1.6"/></svg></span><span class="cus-name">${secName(m[k])}</span>`+
+    `<button class="cus-b" aria-label="Move up" onclick="cusMove('${k}',-1)">${cusSvg('up')}</button><button class="cus-b" aria-label="Move down" onclick="cusMove('${k}',1)">${cusSvg('dn')}</button>`+
+    `<button class="cus-b eye" aria-label="${off?'Show':'Hide'}" onclick="cusTog('${k}')">${cusSvg(off?'off':'eye')}</button><button class="cus-b del" aria-label="Remove" onclick="cusDel('${k}')">${cusSvg('del')}</button></div>`}).join('');
+  document.getElementById('cusAddH').style.display=lay.removed.length?'':'none';
+  adds.innerHTML=lay.removed.filter(k=>m[k]).map(k=>`<button class="cus-add" onclick="cusAdd('${k}')">+ ${secName(m[k])}</button>`).join('');
+  list.querySelectorAll('.cus-grip').forEach(g=>g.addEventListener('pointerdown',cusDragStart));
+}
+function cusCur(){return getLayout()||{order:_secDefault.slice(),off:[],removed:[]}}
+function cusMove(k,d){const l=cusCur(),vis=l.order.filter(x=>!l.removed.includes(x)),i=vis.indexOf(k),j=i+d;if(i<0||j<0||j>=vis.length)return;
+  const a=l.order.indexOf(vis[i]),b=l.order.indexOf(vis[j]);[l.order[a],l.order[b]]=[l.order[b],l.order[a]];saveLayout(l)}
+function cusTog(k){const l=cusCur();l.off=l.off.includes(k)?l.off.filter(x=>x!==k):l.off.concat(k);saveLayout(l)}
+function cusDel(k){const l=cusCur();if(!l.removed.includes(k))l.removed.push(k);l.off=l.off.filter(x=>x!==k);saveLayout(l)}
+function cusAdd(k){const l=cusCur();l.removed=l.removed.filter(x=>x!==k);l.order=l.order.filter(x=>x!==k).concat(k);saveLayout(l)}
+// Drag to reorder: the row follows the finger; on release its new slot becomes the order.
+function cusDragStart(e){
+  const row=e.target.closest('.cus-row'),list=row.parentNode;e.preventDefault();
+  row.classList.add('drag');
+  // The row jumps slot to slot under the finger (both sides measured in the same visual px)
+  const mv=ev=>{const y=ev.clientY,rows=[...list.children].filter(r=>r!==row);
+    const after=rows.find(r=>{const b=r.getBoundingClientRect();return y<b.top+b.height/2});
+    if(after){if(row.nextElementSibling!==after)list.insertBefore(row,after)}else if(list.lastElementChild!==row)list.appendChild(row)};
+  const up=()=>{document.removeEventListener('pointermove',mv);document.removeEventListener('pointerup',up);row.classList.remove('drag');
+    const l=cusCur(),vis=[...list.children].map(r=>r.dataset.k),rest=l.order.filter(k=>!vis.includes(k));l.order=vis.concat(rest);saveLayout(l)};
+  document.addEventListener('pointermove',mv);document.addEventListener('pointerup',up);
+}
 function updateLocCur(){document.getElementById('locCur').innerHTML=`Current: <span>${C.name}</span> · ${C.lat.toFixed(2)}°N ${Math.abs(C.lon).toFixed(2)}°W · ${Math.round(C.elev)} ft`}
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeLoc();closeSet()}if(e.key==='Enter'){if(document.getElementById('locOv').classList.contains('v'))doSearch();else if(document.getElementById('setOv').classList.contains('v')&&document.activeElement&&document.activeElement.id==='csIn')addCustomStn()}});
 
@@ -1028,32 +1351,76 @@ function saveGngLimitsFromSet(){
   const msg=document.getElementById('csMsg');msg.innerHTML='<div class="cs-msg ok">Limits saved.</div>';setTimeout(()=>{msg.innerHTML=''},2200);
 }
 
+// Search: ZIP, "lat, lon", or anything else run through three geocoders at once.
+// Open-Meteo knows towns; Photon and Nominatim (OpenStreetMap) know addresses, wineries, parks, lakes.
+const _esc=t=>String(t==null?'':t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function _miles(a,b,c,d){const R=3959,t=x=>x*Math.PI/180,dl=t(c-a),dn=t(d-b);return R*2*Math.asin(Math.sqrt(Math.sin(dl/2)**2+Math.cos(t(a))*Math.cos(t(c))*Math.sin(dn/2)**2))}
+async function nearStn(lat,lon,ms=15000){
+  const st=await fetchT(`https://api.weather.gov/points/${lat.toFixed(4)},${lon.toFixed(4)}/stations`,{},ms).then(r=>r.ok?r.json():null).catch(()=>null);
+  const f=st&&st.features&&st.features[0];if(!f||!f.geometry)return null;
+  const [slon,slat]=f.geometry.coordinates;
+  return{id:f.properties.stationIdentifier,name:String(f.properties.name||'').split(',')[0],mi:_miles(lat,lon,slat,slon)};
+}
+async function geoPhoton(q){
+  const r=await fetchT(`https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&limit=6&lang=en&lat=${C.lat}&lon=${C.lon}`,{},10000);
+  if(!r.ok)return[];const d=await r.json();
+  return(d.features||[]).map(f=>{const p=f.properties||{},[lon,lat]=f.geometry.coordinates;
+    const street=[p.housenumber,p.street].filter(Boolean).join(' ');
+    const name=p.name||street||p.city||q;
+    return{name,admin:[street&&street!==name?street:'',p.city&&p.city!==name?p.city:'',p.state,p.countrycode&&p.countrycode!=='US'?p.country:''].filter(Boolean).join(', '),lat,lon,elevation:null,timezone:null,country:p.countrycode||'',src:'osm'}});
+}
+async function geoNominatim(q){
+  const r=await fetchT(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=jsonv2&limit=5&addressdetails=1`,{},10000);
+  if(!r.ok)return[];const d=await r.json();
+  return(d||[]).map(x=>{const a=x.address||{};
+    const street=[a.house_number,a.road].filter(Boolean).join(' ');
+    const name=x.name||street||String(x.display_name).split(',')[0];
+    return{name,admin:[street&&street!==name?street:'',a.city||a.town||a.village||a.hamlet||a.county||'',a.state,a.country_code&&a.country_code!=='us'?a.country:''].filter(Boolean).join(', '),lat:+x.lat,lon:+x.lon,elevation:null,timezone:null,country:(a.country_code||'').toUpperCase(),src:'osm'}});
+}
+async function geoOpenMeteo(q){
+  const r=await fetchT(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=5&language=en&format=json`,{},10000);
+  if(!r.ok)return[];const d=await r.json();
+  return(d.results||[]).map(r=>({name:r.name,admin:[r.admin1,r.country].filter(Boolean).join(', '),lat:r.latitude,lon:r.longitude,elevation:r.elevation,timezone:r.timezone,country:r.country_code}));
+}
 async function doSearch(){
   const q=document.getElementById('locIn').value.trim();if(!q)return;
   const res=document.getElementById('locRes');
   res.innerHTML='<div class="loc-msg info">Searching...</div>';
+  const seq=(window._srchSeq=(window._srchSeq||0)+1);
   try{
     let results=[];
-    if(/^\d{5}$/.test(q)){
+    const ll=/^\s*(-?\d{1,2}(?:\.\d+)?)\s*[, ]\s*(-?\d{1,3}(?:\.\d+)?)\s*$/.exec(q);
+    if(ll&&Math.abs(+ll[1])<=90&&Math.abs(+ll[2])<=180){
+      if(_lmap){_lmap.setView([+ll[1],+ll[2]],13);dropPin(+ll[1],+ll[2])}
+      results=[{name:'Pinned point',admin:'Coordinates',lat:+ll[1],lon:+ll[2],elevation:null,timezone:null,country:'US'}];
+    }else if(/^\d{5}$/.test(q)){
       const r=await fetchT(`https://api.zippopotam.us/us/${q}`);
       if(!r.ok)throw new Error('ZIP not found');
       const d=await r.json();const p=d.places?.[0];
       if(p)results=[{name:p['place name'],admin:d['country abbreviation']+', '+p['state abbreviation'],lat:parseFloat(p.latitude),lon:parseFloat(p.longitude),elevation:null,timezone:null,country:'US'}];
     }else{
-      const r=await fetchT(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=5&language=en&format=json`);
-      if(!r.ok)throw new Error('Geocoding failed');
-      const d=await r.json();
-      results=(d.results||[]).map(r=>({name:r.name,admin:[r.admin1,r.country].filter(Boolean).join(', '),lat:r.latitude,lon:r.longitude,elevation:r.elevation,timezone:r.timezone,country:r.country_code}));
+      const [om,ph,nm]=await Promise.all([geoOpenMeteo(q),geoPhoton(q),geoNominatim(q)].map(p=>p.catch(()=>[])));
+      // A street address reads best from Nominatim; places and towns from Photon / Open-Meteo.
+      const order=/^\d+\s+\S/.test(q)?[nm,ph,om]:[ph,om,nm];
+      for(const g of order)for(const r of g){
+        if(!isFinite(r.lat)||!isFinite(r.lon))continue;
+        if(results.some(x=>_miles(x.lat,x.lon,r.lat,r.lon)<0.25))continue;
+        results.push(r);if(results.length>=8)break;
+      }
     }
-    if(!results.length){res.innerHTML='<div class="loc-msg err">No results found. Try a different search.</div>';return}
+    if(seq!==window._srchSeq)return;
+    if(!results.length){res.innerHTML='<div class="loc-msg err">No results found. Try an address, a place name (a winery, a park), a town, a ZIP, or tap the map.</div>';return}
     res.innerHTML='';
-    results.forEach(r=>{
+    results.forEach((r,i)=>{
       const el=document.createElement('div');el.className='loc-item';
-      el.innerHTML=`<div class="loc-item-name">${r.name}</div><div class="loc-item-sub">${r.admin} · ${r.lat.toFixed(2)}°N ${Math.abs(r.lon).toFixed(2)}°W${r.elevation!=null?' · '+Math.round(r.elevation*3.28084)+' ft':''}</div>`;
+      el.innerHTML=`<span class="lnum">${i+1}</span><div style="min-width:0"><div class="loc-item-name">${_esc(r.name)}</div><div class="loc-item-sub">${r.admin?_esc(r.admin)+' · ':''}${Math.abs(r.lat).toFixed(3)}°${r.lat>=0?'N':'S'} ${Math.abs(r.lon).toFixed(3)}°${r.lon>=0?'E':'W'}${r.elevation!=null?' · '+Math.round(r.elevation*3.28084)+' ft':''}</div><div class="loc-item-sub loc-stn">nearest station…</div></div>`;
       el.onclick=()=>selectLocation(r);
       res.appendChild(el);
+      const sEl=el.querySelector('.loc-stn');
+      nearStn(r.lat,r.lon).then(s=>{if(seq!==window._srchSeq)return;sEl.textContent=s?`nearest station ${s.id} ${s.name} · ${s.mi.toFixed(1)} mi`:'no NWS station nearby'});
     });
-  }catch(e){res.innerHTML=`<div class="loc-msg err">${e.message}</div>`}
+    showResultPins(results);
+  }catch(e){res.innerHTML=`<div class="loc-msg err">${e.name==='AbortError'||/abort/i.test(e.message)?'Search timed out (slow connection?). Tap Search to try again.':_esc(e.message)}</div>`}
 }
 
 async function selectLocation(geo){
@@ -1536,7 +1903,7 @@ function rSurf(d,metars,sunTimes){
     }
     if(loCeil!=null){
       const cs=loCeil>=1000?(loCeil/1000).toFixed(1)+'k':loCeil;
-      o+=`<div style="margin-top:8px;padding:6px 10px;background:var(--card2);border-radius:var(--rs);font-size:11px;font-family:'JetBrains Mono',monospace;display:flex;align-items:center;gap:8px"><span style="color:var(--tx3)">Lowest ceiling:</span><span style="color:${loCeil<2000?'var(--danger)':loCeil<5000?'var(--mod)':'var(--calm)'};font-weight:700">${cs} ft AGL</span><span style="color:var(--tx4)">@ ${loStn}</span></div>`;
+      o+=`<div style="margin-top:8px;padding:6px 10px;background:var(--card2);border-radius:var(--rs);font-size:11px;font-family:var(--mono);display:flex;align-items:center;gap:8px"><span style="color:var(--tx3)">Lowest ceiling:</span><span style="color:${loCeil<2000?'var(--danger)':loCeil<5000?'var(--mod)':'var(--calm)'};font-weight:700">${cs} ft AGL</span><span style="color:var(--tx4)">@ ${loStn}</span></div>`;
     }
     o+=`</div>`;
   }
@@ -1579,7 +1946,7 @@ function rSurf(d,metars,sunTimes){
         o+='</div>';
       });
       o+='</div></div>';
-      if(sources.length>3){o+=`<div style="text-align:center;padding:4px 0"><span style="font-size:9px;color:var(--tx4);font-family:'JetBrains Mono',monospace">← Scroll for ${sources.length} stations →</span></div>`}
+      if(sources.length>3){o+=`<div style="text-align:center;padding:4px 0"><span style="font-size:9px;color:var(--tx4);font-family:var(--mono)">← Scroll for ${sources.length} stations →</span></div>`}
       o+='</div>';
     }
   }
@@ -1663,15 +2030,11 @@ function rMicroProfile(allData){
       }
     }
     // Data row
-    const bg=r.agl%500===0&&r.agl>0?' style="background:rgba(56,189,248,.03)"':r.agl===0?' style="background:rgba(52,211,153,.06)"':'';
-    o+=`<div class="mvf-row"${bg}>`;
-    o+=`<div class="mvf-alt">${agLbl}<span class="msl">${mslLbl} MSL</span></div>`;
-    o+=`<div class="mvf-cell">`;
-    o+=vecArrow(dir,spd,maxSpd,col,cellW);
-    o+=`<div style="font-family:'JetBrains Mono',monospace;white-space:nowrap;min-width:0">`;
-    o+=`<span style="color:${spd!=null?wC(spd):'var(--tx3)'};font-weight:700;font-size:13px">${spd!=null?Math.round(spd):'—'}<span style="font-size:8px;font-weight:400;color:var(--tx3)"> mph</span></span>`;
-    o+=`<span style="font-size:9px;color:var(--tx2);margin-left:6px">${dirLbl}</span>`;
-    o+=`</div></div>`;
+    // v4.22.0 compact row: AGL · MSL · speed · small fixed arrow + "to" direction
+    o+=`<div class="mvf-row${r.agl%1000===0?' k':''}">`;
+    o+=`<div class="mvf-alt">${agLbl}<span class="msl">${mslLbl}</span></div>`;
+    o+=`<div class="mvf-cell"><span class="mvs" style="color:${spd!=null?wC(spd):'var(--tx3)'}">${spd!=null?Math.round(spd):'—'}</span>`;
+    o+=`<span class="mvd">${dir!=null?miniArrow(toD(dir),9):''}${dir!=null?pad3(toD(dir))+'°':'—'}</span></div>`;
     o+=`</div>`;
     prevW=r.wind;
   }
@@ -1727,7 +2090,7 @@ function rProfile(allData){
   o+='<div class="vf-row vf-hdr"><div class="vf-alt"></div>';
   sources.forEach((src,i)=>{
     o+=`<div class="vf-cell" style="height:auto;border:none;flex-direction:column;gap:1px;padding:6px 4px${i>0?';border-left:1px solid rgba(30,41,59,.3)':''}">`;
-    o+=`<div style="font-size:11px;font-weight:700;color:${i===0?'var(--blue)':'var(--tx)'};font-family:'JetBrains Mono',monospace">${src.label}</div>`;
+    o+=`<div style="font-size:11px;font-weight:700;color:${i===0?'var(--blue)':'var(--tx)'};font-family:var(--mono)">${src.label}</div>`;
     o+=`<div style="font-size:8px;color:var(--tx4);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%">${src.sub}</div>`;
     o+=src.dist>0?`<div class="vf-dist">${src.dist} mi</div>`:`<div class="vf-dist" style="color:var(--blue)">Home</div>`;
     o+='</div>';
@@ -1738,7 +2101,7 @@ function rProfile(allData){
   // only toggles visibility and vertical offset.
   o+='<div class="vf-row vf-hdr vf-ghost2" id="vfGhost2"><div class="vf-alt"></div>';
   sources.forEach((src,i)=>{
-    o+=`<div class="vf-cell" style="height:auto;border-bottom:none;justify-content:center;padding:3px 4px${i>0?';border-left:1px solid rgba(30,41,59,.3)':''}"><div style="font-size:12px;font-weight:700;color:${i===0?'var(--blue)':'var(--tx)'};font-family:'JetBrains Mono',monospace">${src.label}</div></div>`;
+    o+=`<div class="vf-cell" style="height:auto;border-bottom:none;justify-content:center;padding:3px 4px${i>0?';border-left:1px solid rgba(30,41,59,.3)':''}"><div style="font-size:12px;font-weight:700;color:${i===0?'var(--blue)':'var(--tx)'};font-family:var(--mono)">${src.label}</div></div>`;
   });
   o+='</div>';
   o+='<div class="vf-wrap">';
@@ -1759,7 +2122,7 @@ function rProfile(allData){
         // Shear readout repeats in every column so the band stays self-labeling
         // wherever the station strip is scrolled (mobile swipe band + desktop scroll)
         sources.forEach((src,si)=>{
-          o+=`<div class="vf-cell"${si>0?' style="border-left:1px solid rgba(30,41,59,.15)"':''}>⚡ Δ${sh.spdDelta} mph${sh.dirDelta>=10?' / '+sh.dirDelta+'°':''}</div>`;
+          o+=`<div class="vf-cell">Δ${sh.spdDelta} mph${sh.dirDelta>=10?' · '+sh.dirDelta+'°':''}</div>`;
         });
         o+=`</div>`;
       }
@@ -1773,18 +2136,18 @@ function rProfile(allData){
       const inv=tmp!=null&&prevTmp[i]!=null&&tmp>prevTmp[i]+0.2;prevTmp[i]=tmp;
       const col=spd!=null?wH(spd):'#3d4a60';
       const dirLabel=dir!=null?`→${pad3(toD(dir))}°`:'—';
-      o+=`<div class="vf-cell"${i>0?' style="border-left:1px solid rgba(30,41,59,.3)"':''}>`;
-      o+=vecArrow(dir,spd,maxSpd,col,cellW);
-      // Single-line readout (v4.15.1): speed + →dir + temp inline, "mph" moved to the card
-      // footer — matches the micro card's row tightness so far more stations fit per screen
-      o+=`<div class="vf-txt"><span class="vfs" style="color:${spd!=null?wC(spd):'var(--tx3)'}">${spd!=null?Math.round(spd):'—'}</span><span class="vfd" style="color:var(--tx2)">${dirLabel}</span>${tmp!=null?`<span class="vfd" style="color:${inv?'var(--strong)':'var(--tx4)'}${inv?';font-weight:700':''}">${Math.round(tmp)}°${inv?'▲':''}</span>`:''}</div>`;
-      o+=`</div>`;
+      // v4.22.0 tile: speed on top (wC color), small arrow + "to" direction + temp below,
+      // tinted by the same wind band (wH). Column 1 (your spot) is outlined.
+      o+=`<div class="vf-cell t"><div class="vf-tile${i===0?' home':''}" style="${spd!=null?`background:${wTint(spd,.12)};border-color:${wTint(spd,.2)}`:'background:rgba(255,255,255,.03)'}">`;
+      o+=`<span class="vfs" style="color:${spd!=null?wC(spd):'var(--tx3)'}">${spd!=null?Math.round(spd):'—'}</span>`;
+      o+=`<span class="vfl">${dir!=null?miniArrow(toD(dir),8)+pad3(toD(dir))+'°':'—'}${tmp!=null?` <span style="color:${inv?'var(--strong)':'var(--tx3)'}${inv?';font-weight:700':''}">${Math.round(tmp)}°${inv?'▲':''}</span>`:''}</span>`;
+      o+=`</div></div>`;
     });
     o+='</div>';
   });
   o+='</div></div>';
-  o+=`<div style="text-align:center;padding:3px 0"><span style="font-size:9px;color:var(--tx4);font-family:'JetBrains Mono',monospace">winds mph · temps °F · <span style="color:var(--strong);font-weight:700">▲</span> = inversion (warmer than level below)</span></div>`;
-  if(sources.length>3){o+=`<div style="text-align:center;padding:4px 0"><span style="font-size:9px;color:var(--tx4);font-family:'JetBrains Mono',monospace">← Scroll for ${sources.length} stations →</span></div>`}
+  o+=`<div style="text-align:center;padding:3px 0"><span style="font-size:9px;color:var(--tx4);font-family:var(--mono)">winds mph · temps °F · <span style="color:var(--strong);font-weight:700">▲</span> = inversion (warmer than level below)</span></div>`;
+  if(sources.length>3){o+=`<div style="text-align:center;padding:4px 0"><span style="font-size:9px;color:var(--tx4);font-family:var(--mono)">← Scroll for ${sources.length} stations →</span></div>`}
   const homeLbl=C.stations[0].label;
   o+=`<div style="text-align:center;margin-top:8px"><button class="atog" onclick="this.nextElementSibling.classList.toggle('hide');this.textContent=this.nextElementSibling.classList.contains('hide')?'Show ${homeLbl} 6-Hour Data Table':'Hide Data Table'" style="width:auto;display:inline-block;padding:5px 16px">Show ${homeLbl} 6-Hour Data Table</button>`;
   const hrs=[];for(let i=ci;i<Math.min(ci+6,homeH.time.length);i++)hrs.push(i);
@@ -2395,7 +2758,7 @@ function rAvBriefing(tafR,airSigR,gairR,pirepR,tfrR){
       if(p.acType)o+=`<span class="ab-tm">${String(p.acType).replace(/</g,'&lt;')}</span>`;
       const pd=decodePirep(p);
       if(pd.length)o+=`<div class="taf-what" style="margin-top:4px">${pd.map(x=>x.replace(/</g,'&lt;')).join(' · ')}</div>`;
-      if(raw)o+=`<div style="margin-top:4px;font-size:10px;color:var(--tx2);font-family:'JetBrains Mono',monospace;word-break:break-all">${raw.replace(/</g,'&lt;').substring(0,200)}</div>`;
+      if(raw)o+=`<div style="margin-top:4px;font-size:10px;color:var(--tx2);font-family:var(--mono);word-break:break-all">${raw.replace(/</g,'&lt;').substring(0,200)}</div>`;
       o+='</div>';
     });
     if(pireps.length>6)o+=`<div style="font-size:10px;color:var(--tx3);padding:6px 0">+${pireps.length-6} more PIREPs nearby</div>`;
@@ -2487,13 +2850,13 @@ function rTfrMap(tfrData){
   // Range rings
   for(let r=step;r<=span;r+=step){
     g+=`<circle cx="${C0}" cy="${C0}" r="${px(r).toFixed(1)}" fill="none" stroke="var(--bdr)" stroke-width="1" opacity=".55"/>`;
-    g+=`<text x="${C0+2}" y="${(C0-px(r)+11).toFixed(1)}" font-size="9" fill="var(--tx4)" font-family="'JetBrains Mono',monospace">${r}</text>`;
+    g+=`<text x="${C0+2}" y="${(C0-px(r)+11).toFixed(1)}" font-size="9" fill="var(--tx4)" font-family="var(--mono)">${r}</text>`;
   }
   // Cardinal cross + labels
   g+=`<line x1="${C0}" y1="${PAD-8}" x2="${C0}" y2="${S-PAD+8}" stroke="var(--bdr)" stroke-width="1" opacity=".4"/>`;
   g+=`<line x1="${PAD-8}" y1="${C0}" x2="${S-PAD+8}" y2="${C0}" stroke="var(--bdr)" stroke-width="1" opacity=".4"/>`;
   [['N',C0,12],['S',C0,S-4],['E',S-8,C0+4],['W',8,C0+4]].forEach(([t,x,y])=>{
-    g+=`<text x="${x}" y="${y}" font-size="10" fill="var(--tx3)" text-anchor="middle" font-family="'JetBrains Mono',monospace">${t}</text>`;
+    g+=`<text x="${x}" y="${y}" font-size="10" fill="var(--tx3)" text-anchor="middle" font-family="var(--mono)">${t}</text>`;
   });
 
   // Polygons, furthest first so near ones draw on top
@@ -2522,12 +2885,12 @@ function rTfrMap(tfrData){
       ly=hit.y-11;
     }
     placed.push({x:lx,y:ly});
-    g+=`<text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" font-size="9.5" font-weight="700" fill="${col}" text-anchor="middle" font-family="'JetBrains Mono',monospace" style="paint-order:stroke" stroke="var(--card)" stroke-width="3">${String(t.notam_id||'').replace(/</g,'&lt;')}</text>`;
+    g+=`<text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" font-size="9.5" font-weight="700" fill="${col}" text-anchor="middle" font-family="var(--mono)" style="paint-order:stroke" stroke="var(--card)" stroke-width="3">${String(t.notam_id||'').replace(/</g,'&lt;')}</text>`;
   });
 
   // The pilot
   g+=`<circle cx="${C0}" cy="${C0}" r="4.5" fill="var(--green,#34d399)" stroke="var(--card)" stroke-width="1.5"/>`;
-  g+=`<text x="${C0}" y="${C0-9}" font-size="9" fill="var(--tx2)" text-anchor="middle" font-family="'JetBrains Mono',monospace">YOU</text>`;
+  g+=`<text x="${C0}" y="${C0-9}" font-size="9" fill="var(--tx2)" text-anchor="middle" font-family="var(--mono)">YOU</text>`;
 
   let o=`<div class="tfrmap-wrap"><svg viewBox="0 0 ${S} ${S}" class="tfrmap" role="img" aria-label="Plan view of nearby TFRs">${g}</svg></div>`;
   o+=`<div class="tfrmap-key">Rings every ${step} nm · centred on ${String(C.locName||C.name||'your location').replace(/</g,'&lt;')}</div>`;
@@ -2628,7 +2991,7 @@ function rDailySummary(d){
       const maxG=Math.max(...midIdxs.map(i=>h.wind_gusts_10m?.[i]||0));
       const maxP=Math.max(...midIdxs.map(i=>h.precipitation_probability?.[i]||0));
       o+=`<div class="afternoon-section"><div class="afternoon-title">Midday Summary (${midIdxs.length}hr)</div>`;
-      o+=`<div style="font-size:12px;color:var(--tx3);font-family:'JetBrains Mono',monospace">Max wind <span style="color:${wC(maxW)}">${Math.round(maxW)} mph</span> · Gust <span style="color:${maxG>=gngLimits.maxGust?'var(--gust)':'var(--tx2)'}">${Math.round(maxG)} mph</span> · Precip <span style="color:${maxP>20?'var(--blue)':'var(--tx3)'}">${Math.round(maxP)}%</span></div></div>`;
+      o+=`<div style="font-size:12px;color:var(--tx3);font-family:var(--mono)">Max wind <span style="color:${wC(maxW)}">${Math.round(maxW)} mph</span> · Gust <span style="color:${maxG>=gngLimits.maxGust?'var(--gust)':'var(--tx2)'}">${Math.round(maxG)} mph</span> · Precip <span style="color:${maxP>20?'var(--blue)':'var(--tx3)'}">${Math.round(maxP)}%</span></div></div>`;
     }
     o+=`</div>`;
   }
@@ -3005,7 +3368,7 @@ function rReality(){
       const decoupled=shallow&&live&&modW!=null&&obs&&obs.length&&(modW-obs[0].spd)>=4;
       o+=`<div style="margin-top:8px;padding:6px 10px;background:${shallow?'rgba(56,189,248,.06)':'var(--card2)'};border-radius:var(--rs)">`;
       o+=`<div class="sc-title" style="margin-bottom:2px">🌀 Mixed Layer · NWS forecaster grid</div>`;
-      o+=`<div style="font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--tx2)">Mixing height <span style="font-weight:700;color:${shallow?'var(--blue)':'var(--tx)'}">${mhFt.toLocaleString()} ft AGL</span>${tsMph!=null?` · Transport wind <span style="font-weight:700;color:${wC(tsMph)}">${Math.round(tsMph)} mph</span>${td!=null?' '+cp(td):''}`:''}</div>`;
+      o+=`<div style="font-size:11px;font-family:var(--mono);color:var(--tx2)">Mixing height <span style="font-weight:700;color:${shallow?'var(--blue)':'var(--tx)'}">${mhFt.toLocaleString()} ft AGL</span>${tsMph!=null?` · Transport wind <span style="font-weight:700;color:${wC(tsMph)}">${Math.round(tsMph)} mph</span>${td!=null?' '+cp(td):''}`:''}</div>`;
       if(shallow)o+=`<div style="font-size:10px;color:var(--tx3);margin-top:2px">Shallow mixed layer — the surface is decoupled from winds aloft${decoupled?'; live obs confirm the surface is calmer than modeled (drainage / decoupled regime)':'. In valley and terrain locations the real surface wind can differ sharply from the model'}.</div>`;
       o+='</div>';
     }
@@ -3663,7 +4026,7 @@ function rWxLogForm(){
     +`<button class="wxl-wbt${e.win==='PM'?' sel':''}" onclick="wxlPickWin('PM')">PM</button>`
     +`<select class="wxl-hr" onchange="wxlPickHour(this.value)">${hrOpts}</select>`
     +`</div>`
-    +`<div style="font-size:12px;color:var(--tx3);margin-bottom:6px;font-family:'JetBrains Mono',monospace">${wxlFmt(e.target)} · ${e.loc.name}</div>`;
+    +`<div style="font-size:12px;color:var(--tx3);margin-bottom:6px;font-family:var(--mono)">${wxlFmt(e.target)} · ${e.loc.name}</div>`;
   if(e._err)o+=`<div class="wxl-fc" style="color:var(--danger)">${e._err}</div>`;
   // Say up front whether the measured-error layer is still reachable for this date — after
   // the fact is too late, the observation is already gone.
@@ -4086,7 +4449,10 @@ document.addEventListener('DOMContentLoaded',()=>{
 // longer, so a fix could be live and still not on Brian's phone (2026-11-02, twice in a row). On load
 // and whenever the app comes back to the front, ask for the page uncached; if its BUILD differs,
 // reload once onto a fresh address. The build also shows next to "Updated", so the version is visible.
-const BUILD='v4.21.4c';
+const BUILD='v4.22.1';
+// v4.22.0: apply the saved section layout (Customize sections) before the first paint settles
+try{applyLayout()}catch(e){console.warn('layout',e)}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeCus()});
 async function checkBuild(){
   try{
     const r=await fetch(location.pathname+'?cb='+Date.now(),{cache:'no-store'});if(!r.ok)return;
